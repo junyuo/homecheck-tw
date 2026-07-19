@@ -4,3 +4,7 @@ coverage
 .DS_Store
 *.local
 .data-staging
+.data-cache/
+.data-staging/
+.data-last-good/
+.playwright-cli/

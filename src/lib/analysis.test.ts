@@ -16,6 +16,7 @@ const input: PropertyInput = {
   buildingType: 'highrise',
   hasParking: false,
   parkingPrice: 0,
+  parkingAreaPing: 0,
   radius: 500,
 }
 
@@ -26,6 +27,10 @@ describe('價格計算', () => {
 
   it('排除車位價格後換算單價', () => {
     expect(calculateUnitPrice(20000000, 40, 2000000)).toBe(450000)
+  })
+
+  it('同時排除車位價格與坪數', () => {
+    expect(calculateUnitPrice(20000000, 40, 2000000, 10)).toBe(600000)
   })
 
   it('計算中位數及四分位數', () => {
@@ -72,7 +77,13 @@ describe('空間分析', () => {
       type: 'FeatureCollection',
       features: [{
         type: 'Feature',
-        properties: { name: '測試區', level: 'attention', sourceType: 'demo' },
+        properties: {
+          name: '測試區',
+          level: 'attention',
+          sourceType: 'official',
+          officialCategory: '中',
+          updatedAt: '2026-07-19',
+        },
         geometry: { type: 'Polygon', coordinates: [[[121.54, 25.03], [121.55, 25.03], [121.55, 25.04], [121.54, 25.04], [121.54, 25.03]]] },
       }],
     }

@@ -1,9 +1,0 @@
-{
-  "type":"FeatureCollection",
-  "name":"DEMO ONLY - flood",
-  "features":[
-    {"type":"Feature","properties":{"name":"Demo 淹水潛勢區 A","level":"attention","sourceType":"demo"},"geometry":{"type":"Polygon","coordinates":[[[121.5415,25.0252],[121.5452,25.0252],[121.5452,25.0285],[121.5415,25.0285],[121.5415,25.0252]]]}},
-    {"type":"Feature","properties":{"name":"Demo 淹水潛勢區 B","level":"priority","sourceType":"demo"},"geometry":{"type":"Polygon","coordinates":[[[121.5625,25.0318],[121.5662,25.0318],[121.5662,25.0347],[121.5625,25.0347],[121.5625,25.0318]]]}},
-    {"type":"Feature","properties":{"name":"Demo 淹水潛勢區 C","level":"attention","sourceType":"demo"},"geometry":{"type":"Polygon","coordinates":[[[121.4597,25.0104],[121.4635,25.0104],[121.4635,25.0136],[121.4597,25.0136],[121.4597,25.0104]]]}}
-  ]
-}

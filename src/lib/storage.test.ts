@@ -18,9 +18,10 @@ const makeResult = (id: string): AnalysisResult => ({
     buildingType: 'highrise',
     hasParking: false,
     parkingPrice: 0,
+    parkingAreaPing: 0,
     radius: 500,
   },
-  price: { unitPrice: 500000, median: null, q1: null, q3: null, sampleCount: 0, differencePercent: null, radiusUsed: 1000, parkingExcluded: false, insufficient: true, trend: [] },
+  price: { unitPrice: 500000, median: null, q1: null, q3: null, sampleCount: 0, differencePercent: null, radiusUsed: 1000, parkingExcluded: false, parkingApproximate: false, insufficient: true, trend: [] },
   flood: 'unknown',
   liquefaction: 'unknown',
   nearestMetro: null,
@@ -31,7 +32,8 @@ const makeResult = (id: string): AnalysisResult => ({
   completeness: 0,
   checklist: [],
   updatedAt: '2026-07-19',
-  demo: true,
+  dataQuality: 'unavailable',
+  sources: {},
 })
 
 class MemoryStorage implements Storage {
@@ -62,5 +64,19 @@ describe('比較清單 Local Storage', () => {
     for (let index = 0; index < MAX_PROPERTIES; index += 1) saveProperty(makeResult(String(index)), String(index), storage)
     expect(() => saveProperty(makeResult('overflow'), 'overflow', storage)).toThrow('最多只能保存三間房屋')
     expect(loadSavedProperties(storage)).toHaveLength(3)
+  })
+
+  it('舊 Demo 陣列會遷移為歷史 Demo', () => {
+    const legacy = { ...makeResult('legacy'), demo: true }
+    delete (legacy as Partial<AnalysisResult>).dataQuality
+    storage.setItem('homecheck-tw:properties', JSON.stringify([{
+      id: 'legacy',
+      savedAt: '2026-07-19',
+      label: '舊資料',
+      result: legacy,
+    }]))
+    const [migrated] = loadSavedProperties(storage)
+    expect(migrated.historicDemo).toBe(true)
+    expect(migrated.result.dataQuality).toBe('historic-demo')
   })
 })

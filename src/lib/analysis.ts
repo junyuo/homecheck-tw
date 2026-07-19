@@ -13,9 +13,15 @@ import type {
   Transaction,
 } from '../types'
 
-export function calculateUnitPrice(totalPrice: number, areaPing: number, parkingPrice = 0): number {
-  if (areaPing <= 0) return 0
-  return Math.round(((totalPrice - Math.max(0, parkingPrice)) / areaPing) * 100) / 100
+export function calculateUnitPrice(
+  totalPrice: number,
+  areaPing: number,
+  parkingPrice = 0,
+  parkingAreaPing = 0,
+): number {
+  const netArea = areaPing - Math.max(0, parkingAreaPing)
+  if (netArea <= 0) return 0
+  return Math.round(((totalPrice - Math.max(0, parkingPrice)) / netArea) * 100) / 100
 }
 
 export function quantile(values: number[], percentile: number): number | null {
@@ -83,13 +89,19 @@ export function analyzePrice(input: PropertyInput, transactions: Transaction[]):
     comparable = comparableTransactions(input, transactions, radiusUsed)
   }
   const prices = comparable.map((item) =>
-    calculateUnitPrice(item.totalPrice, item.areaPing, item.parkingPrice ?? 0),
+    calculateUnitPrice(
+      item.totalPrice,
+      item.areaPing,
+      item.parkingPrice ?? 0,
+      item.parkingAreaPing ?? 0,
+    ),
   )
   const median = quantile(prices, 0.5)
   const unitPrice = calculateUnitPrice(
     input.totalPrice,
     input.areaPing,
     input.hasParking ? input.parkingPrice : 0,
+    input.hasParking ? input.parkingAreaPing : 0,
   )
   const differencePercent = median && comparable.length >= 5
     ? ((unitPrice - median) / median) * 100
@@ -97,7 +109,12 @@ export function analyzePrice(input: PropertyInput, transactions: Transaction[]):
   const byYear = new Map<number, number[]>()
   comparable.forEach((item) => {
     const year = new Date(item.date).getFullYear()
-    byYear.set(year, [...(byYear.get(year) ?? []), calculateUnitPrice(item.totalPrice, item.areaPing, item.parkingPrice)])
+    byYear.set(year, [...(byYear.get(year) ?? []), calculateUnitPrice(
+      item.totalPrice,
+      item.areaPing,
+      item.parkingPrice,
+      item.parkingAreaPing,
+    )])
   })
   return {
     unitPrice,
@@ -108,6 +125,7 @@ export function analyzePrice(input: PropertyInput, transactions: Transaction[]):
     differencePercent,
     radiusUsed,
     parkingExcluded: input.hasParking && input.parkingPrice > 0,
+    parkingApproximate: input.hasParking && input.parkingPrice > 0 && input.parkingAreaPing <= 0,
     insufficient: comparable.length < 5,
     trend: [...byYear.entries()]
       .sort(([a], [b]) => a - b)
@@ -160,8 +178,8 @@ function makeChecklist(
 export function buildAnalysis(
   input: PropertyInput,
   dataset: DistrictDataset,
-  flood: RiskCollection,
-  liquefaction: RiskCollection,
+  flood: RiskCollection | null = dataset.flood,
+  liquefaction: RiskCollection | null = dataset.liquefaction,
 ): AnalysisResult {
   const price = analyzePrice(input, dataset.transactions)
   const nearbyFacilities = pointsWithinRadius(dataset.facilities, input, input.radius)
@@ -174,20 +192,24 @@ export function buildAnalysis(
       longitude: feature.geometry.coordinates[0],
     })))
     : null
-  const evaluatedFlood = riskAtPoint(input, flood)
-  const evaluatedLiquefaction = riskAtPoint(input, liquefaction)
-  const floodIsDemo = flood.features.some((feature) => feature.properties.sourceType === 'demo')
-  const liquefactionIsDemo = liquefaction.features.some((feature) => feature.properties.sourceType === 'demo')
-  const floodLevel: RiskLevel = floodIsDemo ? 'unknown' : evaluatedFlood
-  const liquefactionLevel: RiskLevel = liquefactionIsDemo ? 'unknown' : evaluatedLiquefaction
+  const floodLevel = flood ? riskAtPoint(input, flood) : 'unknown'
+  const liquefactionLevel = liquefaction ? riskAtPoint(input, liquefaction) : 'unknown'
   const completenessSignals = [
     price.sampleCount >= 5,
     floodLevel !== 'unknown',
     liquefactionLevel !== 'unknown',
     metro.length > 0 || rail.length > 0,
-    dataset.facilities.features.length > 0,
+    dataset.facilities.features.some((feature) =>
+      !['metro', 'rail', 'bus'].includes(feature.properties.category)),
     dataset.accidents.features.length > 0,
   ]
+  const sourceStatuses = Object.values(dataset.sources).map((source) => source.status)
+  const officialCount = sourceStatuses.filter((status) => status === 'official').length
+  const dataQuality = officialCount === 0
+    ? 'unavailable'
+    : sourceStatuses.every((status) => status === 'official')
+      ? 'official'
+      : 'mixed'
   return {
     input,
     price,
@@ -201,6 +223,7 @@ export function buildAnalysis(
     completeness: Math.round(completenessSignals.filter(Boolean).length / completenessSignals.length * 100),
     checklist: makeChecklist(price, floodLevel, liquefactionLevel, nearbyAccidents.length),
     updatedAt: dataset.updatedAt,
-    demo: dataset.isDemo,
+    dataQuality,
+    sources: dataset.sources,
   }
 }

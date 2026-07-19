@@ -26,35 +26,29 @@ import {
 } from 'lucide-react'
 import { AnalysisMap, MapPicker } from './components/MapPanel'
 import { dataSources } from './config/dataSources'
+import { districtOptions } from './config/districts'
 import { buildAnalysis } from './lib/analysis'
-import { DataLoadError, loadDistrictData, loadRiskLayers } from './lib/dataLoader'
+import { DataLoadError, loadDistrictData, loadManifest } from './lib/dataLoader'
 import { clearProperties, deleteProperty, loadSavedProperties, saveProperty } from './lib/storage'
 import type {
   AnalysisResult,
   BuildingType,
+  DataManifest,
+  DataSourceId,
   DistrictDataset,
   PropertyInput,
-  RiskCollection,
   RiskLevel,
+  RuntimeSourceState,
   SavedProperty,
+  SourceStatus,
 } from './types'
 
 type Page = 'home' | 'check' | 'results' | 'compare' | 'methods'
 
-const districtOptions = {
-  taipei: [
-    { value: 'daan', label: '大安區', center: [25.033, 121.543] },
-    { value: 'xinyi', label: '信義區', center: [25.0337, 121.565] },
-  ],
-  'new-taipei': [
-    { value: 'banqiao', label: '板橋區', center: [25.012, 121.462] },
-  ],
-} as const
-
 const initialInput: PropertyInput = {
   city: 'taipei',
   district: 'daan',
-  address: '和平東路二段（Demo）',
+  address: '和平東路二段',
   latitude: 25.0269,
   longitude: 121.5434,
   totalPrice: 26800000,
@@ -65,6 +59,7 @@ const initialInput: PropertyInput = {
   buildingType: 'highrise',
   hasParking: true,
   parkingPrice: 2500000,
+  parkingAreaPing: 10,
   radius: 500,
 }
 
@@ -107,11 +102,26 @@ function Badge({ level }: { level: RiskLevel }) {
   )
 }
 
-function DemoBanner() {
+const sourceStatusLabel: Record<SourceStatus, string> = {
+  official: '正式資料',
+  stale: '資料過期',
+  failed: '最近更新失敗',
+  unavailable: '尚未接入',
+}
+
+function DataStatusBanner({ sources }: {
+  sources: Array<{ status: SourceStatus }> | RuntimeSourceState[]
+}) {
+  const official = sources.filter((source) => source.status === 'official').length
+  const failed = sources.filter((source) => source.status === 'failed').length
   return (
-    <aside className="demo-banner" aria-label="Demo 資料提醒">
+    <aside className="demo-banner" aria-label="資料狀態提醒">
       <Info size={18} aria-hidden="true" />
-      <span><strong>目前為功能 Demo。</strong> 交易、設施、事故與風險圖層不是正式政府資料，不可用於購屋決策。</span>
+      <span>
+        <strong>{official ? `已載入 ${official} 項正式來源。` : '目前沒有可用的正式分析來源。'}</strong>
+        {failed ? ` ${failed} 項來源最近更新或載入失敗，已保留 last-good；` : ' '}
+        未接入的面向會顯示「資料不足」，不以 Demo 補值。
+      </span>
       <a href="#/methods">查看資料狀態</a>
     </aside>
   )
@@ -257,9 +267,10 @@ interface CheckPageProps {
   onAnalyze: () => void
   loading: boolean
   error: string | null
+  manifest: DataManifest | null
 }
 
-function CheckPage({ input, setInput, onAnalyze, loading, error }: CheckPageProps) {
+function CheckPage({ input, setInput, onAnalyze, loading, error, manifest }: CheckPageProps) {
   const districts = districtOptions[input.city]
   const update = <K extends keyof PropertyInput>(key: K, value: PropertyInput[K]) =>
     setInput((current) => ({ ...current, [key]: value }))
@@ -276,11 +287,11 @@ function CheckPage({ input, setInput, onAnalyze, loading, error }: CheckPageProp
 
   return (
     <main>
-      <DemoBanner />
+      <DataStatusBanner sources={Object.values(manifest?.sources ?? {}).flatMap((source) => source ? [source] : [])} />
       <section className="page-intro">
         <span className="eyebrow">建立你的物件檢查</span>
         <h1>先把基本條件放上桌。</h1>
-        <p>第一版支援臺北市、新北市的中古公寓、華廈與住宅大樓。帶有「Demo」的結果不可視為真實資料。</p>
+        <p>支援臺北市 12 區與新北市 29 區的中古公寓、華廈與住宅大樓；各面向依來源狀態獨立顯示。</p>
       </section>
       <form className="check-layout" onSubmit={(event) => { event.preventDefault(); onAnalyze() }}>
         <div className="form-stack">
@@ -333,6 +344,9 @@ function CheckPage({ input, setInput, onAnalyze, loading, error }: CheckPageProp
               <label>車位價格（元，選填）
                 <input type="number" min="0" disabled={!input.hasParking} value={input.parkingPrice} onChange={(event) => update('parkingPrice', Number(event.target.value))} />
               </label>
+              <label>車位坪數（坪，選填）
+                <input type="number" min="0" step="0.1" disabled={!input.hasParking} value={input.parkingAreaPing} onChange={(event) => update('parkingAreaPing', Number(event.target.value))} />
+              </label>
             </div>
           </section>
 
@@ -381,7 +395,7 @@ function CheckPage({ input, setInput, onAnalyze, loading, error }: CheckPageProp
           <hr />
           <span>目前資料狀態</span>
           <Badge level="unknown" />
-          <p>正式政府資料尚未接入，所有分析會清楚標示 Demo。</p>
+          <p>每個來源獨立顯示正式、過期、失敗或未接入。未通過品質門檻的資料不參與分析。</p>
         </aside>
       </form>
     </main>
@@ -394,7 +408,8 @@ function formatDistance(value: number | null) {
 }
 
 function priceLevel(result: AnalysisResult): RiskLevel {
-  if (result.demo) return 'unknown'
+  if (result.sources['actual-price']?.status !== 'official' &&
+      result.sources['actual-price']?.status !== 'stale') return 'unknown'
   if (result.price.insufficient) return 'unknown'
   const difference = result.price.differencePercent ?? 0
   if (difference > 20) return 'priority'
@@ -427,12 +442,11 @@ interface ResultsPageProps {
   result: AnalysisResult | null
   setResult: React.Dispatch<React.SetStateAction<AnalysisResult | null>>
   dataset: DistrictDataset | null
-  layers: { flood: RiskCollection; liquefaction: RiskCollection } | null
   onSave: () => void
   saveMessage: string | null
 }
 
-function ResultsPage({ result, setResult, dataset, layers, onSave, saveMessage }: ResultsPageProps) {
+function ResultsPage({ result, setResult, dataset, onSave, saveMessage }: ResultsPageProps) {
   const [custom, setCustom] = useState('')
   if (!result) {
     return (
@@ -444,6 +458,14 @@ function ResultsPage({ result, setResult, dataset, layers, onSave, saveMessage }
       </main>
     )
   }
+  const available = (status?: SourceStatus) => status === 'official' || status === 'stale'
+  const busSource: DataSourceId = result.input.city === 'taipei' ? 'bus-taipei' : 'bus-new-taipei'
+  const hasBusData = available(result.sources[busSource]?.status)
+  const hasAccidentData = available(result.sources.accidents?.status)
+  const lifeSourceIds = ['school', 'medical', 'park', 'market', 'parking', 'library'] as const
+  const hasLifeData = lifeSourceIds.some((id) => available(result.sources[id]?.status))
+  const transitSourceIds: DataSourceId[] = ['metro', 'rail', busSource]
+  const hasTransitData = transitSourceIds.some((id) => available(result.sources[id]?.status))
   const priceStatus = priceLevel(result)
   const toggleChecklist = (id: string) => setResult((current) => current ? ({
     ...current,
@@ -467,7 +489,7 @@ function ResultsPage({ result, setResult, dataset, layers, onSave, saveMessage }
 
   return (
     <main>
-      <DemoBanner />
+      <DataStatusBanner sources={Object.values(result.sources).flatMap((source) => source ? [source] : [])} />
       <section className="result-summary">
         <div>
           <span className="eyebrow">你的購屋風險整理</span>
@@ -501,7 +523,7 @@ function ResultsPage({ result, setResult, dataset, layers, onSave, saveMessage }
           </dl>
           <div className="evidence">
             <p><strong>觀察到的事實</strong>{result.price.insufficient ? `只有 ${result.price.sampleCount} 筆符合條件，未產生精確的價差結論。` : `排除特殊交易後有 ${result.price.sampleCount} 筆可比較樣本。`}</p>
-            <p><strong>判斷依據</strong>同行政區、相近建物型態、屋齡差不超過 10 年；優先 500 公尺，不足則擴至 1 公里。{result.price.parkingExcluded ? '本物件與交易樣本皆盡可能排除車位價格。' : '未排除本物件車位價格。'}</p>
+            <p><strong>判斷依據</strong>同行政區、相近建物型態、屋齡差不超過 10 年；優先 500 公尺，不足則擴至 1 公里。{result.price.parkingExcluded ? result.price.parkingApproximate ? '已排除車位價格，但缺少車位坪數，單價為近似值。' : '已從總價與總坪數排除車位價格及坪數。' : '未排除本物件車位價格。'}</p>
             <p><strong>資料信心</strong>{result.price.insufficient ? '低：樣本少於 5 筆。' : result.price.sampleCount < 10 ? '中低：樣本有限，仍需確認樓層、座向與裝潢差異。' : '中：仍非正式鑑價。'}</p>
             <p><strong>建議確認</strong>索取同社區近期成交、謄本、車位拆價及屋況資料。</p>
           </div>
@@ -515,49 +537,49 @@ function ResultsPage({ result, setResult, dataset, layers, onSave, saveMessage }
             <div><dt>坡地與歷史災害</dt><dd><Badge level="unknown" /></dd></div>
           </dl>
           <div className="evidence">
-            <p><strong>觀察到的事實</strong>正式資料尚未接入。目前只用 Demo 多邊形驗證「點是否落在圖層內」；活動斷層、坡地與歷史點位也尚未接入。</p>
+            <p><strong>觀察到的事實</strong>只在官方圖資通過情境、座標系統、覆蓋範圍與 topology 驗證後判讀；未接入時維持灰色。</p>
             <p><strong>空間範圍</strong>以使用者確認的單一座標與區域性圖層相交判斷。</p>
-            <p><strong>資料信心</strong>低：非正式圖資，不可解讀為個別建物安全狀態。</p>
+            <p><strong>資料信心</strong>區域圖資不代表個別建物或基地安全；請確認圖層情境與更新日期。</p>
             <p><strong>建議確認</strong>查閱主管機關正式圖台，並確認基地地質調查、地質改良與建物結構資料。</p>
           </div>
         </ResultCard>
 
-        <ResultCard icon={TrainFront} index="03" title="交通環境" level={result.demo ? 'unknown' : result.nearestMetro === null && result.nearestRail === null ? 'unknown' : result.accidentCount > 2 ? 'attention' : 'low'}>
+        <ResultCard icon={TrainFront} index="03" title="交通環境" level={!hasTransitData || !hasAccidentData ? 'unknown' : result.accidentCount > 2 ? 'attention' : 'low'}>
           <dl className="metrics">
             <div><dt>最近捷運站</dt><dd>{formatDistance(result.nearestMetro)}</dd></div>
             <div><dt>最近火車站</dt><dd>{formatDistance(result.nearestRail)}</dd></div>
-            <div><dt>生活圈內公車站</dt><dd>{result.busCount} 個 Demo 點位</dd></div>
-            <div><dt>交通事故</dt><dd>{result.accidentCount} 個 Demo 點位</dd></div>
+            <div><dt>生活圈內公車站</dt><dd>{hasBusData ? `${result.busCount.toLocaleString('zh-TW')} 個站位` : '資料不足'}</dd></div>
+            <div><dt>交通事故</dt><dd>{hasAccidentData ? `${result.accidentCount.toLocaleString('zh-TW')} 件` : '資料不足'}</dd></div>
           </dl>
           <div className="evidence">
             <p><strong>查詢範圍</strong>以確認座標為中心，半徑 {result.input.radius >= 1000 ? '1 公里' : `${result.input.radius} 公尺`}。</p>
             <p><strong>觀察到的事實</strong>距離為直線距離，不等同步行路徑；主要道路資料尚未接入。</p>
-            <p><strong>資料信心</strong>低：目前為 Demo 點位。</p>
+            <p><strong>資料信心</strong>依捷運、公車、鐵路與事故各自來源狀態判定；缺少某來源不等於附近沒有該設施或事故。</p>
             <p><strong>建議確認</strong>在平日尖峰與夜間實走，留意轉乘、噪音、人行空間與事故熱點。</p>
           </div>
         </ResultCard>
 
-        <ResultCard icon={Building2} index="04" title="生活機能" level={result.demo ? 'unknown' : result.facilityCount ? 'low' : 'unknown'}>
+        <ResultCard icon={Building2} index="04" title="生活機能" level={hasLifeData && result.facilityCount ? 'low' : 'unknown'}>
           <div className="big-fact">
             <small>{result.input.radius >= 1000 ? '1 公里' : `${result.input.radius} 公尺`}生活圈內公共設施</small>
-            <strong>{result.facilityCount}<em> 個 Demo 點位</em></strong>
+            <strong>{hasLifeData ? result.facilityCount.toLocaleString('zh-TW') : '資料不足'}{hasLifeData && <em> 個官方點位</em>}</strong>
           </div>
           <div className="evidence">
             <p><strong>涵蓋類型</strong>學校、醫療、公園、市場、停車場與圖書館；超商不在第一版政府開放資料範圍。</p>
-            <p><strong>資料信心</strong>低：目前為 Demo 點位，沒有資料不代表附近沒有設施。</p>
+            <p><strong>資料信心</strong>各設施類別獨立驗證；沒有資料不代表附近沒有設施。</p>
             <p><strong>建議確認</strong>實際走訪日常採買、垃圾處理、醫療與停車動線，並留意營業時間。</p>
           </div>
         </ResultCard>
       </section>
 
-      {dataset && layers && (
+      {dataset && (
         <section className="section map-section">
           <div className="section-heading compact">
             <span className="eyebrow">圖層檢視</span>
             <h2>把點位放回地圖上看。</h2>
-            <p>地圖以外的完整文字結果已列在上方；可個別開關設施與 Demo 風險圖層。</p>
+            <p>地圖以外的完整文字結果已列在上方；只顯示已通過驗證的官方點位與風險圖層。</p>
           </div>
-          <AnalysisMap latitude={result.input.latitude} longitude={result.input.longitude} dataset={dataset} flood={layers.flood} liquefaction={layers.liquefaction} />
+          <AnalysisMap latitude={result.input.latitude} longitude={result.input.longitude} dataset={dataset} flood={dataset.flood} liquefaction={dataset.liquefaction} />
         </section>
       )}
 
@@ -583,7 +605,7 @@ function ResultsPage({ result, setResult, dataset, layers, onSave, saveMessage }
           <div><input id="custom-check" value={custom} onChange={(event) => setCustom(event.target.value)} placeholder="例：確認垃圾集中處理時間" /><button className="button secondary" onClick={addCustom}>加入</button></div>
         </div>
       </section>
-      <p className="data-footnote">資料更新時間：西元 {result.updatedAt} · 查詢範圍依各面向標示 · 所有 Demo 資料均不可作為購屋決策依據。</p>
+      <p className="data-footnote">資料更新時間：西元 {result.updatedAt} · 查詢範圍與來源狀態依各面向標示 · 本站不構成鑑價、工程或投資建議。</p>
     </main>
   )
 }
@@ -632,8 +654,9 @@ function ComparePage({ saved, setSaved }: { saved: SavedProperty[]; setSaved: (i
               ['淹水潛勢', (x: SavedProperty) => levelMeta[x.result.flood].label],
               ['土壤液化潛勢', (x: SavedProperty) => levelMeta[x.result.liquefaction].label],
               ['捷運距離', (x: SavedProperty) => formatDistance(x.result.nearestMetro)],
-              ['生活設施數量', (x: SavedProperty) => `${x.result.facilityCount} 個 Demo 點位`],
-              ['交通事故狀況', (x: SavedProperty) => `${x.result.accidentCount} 個 Demo 點位`],
+              ['生活設施數量', (x: SavedProperty) => `${x.result.facilityCount.toLocaleString('zh-TW')} 個官方點位`],
+              ['交通事故狀況', (x: SavedProperty) => x.result.sources.accidents?.status === 'official' ? `${x.result.accidentCount.toLocaleString('zh-TW')} 件` : '資料不足'],
+              ['資料品質', (x: SavedProperty) => x.historicDemo ? '歷史 Demo（不與正式結果混用）' : x.result.dataQuality === 'official' ? '全部正式' : x.result.dataQuality === 'mixed' ? '混合來源' : '資料不足'],
               ['待確認事項', (x: SavedProperty) => `${x.result.checklist.filter((item) => !item.checked).length} 項`],
               ['資料完整度', (x: SavedProperty) => `${x.result.completeness}%`],
             ].map(([label, render]) => (
@@ -647,7 +670,9 @@ function ComparePage({ saved, setSaved }: { saved: SavedProperty[]; setSaved: (i
   )
 }
 
-function MethodsPage() {
+function MethodsPage({ manifest }: { manifest: DataManifest | null }) {
+  const officialCount = Object.values(manifest?.sources ?? {})
+    .filter((source) => source?.status === 'official').length
   return (
     <main>
       <section className="page-intro methods-intro">
@@ -657,20 +682,31 @@ function MethodsPage() {
       </section>
       <section className="method-status">
         <Database />
-        <div><strong>目前正式政府資料：0 項</strong><p>所有可操作資料都是明確標示的 Demo，目的僅是驗證下載、分析與介面流程。</p></div>
+        <div><strong>目前正式政府資料：{officialCount.toLocaleString('zh-TW')} 項</strong><p>每個來源獨立標示狀態；失敗時保留 last-good，未接入來源不產生 Demo 結果。</p></div>
       </section>
       <section className="source-list">
         {dataSources.map((source) => (
           <article className="source-card" key={source.id}>
-            <div className="source-head"><div><span>{source.agency}</span><h2>{source.name}</h2></div><span className={`source-status ${source.status}`}>{source.status === 'official' ? '正式資料' : source.status === 'planned' ? '尚未接入' : 'Demo Adapter'}</span></div>
+            {(() => {
+              const state = manifest?.sources[source.id]
+              const status = state?.status ?? 'unavailable'
+              return (
+                <>
+            <div className="source-head"><div><span>{source.agency}</span><h2>{source.name}</h2></div><span className={`source-status ${status}`}>{sourceStatusLabel[status]}</span></div>
             <dl>
-              <div><dt>原始網址</dt><dd><a href={source.sourceUrl} target="_blank" rel="noreferrer">{source.sourceUrl}</a></dd></div>
+              <div><dt>原始網址</dt><dd>{source.sourceUrl ? <a href={source.sourceUrl} target="_blank" rel="noreferrer">{source.sourceUrl}</a> : '待確認'}</dd></div>
               <div><dt>授權</dt><dd>{source.license}</dd></div>
-              <div><dt>更新時間</dt><dd>{source.lastUpdated}</dd></div>
+              <div><dt>更新時間</dt><dd>{state?.updatedAt ?? '尚無正式快照'}</dd></div>
               <div><dt>更新頻率</dt><dd>{source.refreshFrequency}</dd></div>
-              <div><dt>覆蓋範圍</dt><dd>{source.coverage}</dd></div>
+              <div><dt>資料筆數</dt><dd>{(state?.recordCount ?? 0).toLocaleString('zh-TW')}</dd></div>
+              <div><dt>覆蓋範圍</dt><dd>{state?.coverage.districts.length ? `${state.coverage.districts.length} 個行政區` : '尚未接入'}</dd></div>
+              {state?.matchingRate !== null && state?.matchingRate !== undefined && <div><dt>地址匹配率</dt><dd>{(state.matchingRate * 100).toFixed(2)}%</dd></div>}
+              <div><dt>最近嘗試</dt><dd>{state?.lastAttempt.message ?? '尚未執行'}</dd></div>
               <div><dt>已知限制</dt><dd>{source.notes}</dd></div>
             </dl>
+                </>
+              )
+            })()}
           </article>
         ))}
       </section>
@@ -696,13 +732,14 @@ export default function App() {
   const [input, setInput] = useState<PropertyInput>(initialInput)
   const [result, setResult] = useState<AnalysisResult | null>(null)
   const [dataset, setDataset] = useState<DistrictDataset | null>(null)
-  const [layers, setLayers] = useState<{ flood: RiskCollection; liquefaction: RiskCollection } | null>(null)
+  const [manifest, setManifest] = useState<DataManifest | null>(null)
   const [saved, setSaved] = useState<SavedProperty[]>(() => loadSavedProperties())
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [saveMessage, setSaveMessage] = useState<string | null>(null)
 
   useEffect(() => {
+    loadManifest().then(setManifest).catch(() => setManifest(null))
     const onHash = () => {
       setPage(routeFromHash())
       window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -716,13 +753,9 @@ export default function App() {
     setLoading(true)
     setError(null)
     try {
-      const [nextDataset, nextLayers] = await Promise.all([
-        loadDistrictData(input.city, input.district),
-        loadRiskLayers(),
-      ])
-      const nextResult = buildAnalysis(input, nextDataset, nextLayers.flood, nextLayers.liquefaction)
+      const nextDataset = await loadDistrictData(input.city, input.district)
+      const nextResult = buildAnalysis(input, nextDataset)
       setDataset(nextDataset)
-      setLayers(nextLayers)
       setResult(nextResult)
       go('results')
     } catch (reason) {
@@ -745,10 +778,10 @@ export default function App() {
     window.setTimeout(() => setSaveMessage(null), 3000)
   }
 
-  let content = <MethodsPage />
+  let content = <MethodsPage manifest={manifest} />
   if (page === 'home') content = <HomePage />
-  if (page === 'check') content = <CheckPage input={input} setInput={setInput} onAnalyze={analyze} loading={loading} error={error} />
-  if (page === 'results') content = <ResultsPage result={result} setResult={setResult} dataset={dataset} layers={layers} onSave={save} saveMessage={saveMessage} />
+  if (page === 'check') content = <CheckPage input={input} setInput={setInput} onAnalyze={analyze} loading={loading} error={error} manifest={manifest} />
+  if (page === 'results') content = <ResultsPage result={result} setResult={setResult} dataset={dataset} onSave={save} saveMessage={saveMessage} />
   if (page === 'compare') content = <ComparePage saved={saved} setSaved={setSaved} />
 
   return (

@@ -224,9 +224,10 @@ input:disabled { background: #efefeb; color: #8a8f91; }
 .source-head > div > span { color: var(--muted); font-size: .7rem; }
 .source-head h2 { font-family: inherit; font-size: 1.12rem; margin: 4px 0 0; }
 .source-status { padding: 5px 8px; font-size: .66rem; font-weight: 700; border-radius: 99px; white-space: nowrap; }
-.source-status.demo-adapter { background: #fff0cf; color: #73501a; }
-.source-status.planned { background: #e9ebec; color: #4f5962; }
 .source-status.official { background: #e0eee6; color: #275f48; }
+.source-status.stale { background: #fff0cf; color: #73501a; }
+.source-status.failed { background: #fae4e0; color: #8a3128; }
+.source-status.unavailable { background: #e9ebec; color: #4f5962; }
 .source-card dl { margin: 0; }
 .source-card dl div { display: grid; grid-template-columns: 78px 1fr; gap: 8px; padding: 8px 0; border-top: 1px solid #e9e9e4; font-size: .75rem; }
 .source-card dt { color: var(--muted); }

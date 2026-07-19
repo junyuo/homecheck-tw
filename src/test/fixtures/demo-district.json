@@ -1,0 +1,17 @@
+{
+  "notice": "只供測試使用，不由 production loader 載入。",
+  "transactions": [
+    {
+      "id": "demo-fixture",
+      "date": "2025-01-01",
+      "latitude": 25.033,
+      "longitude": 121.543,
+      "totalPrice": 20000000,
+      "areaPing": 40,
+      "age": 20,
+      "buildingType": "highrise",
+      "floor": 5,
+      "specialTransaction": false
+    }
+  ]
+}

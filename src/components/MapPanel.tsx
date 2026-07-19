@@ -51,8 +51,8 @@ interface AnalysisMapProps {
   latitude: number
   longitude: number
   dataset: DistrictDataset
-  flood: RiskCollection
-  liquefaction: RiskCollection
+  flood: RiskCollection | null
+  liquefaction: RiskCollection | null
 }
 
 export function AnalysisMap({ latitude, longitude, dataset, flood, liquefaction }: AnalysisMapProps) {
@@ -84,14 +84,14 @@ export function AnalysisMap({ latitude, longitude, dataset, flood, liquefaction 
               {categoryLabel[category]}
             </label>
           ))}
-          <label className="layer-chip">
+          {flood && <label className="layer-chip">
             <input type="checkbox" checked={showFlood} onChange={(event) => setShowFlood(event.target.checked)} />
-            淹水 Demo
-          </label>
-          <label className="layer-chip">
+            淹水潛勢
+          </label>}
+          {liquefaction && <label className="layer-chip">
             <input type="checkbox" checked={showLiquefaction} onChange={(event) => setShowLiquefaction(event.target.checked)} />
-            液化 Demo
-          </label>
+            土壤液化
+          </label>}
         </div>
       </div>
       <MapContainer center={position} zoom={15} scrollWheelZoom className="map result-map" aria-label="分析圖層地圖">
@@ -115,14 +115,14 @@ export function AnalysisMap({ latitude, longitude, dataset, flood, liquefaction 
               }}
             />
           ))}
-        {showFlood && (
+        {showFlood && flood && (
           <GeoJSON data={flood} style={() => ({ color: '#386d84', weight: 2, fillColor: '#65a8c2', fillOpacity: 0.22 })} />
         )}
-        {showLiquefaction && (
+        {showLiquefaction && liquefaction && (
           <GeoJSON data={liquefaction} style={() => ({ color: '#a46327', weight: 2, fillColor: '#dc9c50', fillOpacity: 0.18 })} />
         )}
       </MapContainer>
-      <p className="map-hint">所有彩色點位與風險圖層目前皆為 Demo，只用於驗證互動與資料介面。</p>
+      <p className="map-hint">只顯示通過來源與座標驗證的官方資料；距離皆為直線距離。</p>
     </div>
   )
 }

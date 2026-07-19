@@ -2,8 +2,27 @@ name: Update static data
 
 on:
   workflow_dispatch:
+    inputs:
+      source:
+        description: Data source to update
+        required: true
+        default: all
+        type: choice
+        options:
+          - all
+          - price
+          - risks
+          - transport
+          - facilities
+          - accidents
+      dryRun:
+        description: Validate without publishing data files
+        required: true
+        default: false
+        type: boolean
   schedule:
-    - cron: '17 19 1 * *'
+    # 08:17 Asia/Taipei on the 2nd, 12th and 22nd.
+    - cron: '17 0 2,12,22 * *'
 
 permissions:
   contents: write
@@ -20,6 +39,9 @@ jobs:
       - run: npm ci
       - name: Run data pipeline
         run: npm run update-data
+        env:
+          DATA_SOURCE: ${{ inputs.source || 'all' }}
+          DRY_RUN: ${{ inputs.dryRun || 'false' }}
       - name: Validate website with last-good data
         run: npm run build
       - name: Commit only validated changes

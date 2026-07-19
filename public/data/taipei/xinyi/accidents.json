@@ -1,4 +1,0 @@
-{"type":"FeatureCollection","features":[
-  {"type":"Feature","properties":{"date":"2025-09-08","severity":"Demo 一般事故","demo":true},"geometry":{"type":"Point","coordinates":[121.5645,25.0334]}},
-  {"type":"Feature","properties":{"date":"2026-02-12","severity":"Demo 一般事故","demo":true},"geometry":{"type":"Point","coordinates":[121.5662,25.0328]}}
-]}

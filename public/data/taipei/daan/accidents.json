@@ -1,5 +1,0 @@
-{"type":"FeatureCollection","features":[
-  {"type":"Feature","properties":{"date":"2026-01-10","severity":"Demo 一般事故","demo":true},"geometry":{"type":"Point","coordinates":[121.5431,25.0270]}},
-  {"type":"Feature","properties":{"date":"2025-08-21","severity":"Demo 一般事故","demo":true},"geometry":{"type":"Point","coordinates":[121.5460,25.0259]}},
-  {"type":"Feature","properties":{"date":"2025-05-14","severity":"Demo 一般事故","demo":true},"geometry":{"type":"Point","coordinates":[121.5417,25.0249]}}
-]}

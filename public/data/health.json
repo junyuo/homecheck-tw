@@ -1,0 +1,160 @@
+{
+  "schemaVersion": "1.0.0",
+  "generatedAt": "2026-07-19T04:09:51.209Z",
+  "sources": {
+    "actual-price": {
+      "status": "official",
+      "updatedAt": "2026-07-19T04:09:29.490Z",
+      "attemptedAt": "2026-07-19T04:09:29.489Z",
+      "lastAttempt": {
+        "status": "success",
+        "message": "下載、schema 與品質檢查通過"
+      },
+      "recordCount": 230466,
+      "matchingRate": 0.994017761253898
+    },
+    "flood": {
+      "status": "unavailable",
+      "updatedAt": null,
+      "attemptedAt": null,
+      "lastAttempt": {
+        "status": "not-run",
+        "message": "尚未通過情境、CRS 與 topology 驗證"
+      },
+      "recordCount": 0,
+      "matchingRate": null
+    },
+    "liquefaction": {
+      "status": "unavailable",
+      "updatedAt": null,
+      "attemptedAt": null,
+      "lastAttempt": {
+        "status": "not-run",
+        "message": "尚未通過區域圖資品質門檻"
+      },
+      "recordCount": 0,
+      "matchingRate": null
+    },
+    "metro": {
+      "status": "official",
+      "updatedAt": "2026-07-19T03:59:14.896Z",
+      "attemptedAt": "2026-07-19T03:59:14.895Z",
+      "lastAttempt": {
+        "status": "success",
+        "message": "下載、schema 與品質檢查通過"
+      },
+      "recordCount": 109,
+      "matchingRate": null
+    },
+    "rail": {
+      "status": "unavailable",
+      "updatedAt": null,
+      "attemptedAt": null,
+      "lastAttempt": {
+        "status": "not-run",
+        "message": "尚未找到已驗證的官方免金鑰來源"
+      },
+      "recordCount": 0,
+      "matchingRate": null
+    },
+    "bus-taipei": {
+      "status": "unavailable",
+      "updatedAt": null,
+      "attemptedAt": null,
+      "lastAttempt": {
+        "status": "not-run",
+        "message": "既有公開 SHP 過舊，不作現況使用"
+      },
+      "recordCount": 0,
+      "matchingRate": null
+    },
+    "bus-new-taipei": {
+      "status": "official",
+      "updatedAt": "2026-07-19T03:59:14.896Z",
+      "attemptedAt": "2026-07-19T03:59:14.895Z",
+      "lastAttempt": {
+        "status": "success",
+        "message": "下載、schema 與品質檢查通過"
+      },
+      "recordCount": 2339,
+      "matchingRate": null
+    },
+    "school": {
+      "status": "unavailable",
+      "updatedAt": null,
+      "attemptedAt": null,
+      "lastAttempt": {
+        "status": "not-run",
+        "message": "尚未接入"
+      },
+      "recordCount": 0,
+      "matchingRate": null
+    },
+    "medical": {
+      "status": "unavailable",
+      "updatedAt": null,
+      "attemptedAt": null,
+      "lastAttempt": {
+        "status": "not-run",
+        "message": "尚未接入"
+      },
+      "recordCount": 0,
+      "matchingRate": null
+    },
+    "park": {
+      "status": "unavailable",
+      "updatedAt": null,
+      "attemptedAt": null,
+      "lastAttempt": {
+        "status": "not-run",
+        "message": "尚未接入"
+      },
+      "recordCount": 0,
+      "matchingRate": null
+    },
+    "market": {
+      "status": "unavailable",
+      "updatedAt": null,
+      "attemptedAt": null,
+      "lastAttempt": {
+        "status": "not-run",
+        "message": "尚未接入"
+      },
+      "recordCount": 0,
+      "matchingRate": null
+    },
+    "parking": {
+      "status": "unavailable",
+      "updatedAt": null,
+      "attemptedAt": null,
+      "lastAttempt": {
+        "status": "not-run",
+        "message": "尚未接入"
+      },
+      "recordCount": 0,
+      "matchingRate": null
+    },
+    "library": {
+      "status": "unavailable",
+      "updatedAt": null,
+      "attemptedAt": null,
+      "lastAttempt": {
+        "status": "not-run",
+        "message": "尚未接入"
+      },
+      "recordCount": 0,
+      "matchingRate": null
+    },
+    "accidents": {
+      "status": "unavailable",
+      "updatedAt": null,
+      "attemptedAt": null,
+      "lastAttempt": {
+        "status": "not-run",
+        "message": "尚未建立最近三個完整年度快照"
+      },
+      "recordCount": 0,
+      "matchingRate": null
+    }
+  }
+}

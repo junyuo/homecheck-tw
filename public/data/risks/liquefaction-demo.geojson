@@ -1,9 +1,0 @@
-{
-  "type":"FeatureCollection",
-  "name":"DEMO ONLY - liquefaction",
-  "features":[
-    {"type":"Feature","properties":{"name":"Demo 土壤液化潛勢區 A","level":"attention","sourceType":"demo"},"geometry":{"type":"Polygon","coordinates":[[[121.5424,25.0245],[121.5464,25.0245],[121.5464,25.0276],[121.5424,25.0276],[121.5424,25.0245]]]}},
-    {"type":"Feature","properties":{"name":"Demo 土壤液化潛勢區 B","level":"low","sourceType":"demo"},"geometry":{"type":"Polygon","coordinates":[[[121.5636,25.0320],[121.5680,25.0320],[121.5680,25.0354],[121.5636,25.0354],[121.5636,25.0320]]]}},
-    {"type":"Feature","properties":{"name":"Demo 土壤液化潛勢區 C","level":"attention","sourceType":"demo"},"geometry":{"type":"Polygon","coordinates":[[[121.4608,25.0110],[121.4648,25.0110],[121.4648,25.0142],[121.4608,25.0142],[121.4608,25.0110]]]}}
-  ]
-}

@@ -9,7 +9,9 @@
     "lint": "eslint .",
     "test": "vitest run",
     "test:watch": "vitest",
-    "update-data": "node scripts/update-data.mjs"
+    "update-data": "node scripts/update-data.mjs",
+    "validate:data": "node scripts/update-data.mjs --validate-only",
+    "test:data": "node --test scripts/data/*.node-test.mjs"
   },
   "dependencies": {
     "@turf/boolean-point-in-polygon": "^7.2.0",
@@ -17,6 +19,7 @@
     "@turf/helpers": "^7.2.0",
     "leaflet": "^1.9.4",
     "lucide-react": "^0.468.0",
+    "proj4": "^2.20.9",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-leaflet": "^4.2.1"
@@ -38,6 +41,6 @@
     "typescript": "~5.6.2",
     "typescript-eslint": "^8.18.2",
     "vite": "^6.0.5",
-    "vitest": "^2.1.8"
+    "vitest": "^4.1.10"
   }
 }

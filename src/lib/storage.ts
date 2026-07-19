@@ -2,13 +2,46 @@ import type { AnalysisResult, SavedProperty } from '../types'
 
 export const STORAGE_KEY = 'homecheck-tw:properties'
 export const MAX_PROPERTIES = 3
+export const STORAGE_SCHEMA_VERSION = 2
+
+interface StorageEnvelope {
+  schemaVersion: typeof STORAGE_SCHEMA_VERSION
+  properties: SavedProperty[]
+}
+
+function encode(properties: SavedProperty[]): string {
+  return JSON.stringify({ schemaVersion: STORAGE_SCHEMA_VERSION, properties } satisfies StorageEnvelope)
+}
+
+function migrateLegacy(items: SavedProperty[]): SavedProperty[] {
+  return items.map((item) => {
+    const legacy = item.result as AnalysisResult & { demo?: boolean }
+    return {
+      ...item,
+      historicDemo: legacy.demo === true || legacy.dataQuality === 'historic-demo',
+      result: {
+        ...legacy,
+        dataQuality: legacy.demo === true ? 'historic-demo' : (legacy.dataQuality ?? 'unavailable'),
+        sources: legacy.sources ?? {},
+      },
+    }
+  }).map(({ result, ...item }) => {
+    const migrated = { ...result } as AnalysisResult & { demo?: boolean }
+    delete migrated.demo
+    return { ...item, result: migrated }
+  })
+}
 
 export function loadSavedProperties(storage: Pick<Storage, 'getItem'> = localStorage): SavedProperty[] {
   try {
     const raw = storage.getItem(STORAGE_KEY)
     if (!raw) return []
     const parsed = JSON.parse(raw)
-    return Array.isArray(parsed) ? parsed.slice(0, MAX_PROPERTIES) : []
+    if (Array.isArray(parsed)) return migrateLegacy(parsed).slice(0, MAX_PROPERTIES)
+    if (parsed?.schemaVersion === STORAGE_SCHEMA_VERSION && Array.isArray(parsed.properties)) {
+      return parsed.properties.slice(0, MAX_PROPERTIES)
+    }
+    return []
   } catch {
     return []
   }
@@ -28,7 +61,7 @@ export function saveProperty(
     result,
   }
   const next = [...current, item]
-  storage.setItem(STORAGE_KEY, JSON.stringify(next))
+  storage.setItem(STORAGE_KEY, encode(next))
   return next
 }
 
@@ -37,10 +70,10 @@ export function deleteProperty(
   storage: Pick<Storage, 'getItem' | 'setItem'> = localStorage,
 ): SavedProperty[] {
   const next = loadSavedProperties(storage).filter((item) => item.id !== id)
-  storage.setItem(STORAGE_KEY, JSON.stringify(next))
+  storage.setItem(STORAGE_KEY, encode(next))
   return next
 }
 
 export function clearProperties(storage: Pick<Storage, 'setItem'> = localStorage): void {
-  storage.setItem(STORAGE_KEY, '[]')
+  storage.setItem(STORAGE_KEY, encode([]))
 }
