@@ -1,0 +1,1 @@
+{"type":"FeatureCollection","features":[{"type":"Feature","properties":{"name":"鶯歌","category":"rail"},"geometry":{"type":"Point","coordinates":[121.35535,24.95432]}},{"type":"Feature","properties":{"name":"鳳鳴","category":"rail"},"geometry":{"type":"Point","coordinates":[121.33658,24.97268]}}]}

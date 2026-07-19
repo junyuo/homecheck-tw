@@ -303,21 +303,21 @@ async function processCity(city, archives, cutoff, addressIndex) {
   return { transactions, stats, auditCandidates }
 }
 
-function selectAuditCandidates(cityResult) {
-  const grouped = Map.groupBy(
-    [...cityResult.auditCandidates.values()].sort((a, b) => a.id.localeCompare(b.id)),
-    (item) => item.buildingType,
-  )
+export function selectAuditCandidates(candidates) {
+  const ordered = [...candidates].sort((a, b) => a.id.localeCompare(b.id))
+  const grouped = Map.groupBy(ordered, (item) => item.buildingType)
   const selected = []
   for (const type of ['apartment', 'mansion', 'highrise']) {
     selected.push(...(grouped.get(type) ?? []).slice(0, 3))
   }
   const seen = new Set(selected.map((item) => item.id))
-  selected.push(...[...cityResult.auditCandidates.values()]
-    .sort((a, b) => a.id.localeCompare(b.id))
+  selected.push(...ordered
     .filter((item) => !seen.has(item.id))
     .slice(0, 10 - selected.length))
-  return selected.slice(0, 10)
+  const primary = selected.slice(0, 10)
+  const primaryIds = new Set(primary.map((item) => item.id))
+  const reserve = ordered.filter((item) => !primaryIds.has(item.id)).slice(0, 20)
+  return { primary, reserve }
 }
 
 function qualityReport(cityResults) {
@@ -363,8 +363,8 @@ export async function updateOfficialPrice({
     adapterVersion: PRICE_ADAPTER_VERSION,
     generatedAt: now.toISOString(),
     samples: {
-      taipei: selectAuditCandidates(taipei),
-      'new-taipei': selectAuditCandidates(newTaipei),
+      taipei: selectAuditCandidates(taipei.auditCandidates.values()),
+      'new-taipei': selectAuditCandidates(newTaipei.auditCandidates.values()),
     },
   }, null, 2)}\n`)
   const report = qualityReport([taipei, newTaipei])

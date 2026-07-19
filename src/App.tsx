@@ -30,6 +30,7 @@ import { districtOptions } from './config/districts'
 import { DEFAULT_FLOOD_SCENARIO, floodScenarios } from './config/risks'
 import { buildAnalysis } from './lib/analysis'
 import { DataLoadError, loadDistrictData, loadFloodScenario, loadManifest } from './lib/dataLoader'
+import { sourceStatusText } from './lib/sourceStatus'
 import { clearProperties, deleteProperty, loadSavedProperties, saveProperty } from './lib/storage'
 import type {
   AnalysisResult,
@@ -103,21 +104,6 @@ function Badge({ level }: { level: RiskLevel }) {
       {levelMeta[level].label}
     </span>
   )
-}
-
-const sourceStatusLabel: Record<SourceStatus, string> = {
-  official: '正式資料',
-  stale: '資料過期',
-  failed: '最近更新失敗',
-  unavailable: '尚未接入',
-}
-
-function sourceStatusText(source: DataManifest['sources'][DataSourceId] | undefined) {
-  if (source?.status === 'unavailable' &&
-      source.qualityGates?.manualAudit?.status === 'pending') {
-    return '等待人工驗收'
-  }
-  return sourceStatusLabel[source?.status ?? 'unavailable']
 }
 
 function DataStatusBanner({ sources }: {

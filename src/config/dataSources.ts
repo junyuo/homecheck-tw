@@ -59,11 +59,11 @@ export const dataSources: DataSource[] = [
   {
     id: 'rail',
     name: '臺鐵車站',
-    agency: '交通部臺灣鐵路管理機關',
-    sourceUrl: '',
-    license: '待確認',
-    refreshFrequency: '尚未接入',
-    notes: '取得免金鑰且可驗證的官方完整來源前維持資料不足。',
+    agency: '國營臺灣鐵路股份有限公司',
+    sourceUrl: 'https://data.gov.tw/dataset/33425',
+    license: '政府資料開放授權條款第 1 版',
+    refreshFrequency: '每月建立靜態快照',
+    notes: '依官方站名、地址與 GPS 建立實體站快照；同名且相距 150 公尺內的站碼合併。距離為直線距離。',
   },
   {
     id: 'bus-taipei',

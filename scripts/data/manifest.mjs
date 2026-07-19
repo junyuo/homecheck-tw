@@ -1,0 +1,105 @@
+import { createHash } from 'node:crypto'
+import { readFile, readdir, stat, writeFile } from 'node:fs/promises'
+import { join } from 'node:path'
+import { ALL_DISTRICTS } from './constants.mjs'
+
+async function walk(directory) {
+  const result = []
+  for (const name of await readdir(directory)) {
+    const path = join(directory, name)
+    const item = await stat(path)
+    if (item.isDirectory()) result.push(...await walk(path))
+    else result.push(path)
+  }
+  return result
+}
+
+function validateCoordinates(coordinates) {
+  if (!Array.isArray(coordinates) || coordinates.length === 0) return false
+  if (coordinates.length >= 2 && coordinates.every(Number.isFinite)) {
+    const [longitude, latitude] = coordinates
+    return longitude >= 121.28 && longitude <= 122.02 && latitude >= 24.65 && latitude <= 25.32
+  }
+  return coordinates.every(validateCoordinates)
+}
+
+export async function validateData(directory) {
+  const manifest = JSON.parse(await readFile(join(directory, 'manifest.json'), 'utf8'))
+  if (manifest.schemaVersion !== '2.0.0' || manifest.mode !== 'production') {
+    throw new Error('manifest 必須是 production schema v2')
+  }
+  const files = await walk(directory)
+  const relativeFiles = new Set(files.map((file) => file.slice(directory.length + 1)))
+  const jsonFiles = files.filter((file) => file.endsWith('.json') || file.endsWith('.geojson'))
+  for (const file of jsonFiles) {
+    const data = JSON.parse(await readFile(file, 'utf8'))
+    if (file.endsWith('.geojson')) {
+      if (data.type !== 'FeatureCollection' || !Array.isArray(data.features)) {
+        throw new Error(`${file} 不是 FeatureCollection`)
+      }
+      for (const feature of data.features) {
+        if (!feature.geometry || !validateCoordinates(feature.geometry.coordinates)) {
+          throw new Error(`${file} 含空 geometry 或雙北範圍外座標`)
+        }
+        if (file.includes('/risks/')) {
+          const properties = feature.properties ?? {}
+          if (!['flood', 'liquefaction'].includes(properties.riskType) ||
+              !['low', 'attention', 'priority'].includes(properties.level) ||
+              !properties.officialCategory) {
+            throw new Error(`${file} 含無效災害分類`)
+          }
+        }
+      }
+    }
+  }
+  for (const source of Object.values(manifest.sources)) {
+    for (const file of source.files ?? []) {
+      if (!relativeFiles.has(file)) throw new Error(`${source.id} 引用不存在檔案 ${file}`)
+      const fileSize = (await stat(join(directory, file))).size
+      if (fileSize > 5 * 1024 * 1024) throw new Error(`${file} 超過 5 MB，必須再切割`)
+    }
+  }
+  const expectedDistricts = new Set(ALL_DISTRICTS.map(({ city, slug }) => `${city}/${slug}`))
+  if (manifest.coverage.districts.length !== expectedDistricts.size ||
+      manifest.coverage.districts.some((district) => !expectedDistricts.has(district))) {
+    throw new Error('manifest 必須完整列出雙北 41 區')
+  }
+  const expectedFiles = {
+    'district-boundary': 41,
+    flood: 410,
+    liquefaction: 41,
+    rail: 41,
+  }
+  for (const [id, expected] of Object.entries(expectedFiles)) {
+    const source = manifest.sources[id]
+    if (source?.files?.length && source.files.length !== expected) {
+      throw new Error(`${id} 應有 ${expected} 個檔案，實際為 ${source.files.length}`)
+    }
+  }
+  return { manifest, files: files.length, jsonFiles: jsonFiles.length }
+}
+
+export async function sourceFilesSha256(directory, files) {
+  const hash = createHash('sha256')
+  for (const file of [...files].sort()) {
+    hash.update(file)
+    hash.update(await readFile(join(directory, file)))
+  }
+  return hash.digest('hex')
+}
+
+export async function writeHealth(directory, manifest) {
+  const health = {
+    schemaVersion: '1.0.0',
+    generatedAt: new Date().toISOString(),
+    sources: Object.fromEntries(Object.entries(manifest.sources).map(([id, source]) => [id, {
+      status: source.status,
+      updatedAt: source.updatedAt,
+      attemptedAt: source.attemptedAt,
+      lastAttempt: source.lastAttempt,
+      recordCount: source.recordCount,
+      matchingRate: source.matchingRate,
+    }])),
+  }
+  await writeFile(join(directory, 'health.json'), `${JSON.stringify(health, null, 2)}\n`)
+}

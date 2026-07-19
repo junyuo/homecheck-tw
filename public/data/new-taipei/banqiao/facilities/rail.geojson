@@ -1,0 +1,1 @@
+{"type":"FeatureCollection","features":[{"type":"Feature","properties":{"name":"板橋","category":"rail"},"geometry":{"type":"Point","coordinates":[121.46406,25.01401]}},{"type":"Feature","properties":{"name":"浮洲","category":"rail"},"geometry":{"type":"Point","coordinates":[121.44477,25.00419]}}]}

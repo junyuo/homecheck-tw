@@ -1,7 +1,9 @@
 #!/usr/bin/env node
-import { access, cp, mkdir, readFile, readdir, rename, rm, stat, writeFile } from 'node:fs/promises'
+import { access, cp, mkdir, readFile, rename, rm, writeFile } from 'node:fs/promises'
 import { join, resolve } from 'node:path'
+import { evaluatePriceAudit, evaluateRailAudit, evaluateRiskAudit, manualGate } from './data/audit.mjs'
 import { ALL_DISTRICTS } from './data/constants.mjs'
+import { sourceFilesSha256, validateData, writeHealth } from './data/manifest.mjs'
 import { updateOfficialPrice } from './data/price.mjs'
 import { updateOfficialRisks } from './data/risks.mjs'
 import { updateOfficialTransport } from './data/transport.mjs'
@@ -26,81 +28,6 @@ if (!validSources.has(selectedSource)) throw new Error(`不支援的 source：${
 
 const log = (stage, message) => console.log(`[${stage}] ${message}`)
 const shouldRun = (...sources) => selectedSource === 'all' || sources.includes(selectedSource)
-
-async function walk(directory) {
-  const result = []
-  for (const name of await readdir(directory)) {
-    const path = join(directory, name)
-    const item = await stat(path)
-    if (item.isDirectory()) result.push(...await walk(path))
-    else result.push(path)
-  }
-  return result
-}
-
-function validateCoordinates(coordinates) {
-  if (!Array.isArray(coordinates) || coordinates.length === 0) return false
-  if (coordinates.length >= 2 && coordinates.every(Number.isFinite)) {
-    const [longitude, latitude] = coordinates
-    return longitude >= 121.28 && longitude <= 122.02 && latitude >= 24.65 && latitude <= 25.32
-  }
-  return coordinates.every(validateCoordinates)
-}
-
-async function validate(directory) {
-  const manifest = JSON.parse(await readFile(join(directory, 'manifest.json'), 'utf8'))
-  if (manifest.schemaVersion !== '2.0.0' || manifest.mode !== 'production') {
-    throw new Error('manifest 必須是 production schema v2')
-  }
-  const files = await walk(directory)
-  const relativeFiles = new Set(files.map((file) => file.slice(directory.length + 1)))
-  const jsonFiles = files.filter((file) => file.endsWith('.json') || file.endsWith('.geojson'))
-  for (const file of jsonFiles) {
-    const data = JSON.parse(await readFile(file, 'utf8'))
-    if (file.endsWith('.geojson')) {
-      if (data.type !== 'FeatureCollection' || !Array.isArray(data.features)) {
-        throw new Error(`${file} 不是 FeatureCollection`)
-      }
-      for (const feature of data.features) {
-        if (!feature.geometry || !validateCoordinates(feature.geometry.coordinates)) {
-          throw new Error(`${file} 含空 geometry 或雙北範圍外座標`)
-        }
-        if (file.includes('/risks/')) {
-          const properties = feature.properties ?? {}
-          if (!['flood', 'liquefaction'].includes(properties.riskType) ||
-              !['low', 'attention', 'priority'].includes(properties.level) ||
-              !properties.officialCategory) {
-            throw new Error(`${file} 含無效災害分類`)
-          }
-        }
-      }
-    }
-  }
-  for (const source of Object.values(manifest.sources)) {
-    for (const file of source.files ?? []) {
-      if (!relativeFiles.has(file)) throw new Error(`${source.id} 引用不存在檔案 ${file}`)
-      const fileSize = (await stat(join(directory, file))).size
-      if (fileSize > 5 * 1024 * 1024) throw new Error(`${file} 超過 5 MB，必須再切割`)
-    }
-  }
-  const expectedDistricts = new Set(ALL_DISTRICTS.map(({ city, slug }) => `${city}/${slug}`))
-  if (manifest.coverage.districts.length !== expectedDistricts.size ||
-      manifest.coverage.districts.some((district) => !expectedDistricts.has(district))) {
-    throw new Error('manifest 必須完整列出雙北 41 區')
-  }
-  const expectedRiskFiles = {
-    'district-boundary': 41,
-    flood: 410,
-    liquefaction: 41,
-  }
-  for (const [id, expected] of Object.entries(expectedRiskFiles)) {
-    const source = manifest.sources[id]
-    if (source?.files?.length && source.files.length !== expected) {
-      throw new Error(`${id} 應有 ${expected} 個檔案，實際為 ${source.files.length}`)
-    }
-  }
-  return { manifest, files: files.length, jsonFiles: jsonFiles.length }
-}
 
 function sourceFailure(previous, id, now, message) {
   return {
@@ -143,25 +70,9 @@ function officialSource(previous, result, now, downloadUrl, coverage) {
   }
 }
 
-async function writeHealth(directory, manifest) {
-  const health = {
-    schemaVersion: '1.0.0',
-    generatedAt: new Date().toISOString(),
-    sources: Object.fromEntries(Object.entries(manifest.sources).map(([id, source]) => [id, {
-      status: source.status,
-      updatedAt: source.updatedAt,
-      attemptedAt: source.attemptedAt,
-      lastAttempt: source.lastAttempt,
-      recordCount: source.recordCount,
-      matchingRate: source.matchingRate,
-    }])),
-  }
-  await writeFile(join(directory, 'health.json'), `${JSON.stringify(health, null, 2)}\n`)
-}
-
 async function main() {
   if (validateOnly) {
-    const report = await validate(publicData)
+    const report = await validateData(publicData)
     log('validate', `${report.jsonFiles} 個 JSON/GeoJSON、${report.files} 個檔案通過驗證`)
     return
   }
@@ -188,11 +99,12 @@ async function main() {
           join(root, 'scripts', 'data', 'audits', 'price-v1.json'),
           'utf8',
         ))
-        const auditPassed = audit.status === 'passed' &&
-          audit.adapterVersion === result.adapterVersion &&
-          audit.samples?.taipei >= 10 &&
-          audit.samples?.['new-taipei'] >= 10 &&
-          audit.mismatches === 0
+        const auditEvaluation = evaluatePriceAudit(audit, {
+          adapterVersion: result.adapterVersion,
+          sourceSha256: result.sha256,
+          datasetSha256: await sourceFilesSha256(staging, result.files),
+        })
+        const auditPassed = auditEvaluation.passed
         const nextPrice = officialSource(
           manifest.sources['actual-price'],
           {
@@ -204,12 +116,7 @@ async function main() {
                 adapterVersion: result.adapterVersion,
                 checkedAt: now,
               },
-              manualAudit: {
-                status: auditPassed ? 'passed' : 'pending',
-                adapterVersion: result.adapterVersion,
-                checkedAt: audit.checkedAt,
-                sampleCount: (audit.samples?.taipei ?? 0) + (audit.samples?.['new-taipei'] ?? 0),
-              },
+              manualAudit: manualGate(auditEvaluation, result.adapterVersion, audit.checkedAt),
             },
           },
           now,
@@ -254,22 +161,66 @@ async function main() {
 
   if (shouldRun('transport')) {
     log('transport', '更新臺北捷運與新北公車站位')
-    const results = await updateOfficialTransport({ output: staging, cache, now: new Date(), dryRun })
-    for (const [index, result] of results.entries()) {
-      const id = index === 0 ? 'metro' : 'bus-new-taipei'
+    const results = await updateOfficialTransport({
+      output: staging,
+      cache,
+      now: new Date(),
+      dryRun,
+      previous: { rail: manifest.sources.rail },
+    })
+    for (const result of results) {
+      const id = result.id
       if (result.status === 'official' && !dryRun) {
-        manifest.sources[id] = officialSource(
+        let qualityGates
+        let railAudit
+        let railEvaluation
+        if (id === 'rail') {
+          railAudit = JSON.parse(await readFile(
+            join(root, 'scripts', 'data', 'audits', 'rail-v1.json'),
+            'utf8',
+          ))
+          railEvaluation = evaluateRailAudit(railAudit, {
+            adapterVersion: result.adapterVersion,
+            sourceSha256: result.sha256,
+            datasetSha256: await sourceFilesSha256(staging, result.files),
+          })
+          qualityGates = {
+            automated: {
+              status: 'passed',
+              adapterVersion: result.adapterVersion,
+              checkedAt: now,
+            },
+            manualAudit: manualGate(railEvaluation, result.adapterVersion, railAudit.checkedAt),
+          }
+        }
+        const nextSource = officialSource(
           manifest.sources[id],
-          result,
+          { ...result, qualityGates },
           now,
           id === 'metro'
             ? 'https://data.taipei/dataset/detail?id=1eefa68d-7c8d-491b-8e75-66a161947426'
-            : 'https://data.ntpc.gov.tw/datasets/34b402a8-53d9-483d-9406-24a682c2d6dc',
+            : id === 'bus-new-taipei'
+              ? 'https://data.ntpc.gov.tw/datasets/34b402a8-53d9-483d-9406-24a682c2d6dc'
+              : 'https://data.gov.tw/dataset/33425',
           {
-            cities: id === 'metro' ? ['taipei', 'new-taipei'] : ['new-taipei'],
+            cities: id === 'bus-new-taipei' ? ['new-taipei'] : ['taipei', 'new-taipei'],
             districts: result.files.map((file) => file.split('/').slice(0, 2).join('/')),
           },
         )
+        if (id === 'rail') {
+          const prerequisitesPassed = ['actual-price', 'flood', 'liquefaction']
+            .every((source) => manifest.sources[source]?.status === 'official')
+          if (!railEvaluation.passed || !prerequisitesPassed) {
+            nextSource.status = 'unavailable'
+            nextSource.lastAttempt = {
+              status: 'success',
+              message: !prerequisitesPassed
+                ? '臺鐵自動 QA 通過；等待價格與災害來源先完成正式發布'
+                : '自動 QA 通過；等待臺北 4 站及新北 5 站人工抽查',
+            }
+          }
+        }
+        manifest.sources[id] = nextSource
         log('transport', `${id}：${result.recordCount.toLocaleString('zh-TW')} 筆`)
       } else if (result.status === 'failed') {
         failed = true
@@ -299,15 +250,18 @@ async function main() {
           join(root, 'scripts', 'data', 'audits', 'risks-v1.json'),
           'utf8',
         ))
-        const sampleCount = (source) =>
-          (audit.samples?.[source]?.taipei ?? 0) +
-          (audit.samples?.[source]?.['new-taipei'] ?? 0)
-        const auditPassed = (source) =>
-          audit.status === 'passed' &&
-          audit.adapterVersion === result.adapterVersion &&
-          (audit.samples?.[source]?.taipei ?? 0) >= 5 &&
-          (audit.samples?.[source]?.['new-taipei'] ?? 0) >= 5 &&
-          audit.mismatches === 0
+        const evaluations = Object.fromEntries(await Promise.all(
+          ['flood', 'liquefaction'].map(async (source) => [source, evaluateRiskAudit(
+            audit,
+            source,
+            {
+              adapterVersion: result.adapterVersion,
+              sourceSha256: result[source].sha256,
+              datasetSha256: await sourceFilesSha256(staging, result[source].files),
+            },
+          )]),
+        ))
+        const auditPassed = (source) => evaluations[source].passed
         const qualityGates = (source) => ({
           automated: {
             status: 'passed',
@@ -315,12 +269,7 @@ async function main() {
             checkedAt: now,
             gdalVersion: result.gdalVersion,
           },
-          manualAudit: {
-            status: auditPassed(source) ? 'passed' : 'pending',
-            adapterVersion: result.adapterVersion,
-            checkedAt: audit.checkedAt,
-            sampleCount: sampleCount(source),
-          },
+          manualAudit: manualGate(evaluations[source], result.adapterVersion, audit.checkedAt),
         })
         manifest.sources['district-boundary'] = officialSource(
           manifest.sources['district-boundary'],
@@ -406,7 +355,7 @@ async function main() {
   manifest.dataVersion = `production-${now.slice(0, 10)}`
   await writeFile(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`)
   await writeHealth(staging, manifest)
-  const report = await validate(staging)
+  const report = await validateData(staging)
   log('validate', `${report.jsonFiles} 個 JSON/GeoJSON、${report.files} 個檔案通過驗證`)
 
   await rm(backup, { recursive: true, force: true })

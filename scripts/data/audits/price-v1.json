@@ -1,15 +1,51 @@
 {
   "adapterVersion": "price-v1",
   "status": "pending",
-  "checkedAt": "2026-07-19T05:49:39.588Z",
+  "checkedAt": "2026-07-19T08:08:00.000Z",
   "method": "內政部不動產交易實價查詢服務網人工比對",
-  "samples": {
-    "taipei": 1,
-    "new-taipei": 0
-  },
-  "mismatches": 0,
-  "verifiedSampleIds": [
-    "00080b9986849a5f3604085d"
+  "sourceSha256": "f8ccdeb6378b38cae354c3cf28fb9ccd5cb769731452922a1f5f20fdadbbd09e",
+  "datasetSha256": "626c3635d395ca543875067b6e6ea8f1b37c9ed73dbb81af7f3d111274f54c76",
+  "samples": [
+    {
+      "id": "00080b9986849a5f3604085d",
+      "city": "taipei",
+      "buildingType": "apartment",
+      "result": "matched",
+      "checkedAt": "2026-07-19T05:49:39.588Z",
+      "fields": {
+        "date": true,
+        "totalPrice": true,
+        "areaSquareMeters": true,
+        "buildingType": true,
+        "floor": true,
+        "parkingPrice": true,
+        "parkingAreaSquareMeters": true
+      }
+    },
+    {
+      "id": "0008e19b2786321f2a0f683b",
+      "city": "taipei",
+      "buildingType": "apartment",
+      "result": "matched",
+      "checkedAt": "2026-07-19T08:06:40.000Z",
+      "fields": {
+        "date": true,
+        "totalPrice": true,
+        "areaSquareMeters": true,
+        "buildingType": true,
+        "floor": true,
+        "parkingPrice": true,
+        "parkingAreaSquareMeters": true
+      }
+    },
+    {
+      "id": "000ee0e7418342dfed505789",
+      "city": "taipei",
+      "buildingType": "apartment",
+      "result": "inconclusive",
+      "checkedAt": "2026-07-19T08:08:00.000Z",
+      "reason": "官方查詢未找到可獨立核對的紀錄；不計入通過樣本"
+    }
   ],
-  "notes": "已完成 1 筆臺北樣本的日期、總價、面積、型態與車位核對；官方查詢頁後續批次查詢逾時。完成每市 10 筆前維持 pending，價格來源不得標為 official。"
+  "notes": "稽核紀錄不保存地址。官方查詢逾時或找不到紀錄時標為 inconclusive 並改用同型態備援樣本。"
 }

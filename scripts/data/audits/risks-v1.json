@@ -3,16 +3,16 @@
   "status": "pending",
   "checkedAt": null,
   "method": "與水利署及地質主管機關官方圖台人工抽查",
-  "samples": {
+  "fingerprints": {
     "flood": {
-      "taipei": 0,
-      "new-taipei": 0
+      "sourceSha256": "465d5df4ec1af9223fecc1a5cdadb49fd7a000d1504f7b9111a9b73f5ce7c3a4",
+      "datasetSha256": "06d5d7162581f7583ac1efb08d673a96d69df054390f9ad8070b49f1e4cd4c52"
     },
     "liquefaction": {
-      "taipei": 0,
-      "new-taipei": 0
+      "sourceSha256": "101ddc3171ff716214524a2d240eb5dc01d47f3dfc3108b37fd50de68960b64f",
+      "datasetSha256": "2f4bca737bc99a42f74345497b03e77623ba1519df7e7d66aef7efbbb535932f"
     }
   },
-  "mismatches": 0,
-  "notes": "完成每個災害來源、每市至少 5 個位置且涵蓋高、中、低與未覆蓋案例前，來源維持 unavailable。"
+  "samples": [],
+  "notes": "完成每個災害來源、每市至少 5 個位置且符合案例覆蓋前維持 pending；座標僅保存至小數點後 5 位。"
 }

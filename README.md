@@ -10,11 +10,12 @@
 
 | 來源 | 狀態 | 說明 |
 | --- | --- | --- |
-| 內政部實價登錄 | unavailable（候選） | 最近五年雙北中古公寓、華廈、住宅大樓；230,297 筆，門牌精確匹配率 99.40%；人工複核目前 1／20 筆 |
+| 內政部實價登錄 | unavailable（候選） | 最近五年雙北中古公寓、華廈、住宅大樓；230,297 筆，門牌精確匹配率 99.40%；人工複核目前 2／20 筆，另有 1 筆 inconclusive 不計入 |
 | 臺北捷運車站 | official | 109 個營運車站靜態快照 |
 | 新北公車站位 | official | 依 `stoplocationid` 去重後 2,339 個實體站位 |
 | 國土測繪中心行政區界 | official | 臺北 12 區、新北 29 區均已裁切 |
-| 臺北公車、臺鐵 | unavailable | 取得通過品質門檻的官方免金鑰來源前不補值 |
+| 臺鐵車站 | unavailable（候選） | 官方免金鑰 JSON 產生 29 個實體站、41 區檔案；9／9 人工抽查通過，待價格與災害來源先正式發布 |
+| 臺北公車 | unavailable | 官方現有站位檔停留在 2021 年，不拿舊資料冒充現況 |
 | 淹水、土壤液化 | unavailable（候選） | 自動 QA 已通過；410 個淹水情境檔與 41 個液化檔等待每來源、每市 5 點官方圖台人工抽查 |
 | 學校、醫療、公園、市場、停車場、圖書館 | unavailable | 每類來源獨立接入，不以單一成功類別代表全部 |
 | A1／A2 事故 | unavailable | 尚未完成最近三個完整年度的去識別快照 |
@@ -27,6 +28,7 @@
 - 車位：同時有車位價格與坪數時使用 `(總價－車位價)/(總坪數－車位坪數)`；缺車位坪數會標為近似值。
 - 定位：交易只納入與雙北官方門牌精確匹配且座標合理的紀錄；多重歧義、無法匹配及範圍外資料排除。
 - 距離：皆為直線距離，不代表步行時間或實際路徑。
+- 臺鐵定位：官方地址與座標行政區需一致；邊界線精度差異僅容許 20 公尺，套用筆數會公開於 manifest（目前八斗子站 1 筆）。
 - 淹水：預設為 24 小時 500 mm，可切換官方 10 種情境；0.3–0.5 m 為黃色、0.5 m 以上為紅色。
 - 液化：官方低／中／高潛勢分別為綠／黃／紅；未確認模式或調查覆蓋的位置維持灰色。
 - 災害圖資：只供區域性判讀，不代表個別建物安全。
@@ -86,6 +88,8 @@ public/data/
 
 Demo 僅保留在 `src/test/fixtures/`，production loader 不會引用。
 
+人工稽核檔位於 `scripts/data/audits/`，只保存穩定 ID、城市、分類、欄位比對結果與時間；價格稽核不提交地址。候選樣本與官方 raw data 都位於 Git 忽略的 `.data-cache/`。
+
 ## 更新資料
 
 手動 dry run：
@@ -117,11 +121,22 @@ npm run update-data -- --source=transport
 5. 候選資料先在 staging 產生；品質失敗保留 last-good，並更新 `health.json`。
 6. 通過後才原子替換 `public/data`。
 
-實價登錄自動門檻為整體匹配率至少 95%、有合格交易的各區至少 85%、41 區均有輸出、核心欄位及座標有效。另需人工各抽查臺北／新北至少 10 筆後，才會由 `unavailable` 切換為 `official`。
+實價登錄自動門檻為整體匹配率至少 95%、有合格交易的各區至少 85%、41 區均有輸出、核心欄位及座標有效。每市會依穩定雜湊產生 10 筆主要樣本與 20 筆備援，主要樣本需涵蓋公寓、華廈、住宅大樓；官方查詢逾時或找不到可獨立核對紀錄時標為 `inconclusive`，改用同型態備援，不算通過。臺北／新北各 10 筆全部欄位一致後，才可由 `unavailable` 切換為 `official`。
 
 災害 adapter 會驗證 10 種情境、CRS、雙北座標、面 geometry、未知深度比率、41 區檔案數及 5 MB 上限；淹水或液化各需完成臺北／新北至少 5 個位置的官方圖台抽查後才切換為 `official`。未通過人工閘門的候選檔不會被 production loader 載入。
 
-`.github/workflows/update-data.yml` 可選 source 及 `dryRun`。價格於每月 2、12、22 日 08:17、災害 metadata／雜湊於每月 3 日 09:17（臺灣時間）執行；雜湊未變時不重建圖層。Workflow 只提交 `public/data`。
+完成稽核後，以發布工具只檢查並提升既有候選；它不下載或重建大型圖資，失敗不修改 last-good：
+
+```bash
+npm run audit:candidates
+npm run release-data -- --source=price --dry-run
+npm run release-data -- --source=risks --dry-run
+npm run release-data -- --source=all
+```
+
+發布前會重新確認 adapter 版本、來源與資料檔雜湊、人工樣本數、零 mismatch、manifest 檔案清單及完整資料 QA。人工驗收綁定 adapter 版本；只有解析、映射或座標邏輯變更才需要升版並重設稽核，日常來源更新不因此自動冒充已驗收。
+
+`.github/workflows/update-data.yml` 可選 source 及 `dryRun`。價格於每月 2、12、22 日 08:17、災害 metadata／雜湊於每月 3 日 09:17、交通於每月 4 日 09:17（臺灣時間）執行；雜湊未變時不重建圖層。Workflow 只提交 `public/data`。
 
 ## GitHub Pages
 
@@ -138,6 +153,8 @@ Repository 若不叫 `homecheck-tw`，需同步修改 `vite.config.ts` 的 Pages
 - [新北市門牌位置數值資料](https://data.gov.tw/dataset/168887)
 - [臺北捷運車站資料](https://data.taipei/dataset/detail?id=1eefa68d-7c8d-491b-8e75-66a161947426)
 - [新北市公車站位](https://data.ntpc.gov.tw/datasets/34b402a8-53d9-483d-9406-24a682c2d6dc)
+- [國營臺鐵車站基本資料](https://data.gov.tw/dataset/33425)
+- [臺北市公車站位舊資料](https://data.taipei/dataset/detail?id=48aa5bca-2a4f-4fb7-a658-43cba51d5d56)
 - [水利署淹水潛勢圖](https://data.gov.tw/dataset/25766)
 - [臺北市土壤液化潛勢圖](https://data.taipei/dataset/detail?id=ec40e067-930f-4058-b7dc-71399d5f3147)
 - [地質調查及礦業管理中心土壤液化圖資群組](https://data.gov.tw/dataset/28691)
@@ -149,7 +166,7 @@ Repository 若不叫 `homecheck-tw`，需同步修改 `vite.config.ts` 的 Pages
 
 - 地址文字只供顯示；分析位置由使用者在地圖確認，不呼叫第三方 geocoder。
 - 公開資料可能有時間差、缺漏、定位誤差或 schema 變動。
-- 價格、液化與淹水候選資料雖已通過自動 QA，仍待完成人工發布閘門；灰色不是零風險。
+- 價格、液化與淹水候選資料雖已通過自動 QA，仍待完成人工發布閘門；臺鐵已完成獨立稽核，但依本輪發布順序仍等待前三項來源正式發布。灰色不是零風險。
 - 目前未提供活動斷層、坡地、歷史災害、主要道路、銀行鑑價、建物結構認證、會員或雲端同步。
 
 ## 免責聲明

@@ -53,3 +53,22 @@ test('災害候選資料涵蓋 41 區與十種情境且受人工閘門控制', a
     )
   }
 })
+
+test('臺鐵候選資料涵蓋 41 區、29 個實體站且受發布閘門控制', async () => {
+  const manifest = JSON.parse(await readFile(resolve(data, 'manifest.json'), 'utf8'))
+  const rail = manifest.sources.rail
+  assert.equal(rail.recordCount, 29)
+  assert.equal(rail.files.length, 41)
+  assert.equal(rail.excluded.duplicatePhysicalStations, 1)
+  assert.equal(rail.qualityGates.automated.status, 'passed')
+  assert.equal(rail.qualityGates.manualAudit.requiredSampleCount, 9)
+  if (['actual-price', 'flood', 'liquefaction']
+    .every((id) => manifest.sources[id].status === 'official')) {
+    assert.equal(
+      rail.status,
+      rail.qualityGates.manualAudit.status === 'passed' ? 'official' : 'unavailable',
+    )
+  } else {
+    assert.equal(rail.status, 'unavailable')
+  }
+})

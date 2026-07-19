@@ -1,0 +1,1 @@
+{"type":"FeatureCollection","features":[{"type":"Feature","properties":{"name":"福隆","category":"rail"},"geometry":{"type":"Point","coordinates":[121.94471,25.01595]}},{"type":"Feature","properties":{"name":"貢寮","category":"rail"},"geometry":{"type":"Point","coordinates":[121.90879,25.02197]}}]}

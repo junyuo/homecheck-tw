@@ -1,0 +1,74 @@
+{
+  "adapterVersion": "rail-v1",
+  "status": "passed",
+  "checkedAt": "2026-07-19T08:19:27Z",
+  "method": "比對臺鐵官方 JSON 原始名稱、地址、行政區與 GPS",
+  "sourceSha256": "ff0f463395d6c690fd8f9f1ea42be84dce7fcf0cb2cc5b1bc70ed489cef183ee",
+  "datasetSha256": "eb8d2f728f62d52b33b6b22c1664461b73f58ec30a22a55b6de87ac3274f677f",
+  "samples": [
+    {
+      "id": "601db85137e816f314a88755",
+      "city": "taipei",
+      "result": "matched",
+      "checkedAt": "2026-07-19T08:19:27Z",
+      "fields": { "name": true, "address": true, "district": true, "gps": true }
+    },
+    {
+      "id": "889e5102512c30f8a02b34a6",
+      "city": "taipei",
+      "result": "matched",
+      "checkedAt": "2026-07-19T08:19:27Z",
+      "fields": { "name": true, "address": true, "district": true, "gps": true }
+    },
+    {
+      "id": "cdd099ab3613adee19eca672",
+      "city": "taipei",
+      "result": "matched",
+      "checkedAt": "2026-07-19T08:19:27Z",
+      "fields": { "name": true, "address": true, "district": true, "gps": true }
+    },
+    {
+      "id": "eef072506f31ee4c37d28596",
+      "city": "taipei",
+      "result": "matched",
+      "checkedAt": "2026-07-19T08:19:27Z",
+      "fields": { "name": true, "address": true, "district": true, "gps": true }
+    },
+    {
+      "id": "025fb8a8923ecff9264697a5",
+      "city": "new-taipei",
+      "result": "matched",
+      "checkedAt": "2026-07-19T08:19:27Z",
+      "fields": { "name": true, "address": true, "district": true, "gps": true }
+    },
+    {
+      "id": "0a2b54e7bc0f02a66f4ef798",
+      "city": "new-taipei",
+      "result": "matched",
+      "checkedAt": "2026-07-19T08:19:27Z",
+      "fields": { "name": true, "address": true, "district": true, "gps": true }
+    },
+    {
+      "id": "0f7c30473a203416a9100c69",
+      "city": "new-taipei",
+      "result": "matched",
+      "checkedAt": "2026-07-19T08:19:27Z",
+      "fields": { "name": true, "address": true, "district": true, "gps": true }
+    },
+    {
+      "id": "1f697336a1a54854d18415a9",
+      "city": "new-taipei",
+      "result": "matched",
+      "checkedAt": "2026-07-19T08:19:27Z",
+      "fields": { "name": true, "address": true, "district": true, "gps": true }
+    },
+    {
+      "id": "2608f99112de531fec311e75",
+      "city": "new-taipei",
+      "result": "matched",
+      "checkedAt": "2026-07-19T08:19:27Z",
+      "fields": { "name": true, "address": true, "district": true, "gps": true }
+    }
+  ],
+  "notes": "臺北抽查全部 4 個實體站，新北依穩定雜湊抽查 5 站；不保存地址或電話。"
+}

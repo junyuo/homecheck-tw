@@ -25,6 +25,8 @@ on:
     - cron: '17 0 2,12,22 * *'
     # 09:17 Asia/Taipei on the 3rd for risk metadata and hashes.
     - cron: '17 1 3 * *'
+    # 09:17 Asia/Taipei on the 4th for metro, bus and rail.
+    - cron: '17 1 4 * *'
 
 permissions:
   contents: write
@@ -46,6 +48,8 @@ jobs:
             echo "source=${{ inputs.source }}" >> "$GITHUB_OUTPUT"
           elif [ "${{ github.event.schedule }}" = "17 1 3 * *" ]; then
             echo "source=risks" >> "$GITHUB_OUTPUT"
+          elif [ "${{ github.event.schedule }}" = "17 1 4 * *" ]; then
+            echo "source=transport" >> "$GITHUB_OUTPUT"
           else
             echo "source=price" >> "$GITHUB_OUTPUT"
           fi

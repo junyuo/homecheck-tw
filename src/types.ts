@@ -126,6 +126,7 @@ export interface SourceState {
     adapterVersion: string
     checkedAt: string | null
     sampleCount?: number
+    requiredSampleCount?: number
     gdalVersion?: string
   }>
   excluded: Record<string, number>

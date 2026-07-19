@@ -10,6 +10,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "update-data": "node scripts/update-data.mjs",
+    "release-data": "node scripts/release-data.mjs",
+    "audit:candidates": "node scripts/generate-audit-candidates.mjs",
     "validate:data": "node scripts/update-data.mjs --validate-only",
     "test:data": "node --test scripts/data/*.node-test.mjs"
   },
