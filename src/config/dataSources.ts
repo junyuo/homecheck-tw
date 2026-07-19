@@ -21,6 +21,15 @@ export const dataSources: DataSource[] = [
     notes: '只納入可用官方門牌精確定位的雙北中古住宅；少於 5 筆不產生價差結論。',
   },
   {
+    id: 'district-boundary',
+    name: '鄉鎮市區行政區界',
+    agency: '內政部國土測繪中心',
+    sourceUrl: 'https://data.gov.tw/dataset/7441',
+    license: '政府資料開放授權條款第 1 版',
+    refreshFrequency: '每月檢查 metadata',
+    notes: '只作雙北官方圖資裁切與涵蓋範圍驗證，不作土地權界判定。',
+  },
+  {
     id: 'flood',
     name: '淹水潛勢圖',
     agency: '經濟部水利署',

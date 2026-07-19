@@ -1,0 +1,15 @@
+{
+  "adapterVersion": "price-v1",
+  "status": "pending",
+  "checkedAt": "2026-07-19T05:49:39.588Z",
+  "method": "內政部不動產交易實價查詢服務網人工比對",
+  "samples": {
+    "taipei": 1,
+    "new-taipei": 0
+  },
+  "mismatches": 0,
+  "verifiedSampleIds": [
+    "00080b9986849a5f3604085d"
+  ],
+  "notes": "已完成 1 筆臺北樣本的日期、總價、面積、型態與車位核對；官方查詢頁後續批次查詢逾時。完成每市 10 筆前維持 pending，價格來源不得標為 official。"
+}

@@ -1,0 +1,18 @@
+{
+  "adapterVersion": "risks-v1",
+  "status": "pending",
+  "checkedAt": null,
+  "method": "與水利署及地質主管機關官方圖台人工抽查",
+  "samples": {
+    "flood": {
+      "taipei": 0,
+      "new-taipei": 0
+    },
+    "liquefaction": {
+      "taipei": 0,
+      "new-taipei": 0
+    }
+  },
+  "mismatches": 0,
+  "notes": "完成每個災害來源、每市至少 5 個位置且涵蓋高、中、低與未覆蓋案例前，來源維持 unavailable。"
+}

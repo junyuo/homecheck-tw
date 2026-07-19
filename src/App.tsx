@@ -27,8 +27,9 @@ import {
 import { AnalysisMap, MapPicker } from './components/MapPanel'
 import { dataSources } from './config/dataSources'
 import { districtOptions } from './config/districts'
+import { DEFAULT_FLOOD_SCENARIO, floodScenarios } from './config/risks'
 import { buildAnalysis } from './lib/analysis'
-import { DataLoadError, loadDistrictData, loadManifest } from './lib/dataLoader'
+import { DataLoadError, loadDistrictData, loadFloodScenario, loadManifest } from './lib/dataLoader'
 import { clearProperties, deleteProperty, loadSavedProperties, saveProperty } from './lib/storage'
 import type {
   AnalysisResult,
@@ -36,6 +37,7 @@ import type {
   DataManifest,
   DataSourceId,
   DistrictDataset,
+  FloodScenarioId,
   PropertyInput,
   RiskLevel,
   RuntimeSourceState,
@@ -61,6 +63,7 @@ const initialInput: PropertyInput = {
   parkingPrice: 2500000,
   parkingAreaPing: 10,
   radius: 500,
+  floodScenario: DEFAULT_FLOOD_SCENARIO,
 }
 
 const routeFromHash = (): Page => {
@@ -109,6 +112,14 @@ const sourceStatusLabel: Record<SourceStatus, string> = {
   unavailable: '尚未接入',
 }
 
+function sourceStatusText(source: DataManifest['sources'][DataSourceId] | undefined) {
+  if (source?.status === 'unavailable' &&
+      source.qualityGates?.manualAudit?.status === 'pending') {
+    return '等待人工驗收'
+  }
+  return sourceStatusLabel[source?.status ?? 'unavailable']
+}
+
 function DataStatusBanner({ sources }: {
   sources: Array<{ status: SourceStatus }> | RuntimeSourceState[]
 }) {
@@ -120,7 +131,7 @@ function DataStatusBanner({ sources }: {
       <span>
         <strong>{official ? `已載入 ${official} 項正式來源。` : '目前沒有可用的正式分析來源。'}</strong>
         {failed ? ` ${failed} 項來源最近更新或載入失敗，已保留 last-good；` : ' '}
-        未接入的面向會顯示「資料不足」，不以 Demo 補值。
+        未接入或未達發布門檻的面向會顯示「資料不足」，不以 Demo 補值。
       </span>
       <a href="#/methods">查看資料狀態</a>
     </aside>
@@ -169,7 +180,7 @@ function Footer() {
       <div className="footer-links">
         <a href="#/methods">資料與方法</a>
         <a href="#disclaimer">免責聲明</a>
-        <a href="https://github.com/" target="_blank" rel="noreferrer">GitHub</a>
+        <a href="https://github.com/junyuo/homecheck-tw" target="_blank" rel="noreferrer">GitHub</a>
       </div>
     </footer>
   )
@@ -444,9 +455,21 @@ interface ResultsPageProps {
   dataset: DistrictDataset | null
   onSave: () => void
   saveMessage: string | null
+  onFloodScenarioChange: (scenario: FloodScenarioId) => Promise<void>
+  riskLoading: boolean
+  riskError: string | null
 }
 
-function ResultsPage({ result, setResult, dataset, onSave, saveMessage }: ResultsPageProps) {
+function ResultsPage({
+  result,
+  setResult,
+  dataset,
+  onSave,
+  saveMessage,
+  onFloodScenarioChange,
+  riskLoading,
+  riskError,
+}: ResultsPageProps) {
   const [custom, setCustom] = useState('')
   if (!result) {
     return (
@@ -466,6 +489,9 @@ function ResultsPage({ result, setResult, dataset, onSave, saveMessage }: Result
   const hasLifeData = lifeSourceIds.some((id) => available(result.sources[id]?.status))
   const transitSourceIds: DataSourceId[] = ['metro', 'rail', busSource]
   const hasTransitData = transitSourceIds.some((id) => available(result.sources[id]?.status))
+  const priceBlocked = result.sources['actual-price']?.status === 'unavailable'
+  const floodBlocked = result.sources.flood?.status === 'unavailable'
+  const liquefactionBlocked = result.sources.liquefaction?.status === 'unavailable'
   const priceStatus = priceLevel(result)
   const toggleChecklist = (id: string) => setResult((current) => current ? ({
     ...current,
@@ -486,6 +512,14 @@ function ResultsPage({ result, setResult, dataset, onSave, saveMessage }: Result
     '提醒：本清單為公開資料初步整理，不構成鑑價、法律或工程意見。',
   ].join('\n')
   const copyChecklist = async () => navigator.clipboard.writeText(checklistText)
+  const disasterLevel: RiskLevel =
+    result.flood === 'priority' || result.liquefaction === 'priority'
+      ? 'priority'
+      : result.flood === 'unknown' || result.liquefaction === 'unknown'
+        ? 'unknown'
+        : result.flood === 'attention' || result.liquefaction === 'attention'
+          ? 'attention'
+          : 'low'
 
   return (
     <main>
@@ -522,24 +556,38 @@ function ResultsPage({ result, setResult, dataset, onSave, saveMessage }: Result
             <div><dt>比較範圍</dt><dd>半徑 {result.price.radiusUsed >= 1000 ? '1 公里' : `${result.price.radiusUsed} 公尺`}</dd></div>
           </dl>
           <div className="evidence">
-            <p><strong>觀察到的事實</strong>{result.price.insufficient ? `只有 ${result.price.sampleCount} 筆符合條件，未產生精確的價差結論。` : `排除特殊交易後有 ${result.price.sampleCount} 筆可比較樣本。`}</p>
+            <p><strong>觀察到的事實</strong>{priceBlocked ? '實價來源尚未通過發布閘門，因此不載入候選交易，也不產生價差結論。' : result.price.insufficient ? `只有 ${result.price.sampleCount} 筆符合條件，未產生精確的價差結論。` : `排除特殊交易後有 ${result.price.sampleCount} 筆可比較樣本。`}</p>
             <p><strong>判斷依據</strong>同行政區、相近建物型態、屋齡差不超過 10 年；優先 500 公尺，不足則擴至 1 公里。{result.price.parkingExcluded ? result.price.parkingApproximate ? '已排除車位價格，但缺少車位坪數，單價為近似值。' : '已從總價與總坪數排除車位價格及坪數。' : '未排除本物件車位價格。'}</p>
             <p><strong>資料信心</strong>{result.price.insufficient ? '低：樣本少於 5 筆。' : result.price.sampleCount < 10 ? '中低：樣本有限，仍需確認樓層、座向與裝潢差異。' : '中：仍非正式鑑價。'}</p>
             <p><strong>建議確認</strong>索取同社區近期成交、謄本、車位拆價及屋況資料。</p>
           </div>
         </ResultCard>
 
-        <ResultCard icon={ShieldCheck} index="02" title="天然災害" level={result.flood === 'priority' || result.liquefaction === 'priority' ? 'priority' : result.flood === 'unknown' || result.liquefaction === 'unknown' ? 'unknown' : 'attention'}>
+        <ResultCard icon={ShieldCheck} index="02" title="天然災害" level={disasterLevel}>
+          <label className="scenario-picker">
+            淹水降雨情境
+            <select
+              value={result.input.floodScenario}
+              disabled={riskLoading || !dataset?.availableFloodScenarios.length}
+              onChange={(event) => void onFloodScenarioChange(event.target.value as FloodScenarioId)}
+            >
+              {floodScenarios.map((scenario) => (
+                <option key={scenario.id} value={scenario.id}>{scenario.label}</option>
+              ))}
+            </select>
+          </label>
+          {riskLoading && <p className="inline-status" role="status">正在載入所選情境…</p>}
+          {riskError && <p className="inline-error" role="alert">{riskError}</p>}
           <dl className="metrics">
             <div><dt>淹水潛勢</dt><dd><Badge level={result.flood} /></dd></div>
             <div><dt>土壤液化潛勢</dt><dd><Badge level={result.liquefaction} /></dd></div>
-            <div><dt>活動斷層</dt><dd><Badge level="unknown" /></dd></div>
-            <div><dt>坡地與歷史災害</dt><dd><Badge level="unknown" /></dd></div>
+            <div><dt>淹水官方分類</dt><dd>{result.floodDetail.officialCategory ?? '圖資覆蓋不明'}</dd></div>
+            <div><dt>液化官方分類</dt><dd>{result.liquefactionDetail.officialCategory ?? '圖資覆蓋不明'}</dd></div>
           </dl>
           <div className="evidence">
-            <p><strong>觀察到的事實</strong>只在官方圖資通過情境、座標系統、覆蓋範圍與 topology 驗證後判讀；未接入時維持灰色。</p>
+            <p><strong>觀察到的事實</strong>{floodBlocked && liquefactionBlocked ? '淹水與液化候選圖資尚未通過人工發布閘門，因此維持灰色且不載入分析。' : <>淹水採 {result.floodDetail.durationHours} 小時 {result.floodDetail.rainfallMm} mm 情境；{result.floodDetail.officialCategory ? `位置落在「${result.floodDetail.officialCategory}」範圍。` : '位置未落入已發布潛勢多邊形，但官方未提供完整模式覆蓋界，因此維持灰色。'}</>}</p>
             <p><strong>空間範圍</strong>以使用者確認的單一座標與區域性圖層相交判斷。</p>
-            <p><strong>資料信心</strong>區域圖資不代表個別建物或基地安全；請確認圖層情境與更新日期。</p>
+            <p><strong>資料信心</strong>區域圖資不代表個別建物或基地安全。淹水圖資日期：{result.floodDetail.updatedAt ?? '覆蓋不明'}；液化圖資日期：{result.liquefactionDetail.updatedAt ?? '覆蓋不明'}。</p>
             <p><strong>建議確認</strong>查閱主管機關正式圖台，並確認基地地質調查、地質改良與建物結構資料。</p>
           </div>
         </ResultCard>
@@ -651,8 +699,8 @@ function ComparePage({ saved, setSaved }: { saved: SavedProperty[]; setSaved: (i
               ['換算單價', (x: SavedProperty) => `${currency.format(x.result.price.unitPrice)}/坪`],
               ['與附近行情差異', (x: SavedProperty) => x.result.price.differencePercent === null ? '資料不足' : `${x.result.price.differencePercent.toFixed(1)}%`],
               ['價格樣本數', (x: SavedProperty) => `${x.result.price.sampleCount} 筆`],
-              ['淹水潛勢', (x: SavedProperty) => levelMeta[x.result.flood].label],
-              ['土壤液化潛勢', (x: SavedProperty) => levelMeta[x.result.liquefaction].label],
+              ['淹水潛勢', (x: SavedProperty) => x.riskSnapshotLegacy ? '舊快照，請重新查詢' : `${levelMeta[x.result.flood].label}（${x.result.floodDetail.durationHours}h/${x.result.floodDetail.rainfallMm}mm）`],
+              ['土壤液化潛勢', (x: SavedProperty) => x.riskSnapshotLegacy ? '舊快照，請重新查詢' : levelMeta[x.result.liquefaction].label],
               ['捷運距離', (x: SavedProperty) => formatDistance(x.result.nearestMetro)],
               ['生活設施數量', (x: SavedProperty) => `${x.result.facilityCount.toLocaleString('zh-TW')} 個官方點位`],
               ['交通事故狀況', (x: SavedProperty) => x.result.sources.accidents?.status === 'official' ? `${x.result.accidentCount.toLocaleString('zh-TW')} 件` : '資料不足'],
@@ -682,7 +730,7 @@ function MethodsPage({ manifest }: { manifest: DataManifest | null }) {
       </section>
       <section className="method-status">
         <Database />
-        <div><strong>目前正式政府資料：{officialCount.toLocaleString('zh-TW')} 項</strong><p>每個來源獨立標示狀態；失敗時保留 last-good，未接入來源不產生 Demo 結果。</p></div>
+        <div><strong>目前正式政府資料：{officialCount.toLocaleString('zh-TW')} 項</strong><p>每個來源獨立標示狀態；失敗時保留 last-good，未接入或未完成驗收的來源不產生分析結果。</p></div>
       </section>
       <section className="source-list">
         {dataSources.map((source) => (
@@ -692,11 +740,12 @@ function MethodsPage({ manifest }: { manifest: DataManifest | null }) {
               const status = state?.status ?? 'unavailable'
               return (
                 <>
-            <div className="source-head"><div><span>{source.agency}</span><h2>{source.name}</h2></div><span className={`source-status ${status}`}>{sourceStatusLabel[status]}</span></div>
+            <div className="source-head"><div><span>{source.agency}</span><h2>{source.name}</h2></div><span className={`source-status ${status}`}>{sourceStatusText(state)}</span></div>
             <dl>
               <div><dt>原始網址</dt><dd>{source.sourceUrl ? <a href={source.sourceUrl} target="_blank" rel="noreferrer">{source.sourceUrl}</a> : '待確認'}</dd></div>
               <div><dt>授權</dt><dd>{source.license}</dd></div>
               <div><dt>更新時間</dt><dd>{state?.updatedAt ?? '尚無正式快照'}</dd></div>
+              {state?.validUntil && <div><dt>有效期限</dt><dd>{state.validUntil}</dd></div>}
               <div><dt>更新頻率</dt><dd>{source.refreshFrequency}</dd></div>
               <div><dt>資料筆數</dt><dd>{(state?.recordCount ?? 0).toLocaleString('zh-TW')}</dd></div>
               <div><dt>覆蓋範圍</dt><dd>{state?.coverage.districts.length ? `${state.coverage.districts.length} 個行政區` : '尚未接入'}</dd></div>
@@ -737,6 +786,8 @@ export default function App() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [saveMessage, setSaveMessage] = useState<string | null>(null)
+  const [riskLoading, setRiskLoading] = useState(false)
+  const [riskError, setRiskError] = useState<string | null>(null)
 
   useEffect(() => {
     loadManifest().then(setManifest).catch(() => setManifest(null))
@@ -753,7 +804,12 @@ export default function App() {
     setLoading(true)
     setError(null)
     try {
-      const nextDataset = await loadDistrictData(input.city, input.district)
+      const nextDataset = await loadDistrictData(
+        input.city,
+        input.district,
+        fetch,
+        input.floodScenario,
+      )
       const nextResult = buildAnalysis(input, nextDataset)
       setDataset(nextDataset)
       setResult(nextResult)
@@ -762,6 +818,35 @@ export default function App() {
       setError(reason instanceof DataLoadError ? `${reason.message}。請確認網路後重試；舊的比較清單不受影響。` : '發生未預期錯誤，請稍後再試。')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const changeFloodScenario = async (scenario: FloodScenarioId) => {
+    if (!dataset || !result) return
+    setRiskLoading(true)
+    setRiskError(null)
+    try {
+      const flood = await loadFloodScenario(
+        result.input.city,
+        result.input.district,
+        scenario,
+      )
+      const nextInput = { ...result.input, floodScenario: scenario }
+      const nextDataset = { ...dataset, flood, floodScenario: scenario }
+      const rebuilt = buildAnalysis(nextInput, nextDataset)
+      const previousChecklist = new Map(result.checklist.map((item) => [item.id, item]))
+      rebuilt.checklist = rebuilt.checklist.map((item) => ({
+        ...item,
+        checked: previousChecklist.get(item.id)?.checked ?? false,
+      }))
+      rebuilt.checklist.push(...result.checklist.filter((item) => item.custom))
+      setInput(nextInput)
+      setDataset(nextDataset)
+      setResult(rebuilt)
+    } catch {
+      setRiskError('所選淹水情境載入失敗；目前結果與圖層未變更。')
+    } finally {
+      setRiskLoading(false)
     }
   }
 
@@ -781,7 +866,18 @@ export default function App() {
   let content = <MethodsPage manifest={manifest} />
   if (page === 'home') content = <HomePage />
   if (page === 'check') content = <CheckPage input={input} setInput={setInput} onAnalyze={analyze} loading={loading} error={error} manifest={manifest} />
-  if (page === 'results') content = <ResultsPage result={result} setResult={setResult} dataset={dataset} onSave={save} saveMessage={saveMessage} />
+  if (page === 'results') content = (
+    <ResultsPage
+      result={result}
+      setResult={setResult}
+      dataset={dataset}
+      onSave={save}
+      saveMessage={saveMessage}
+      onFloodScenarioChange={changeFloodScenario}
+      riskLoading={riskLoading}
+      riskError={riskError}
+    />
+  )
   if (page === 'compare') content = <ComparePage saved={saved} setSaved={setSaved} />
 
   return (

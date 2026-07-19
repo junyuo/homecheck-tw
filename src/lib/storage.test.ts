@@ -20,10 +20,13 @@ const makeResult = (id: string): AnalysisResult => ({
     parkingPrice: 0,
     parkingAreaPing: 0,
     radius: 500,
+    floodScenario: '24h-500',
   },
   price: { unitPrice: 500000, median: null, q1: null, q3: null, sampleCount: 0, differencePercent: null, radiusUsed: 1000, parkingExcluded: false, parkingApproximate: false, insufficient: true, trend: [] },
   flood: 'unknown',
+  floodDetail: { level: 'unknown', officialCategory: null, scenario: '24h-500', durationHours: 24, rainfallMm: 500, updatedAt: null, coverageConfirmed: false },
   liquefaction: 'unknown',
+  liquefactionDetail: { level: 'unknown', officialCategory: null, scenario: null, durationHours: null, rainfallMm: null, updatedAt: null, coverageConfirmed: false },
   nearestMetro: null,
   nearestRail: null,
   busCount: 0,
@@ -78,5 +81,22 @@ describe('比較清單 Local Storage', () => {
     const [migrated] = loadSavedProperties(storage)
     expect(migrated.historicDemo).toBe(true)
     expect(migrated.result.dataQuality).toBe('historic-demo')
+  })
+
+  it('v2 比較紀錄保留並標示災害快照需重新查詢', () => {
+    const result = makeResult('v2')
+    const legacyInput = { ...result.input } as Partial<typeof result.input>
+    delete legacyInput.floodScenario
+    const legacyResult = { ...result, input: legacyInput }
+    delete (legacyResult as Partial<AnalysisResult>).floodDetail
+    delete (legacyResult as Partial<AnalysisResult>).liquefactionDetail
+    storage.setItem('homecheck-tw:properties', JSON.stringify({
+      schemaVersion: 2,
+      properties: [{ id: 'v2', savedAt: '2026-07-19', label: '舊快照', result: legacyResult }],
+    }))
+    const [migrated] = loadSavedProperties(storage)
+    expect(migrated.riskSnapshotLegacy).toBe(true)
+    expect(migrated.result.input.floodScenario).toBe('24h-500')
+    expect(migrated.result.floodDetail.level).toBe('unknown')
   })
 })

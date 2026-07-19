@@ -3,6 +3,7 @@ import { access, cp, mkdir, readFile, readdir, rename, rm, stat, writeFile } fro
 import { join, resolve } from 'node:path'
 import { ALL_DISTRICTS } from './data/constants.mjs'
 import { updateOfficialPrice } from './data/price.mjs'
+import { updateOfficialRisks } from './data/risks.mjs'
 import { updateOfficialTransport } from './data/transport.mjs'
 
 const root = resolve(import.meta.dirname, '..')
@@ -38,7 +39,7 @@ async function walk(directory) {
 }
 
 function validateCoordinates(coordinates) {
-  if (!Array.isArray(coordinates)) return false
+  if (!Array.isArray(coordinates) || coordinates.length === 0) return false
   if (coordinates.length >= 2 && coordinates.every(Number.isFinite)) {
     const [longitude, latitude] = coordinates
     return longitude >= 121.28 && longitude <= 122.02 && latitude >= 24.65 && latitude <= 25.32
@@ -64,6 +65,14 @@ async function validate(directory) {
         if (!feature.geometry || !validateCoordinates(feature.geometry.coordinates)) {
           throw new Error(`${file} 含空 geometry 或雙北範圍外座標`)
         }
+        if (file.includes('/risks/')) {
+          const properties = feature.properties ?? {}
+          if (!['flood', 'liquefaction'].includes(properties.riskType) ||
+              !['low', 'attention', 'priority'].includes(properties.level) ||
+              !properties.officialCategory) {
+            throw new Error(`${file} 含無效災害分類`)
+          }
+        }
       }
     }
   }
@@ -79,11 +88,31 @@ async function validate(directory) {
       manifest.coverage.districts.some((district) => !expectedDistricts.has(district))) {
     throw new Error('manifest 必須完整列出雙北 41 區')
   }
+  const expectedRiskFiles = {
+    'district-boundary': 41,
+    flood: 410,
+    liquefaction: 41,
+  }
+  for (const [id, expected] of Object.entries(expectedRiskFiles)) {
+    const source = manifest.sources[id]
+    if (source?.files?.length && source.files.length !== expected) {
+      throw new Error(`${id} 應有 ${expected} 個檔案，實際為 ${source.files.length}`)
+    }
+  }
   return { manifest, files: files.length, jsonFiles: jsonFiles.length }
 }
 
 function sourceFailure(previous, id, now, message) {
   return {
+    version: null,
+    updatedAt: null,
+    recordCount: 0,
+    coverage: { cities: [], districts: [] },
+    downloadUrl: '',
+    sha256: null,
+    matchingRate: null,
+    excluded: {},
+    files: [],
     ...previous,
     id,
     status: 'failed',
@@ -95,7 +124,7 @@ function sourceFailure(previous, id, now, message) {
 function officialSource(previous, result, now, downloadUrl, coverage) {
   return {
     ...previous,
-    id: result.id ?? previous.id,
+    id: result.id ?? previous?.id,
     status: 'official',
     version: result.version,
     updatedAt: result.updatedAt,
@@ -105,6 +134,9 @@ function officialSource(previous, result, now, downloadUrl, coverage) {
     downloadUrl,
     sha256: result.sha256,
     matchingRate: result.matchingRate ?? null,
+    metadataCheckedAt: result.metadataCheckedAt ?? now,
+    validUntil: result.validUntil ?? null,
+    qualityGates: result.qualityGates ?? previous?.qualityGates,
     excluded: result.excluded,
     lastAttempt: { status: 'success', message: '下載、schema 與品質檢查通過' },
     files: result.files,
@@ -152,9 +184,34 @@ async function main() {
         reuseCache: process.env.REUSE_DATA_CACHE === 'true',
       })
       if (result.status === 'official') {
-        manifest.sources['actual-price'] = officialSource(
+        const audit = JSON.parse(await readFile(
+          join(root, 'scripts', 'data', 'audits', 'price-v1.json'),
+          'utf8',
+        ))
+        const auditPassed = audit.status === 'passed' &&
+          audit.adapterVersion === result.adapterVersion &&
+          audit.samples?.taipei >= 10 &&
+          audit.samples?.['new-taipei'] >= 10 &&
+          audit.mismatches === 0
+        const nextPrice = officialSource(
           manifest.sources['actual-price'],
-          { ...result, id: 'actual-price' },
+          {
+            ...result,
+            id: 'actual-price',
+            qualityGates: {
+              automated: {
+                status: 'passed',
+                adapterVersion: result.adapterVersion,
+                checkedAt: now,
+              },
+              manualAudit: {
+                status: auditPassed ? 'passed' : 'pending',
+                adapterVersion: result.adapterVersion,
+                checkedAt: audit.checkedAt,
+                sampleCount: (audit.samples?.taipei ?? 0) + (audit.samples?.['new-taipei'] ?? 0),
+              },
+            },
+          },
           now,
           'https://data.gov.tw/dataset/25119',
           {
@@ -163,8 +220,16 @@ async function main() {
             years: result.years,
           },
         )
+        if (!auditPassed) {
+          nextPrice.status = 'unavailable'
+          nextPrice.lastAttempt = {
+            status: 'success',
+            message: '自動品質檢查通過；等待臺北／新北各 10 筆人工複核',
+          }
+        }
+        manifest.sources['actual-price'] = nextPrice
         manifest.coverage.years = result.years
-        log('price', `正式交易 ${result.recordCount.toLocaleString('zh-TW')} 筆，匹配率 ${(result.matchingRate * 100).toFixed(2)}%`)
+        log('price', `${auditPassed ? '正式' : '候選'}交易 ${result.recordCount.toLocaleString('zh-TW')} 筆，匹配率 ${(result.matchingRate * 100).toFixed(2)}%`)
       } else if (result.status === 'dry-run') {
         log('price', `dry run：匹配率 ${(result.report.matchingRate * 100).toFixed(2)}%，未發布`)
       } else {
@@ -213,7 +278,121 @@ async function main() {
     }
   }
 
-  if (shouldRun('risks')) log('risks', '官方圖資需先通過 CRS 與 topology 門檻；未接入來源維持 unavailable')
+  if (shouldRun('risks')) {
+    log('risks', '更新行政區界、10 種淹水情境與雙北土壤液化')
+    try {
+      const result = await updateOfficialRisks({
+        output: staging,
+        cache,
+        now: new Date(),
+        dryRun,
+        reuseCache: process.env.REUSE_DATA_CACHE === 'true',
+        forceRebuild: process.env.FORCE_DATA_REBUILD === 'true',
+        previous: {
+          boundary: manifest.sources['district-boundary'],
+          flood: manifest.sources.flood,
+          liquefaction: manifest.sources.liquefaction,
+        },
+      })
+      if (!dryRun) {
+        const audit = JSON.parse(await readFile(
+          join(root, 'scripts', 'data', 'audits', 'risks-v1.json'),
+          'utf8',
+        ))
+        const sampleCount = (source) =>
+          (audit.samples?.[source]?.taipei ?? 0) +
+          (audit.samples?.[source]?.['new-taipei'] ?? 0)
+        const auditPassed = (source) =>
+          audit.status === 'passed' &&
+          audit.adapterVersion === result.adapterVersion &&
+          (audit.samples?.[source]?.taipei ?? 0) >= 5 &&
+          (audit.samples?.[source]?.['new-taipei'] ?? 0) >= 5 &&
+          audit.mismatches === 0
+        const qualityGates = (source) => ({
+          automated: {
+            status: 'passed',
+            adapterVersion: result.adapterVersion,
+            checkedAt: now,
+            gdalVersion: result.gdalVersion,
+          },
+          manualAudit: {
+            status: auditPassed(source) ? 'passed' : 'pending',
+            adapterVersion: result.adapterVersion,
+            checkedAt: audit.checkedAt,
+            sampleCount: sampleCount(source),
+          },
+        })
+        manifest.sources['district-boundary'] = officialSource(
+          manifest.sources['district-boundary'],
+          {
+            ...result.boundary,
+            qualityGates: {
+              automated: {
+                status: 'passed',
+                adapterVersion: result.adapterVersion,
+                checkedAt: now,
+                gdalVersion: result.gdalVersion,
+              },
+            },
+          },
+          now,
+          'https://data.gov.tw/dataset/7441',
+          {
+            cities: ['taipei', 'new-taipei'],
+            districts: ALL_DISTRICTS.map(({ city, slug }) => `${city}/${slug}`),
+          },
+        )
+        manifest.sources.flood = officialSource(
+          manifest.sources.flood,
+          {
+            ...result.flood,
+            qualityGates: qualityGates('flood'),
+          },
+          now,
+          'https://data.gov.tw/dataset/25766',
+          {
+            cities: ['taipei', 'new-taipei'],
+            districts: ALL_DISTRICTS.map(({ city, slug }) => `${city}/${slug}`),
+          },
+        )
+        manifest.sources.liquefaction = officialSource(
+          manifest.sources.liquefaction,
+          {
+            ...result.liquefaction,
+            qualityGates: qualityGates('liquefaction'),
+          },
+          now,
+          'https://data.gov.tw/dataset/28691',
+          {
+            cities: ['taipei', 'new-taipei'],
+            districts: ALL_DISTRICTS.map(({ city, slug }) => `${city}/${slug}`),
+          },
+        )
+        for (const id of ['flood', 'liquefaction']) {
+          if (!auditPassed(id)) {
+            manifest.sources[id].status = 'unavailable'
+            manifest.sources[id].lastAttempt = {
+              status: 'success',
+              message: '自動資料品質檢查通過；等待臺北／新北各 5 個位置的官方圖台人工抽查',
+            }
+          }
+        }
+      }
+      log(
+        'risks',
+        result.unchanged
+          ? '官方檔案雜湊未變，略過圖層重建'
+          : `淹水 ${result.flood.recordCount.toLocaleString('zh-TW')} 筆；液化 ${result.liquefaction.recordCount.toLocaleString('zh-TW')} 筆`,
+      )
+    } catch (error) {
+      failed = true
+      const message = error instanceof Error ? error.message : String(error)
+      log('risks', `失敗：${message}`)
+      for (const id of ['district-boundary', 'flood', 'liquefaction']) {
+        manifest.sources[id] = sourceFailure(manifest.sources[id], id, now, message)
+      }
+    }
+  }
   if (shouldRun('facilities')) log('facilities', '各類設施來源維持獨立 unavailable，避免以單一類別代表全部')
   if (shouldRun('accidents')) log('accidents', '事故來源尚未產生通過去識別與三年度門檻的快照')
 

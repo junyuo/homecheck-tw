@@ -24,6 +24,7 @@ import {
 import { ALL_DISTRICTS, DISTRICTS, SOURCE_URLS } from './constants.mjs'
 
 const FIVE_YEARS_MS = 5 * 365.25 * 24 * 60 * 60 * 1000
+export const PRICE_ADAPTER_VERSION = 'price-v1'
 
 function seasonsSince(cutoff, now) {
   const seasons = []
@@ -246,6 +247,23 @@ function parseSale(row, city, cutoff, addressIndex, stats) {
       unitPriceApproximate: parkingPrice > 0 && parkingAreaPing <= 0,
       unitPrice: calculateNormalizedUnitPrice(totalPrice, areaPing, parkingPrice, parkingAreaPing),
     },
+    audit: {
+      id: stableId([
+        row.編號, date, districtLabel, normalizedAddress, totalPrice,
+        row.建物移轉總面積平方公尺, row.移轉層次,
+      ]),
+      city,
+      district,
+      districtLabel,
+      address: normalizedAddress,
+      date,
+      totalPrice,
+      areaSquareMeters: Number(row.建物移轉總面積平方公尺),
+      buildingType,
+      parkingPrice,
+      parkingAreaSquareMeters: Number(row.車位移轉總面積平方公尺) || 0,
+      floor: String(row.移轉層次 ?? ''),
+    },
   }
 }
 
@@ -268,17 +286,38 @@ function makeStats(city) {
 
 async function processCity(city, archives, cutoff, addressIndex) {
   const transactions = new Map(Object.values(DISTRICTS[city]).map((district) => [district, new Map()]))
+  const auditCandidates = new Map()
   const stats = makeStats(city)
   const entry = city === 'taipei' ? 'a_lvr_land_a.csv' : 'f_lvr_land_a.csv'
   for (const archive of archives) {
     const { rows, completion } = await unzipRows(archive.file, entry)
     for await (const row of rows) {
       const parsed = parseSale(row, city, cutoff, addressIndex, stats)
-      if (parsed) transactions.get(parsed.district).set(parsed.transaction.id, parsed.transaction)
+      if (parsed) {
+        transactions.get(parsed.district).set(parsed.transaction.id, parsed.transaction)
+        auditCandidates.set(parsed.audit.id, parsed.audit)
+      }
     }
     await completion
   }
-  return { transactions, stats }
+  return { transactions, stats, auditCandidates }
+}
+
+function selectAuditCandidates(cityResult) {
+  const grouped = Map.groupBy(
+    [...cityResult.auditCandidates.values()].sort((a, b) => a.id.localeCompare(b.id)),
+    (item) => item.buildingType,
+  )
+  const selected = []
+  for (const type of ['apartment', 'mansion', 'highrise']) {
+    selected.push(...(grouped.get(type) ?? []).slice(0, 3))
+  }
+  const seen = new Set(selected.map((item) => item.id))
+  selected.push(...[...cityResult.auditCandidates.values()]
+    .sort((a, b) => a.id.localeCompare(b.id))
+    .filter((item) => !seen.has(item.id))
+    .slice(0, 10 - selected.length))
+  return selected.slice(0, 10)
 }
 
 function qualityReport(cityResults) {
@@ -320,6 +359,14 @@ export async function updateOfficialPrice({
   const newTaipeiAddresses = await buildNewTaipeiAddressIndex(cache, reuseCache)
   const newTaipei = await processCity('new-taipei', archives, cutoff, newTaipeiAddresses.index)
   newTaipeiAddresses.index.clear()
+  await writeFile(join(cache, 'price-audit-candidates.json'), `${JSON.stringify({
+    adapterVersion: PRICE_ADAPTER_VERSION,
+    generatedAt: now.toISOString(),
+    samples: {
+      taipei: selectAuditCandidates(taipei),
+      'new-taipei': selectAuditCandidates(newTaipei),
+    },
+  }, null, 2)}\n`)
   const report = qualityReport([taipei, newTaipei])
   const files = []
   const years = new Set()
@@ -368,6 +415,7 @@ export async function updateOfficialPrice({
     ),
     excluded,
     version: `price-${now.toISOString().slice(0, 10)}`,
+    adapterVersion: PRICE_ADAPTER_VERSION,
     updatedAt: now.toISOString(),
     generated,
   }

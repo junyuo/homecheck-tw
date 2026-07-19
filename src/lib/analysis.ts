@@ -9,6 +9,7 @@ import type {
   PriceAnalysis,
   PropertyInput,
   RiskCollection,
+  RiskFinding,
   RiskLevel,
   Transaction,
 } from '../types'
@@ -64,6 +65,35 @@ export function riskAtPoint(
     booleanPointInPolygon(point([location.longitude, location.latitude]), feature),
   )
   return match?.properties.level ?? 'unknown'
+}
+
+export function riskFindingAtPoint(
+  location: { latitude: number; longitude: number },
+  collection: RiskCollection | null,
+): RiskFinding {
+  const match = collection?.features.find((feature) =>
+    booleanPointInPolygon(point([location.longitude, location.latitude]), feature),
+  )
+  if (!match) {
+    return {
+      level: 'unknown',
+      officialCategory: null,
+      scenario: null,
+      durationHours: null,
+      rainfallMm: null,
+      updatedAt: null,
+      coverageConfirmed: false,
+    }
+  }
+  return {
+    level: match.properties.level,
+    officialCategory: match.properties.officialCategory,
+    scenario: match.properties.scenario as RiskFinding['scenario'] ?? null,
+    durationHours: match.properties.durationHours ?? null,
+    rainfallMm: match.properties.rainfallMm ?? null,
+    updatedAt: match.properties.updatedAt,
+    coverageConfirmed: match.properties.coverageConfirmed === true,
+  }
 }
 
 function comparableTransactions(
@@ -192,8 +222,10 @@ export function buildAnalysis(
       longitude: feature.geometry.coordinates[0],
     })))
     : null
-  const floodLevel = flood ? riskAtPoint(input, flood) : 'unknown'
-  const liquefactionLevel = liquefaction ? riskAtPoint(input, liquefaction) : 'unknown'
+  const floodDetail = riskFindingAtPoint(input, flood)
+  const liquefactionDetail = riskFindingAtPoint(input, liquefaction)
+  const floodLevel = floodDetail.level
+  const liquefactionLevel = liquefactionDetail.level
   const completenessSignals = [
     price.sampleCount >= 5,
     floodLevel !== 'unknown',
@@ -214,7 +246,16 @@ export function buildAnalysis(
     input,
     price,
     flood: floodLevel,
+    floodDetail: {
+      ...floodDetail,
+      scenario: input.floodScenario,
+      durationHours: floodDetail.durationHours ??
+        Number(input.floodScenario.match(/^(\d+)h/)?.[1] ?? 0),
+      rainfallMm: floodDetail.rainfallMm ??
+        Number(input.floodScenario.match(/-(\d+)$/)?.[1] ?? 0),
+    },
     liquefaction: liquefactionLevel,
+    liquefactionDetail,
     nearestMetro: nearest(metro),
     nearestRail: nearest(rail),
     busCount: nearbyFacilities.filter((item) => item.properties.category === 'bus').length,

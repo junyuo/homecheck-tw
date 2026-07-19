@@ -3,6 +3,12 @@ import { CircleMarker, GeoJSON, MapContainer, TileLayer, useMapEvents } from 're
 import type { LatLngExpression, LeafletMouseEvent } from 'leaflet'
 import type { DistrictDataset, FacilityProperties, RiskCollection } from '../types'
 
+const riskColors = {
+  low: '#527a62',
+  attention: '#d19a28',
+  priority: '#b84b3e',
+}
+
 function ClickHandler({ onChange }: { onChange: (latitude: number, longitude: number) => void }) {
   useMapEvents({
     click(event: LeafletMouseEvent) {
@@ -116,10 +122,25 @@ export function AnalysisMap({ latitude, longitude, dataset, flood, liquefaction 
             />
           ))}
         {showFlood && flood && (
-          <GeoJSON data={flood} style={() => ({ color: '#386d84', weight: 2, fillColor: '#65a8c2', fillOpacity: 0.22 })} />
+          <GeoJSON
+            key={`flood-${dataset.floodScenario}`}
+            data={flood}
+            style={(feature) => {
+              const level = feature?.properties?.level as keyof typeof riskColors
+              const color = riskColors[level] ?? '#737b82'
+              return { color, weight: 1, fillColor: color, fillOpacity: 0.28 }
+            }}
+          />
         )}
         {showLiquefaction && liquefaction && (
-          <GeoJSON data={liquefaction} style={() => ({ color: '#a46327', weight: 2, fillColor: '#dc9c50', fillOpacity: 0.18 })} />
+          <GeoJSON
+            data={liquefaction}
+            style={(feature) => {
+              const level = feature?.properties?.level as keyof typeof riskColors
+              const color = riskColors[level] ?? '#737b82'
+              return { color, weight: 1, fillColor: color, fillOpacity: 0.2 }
+            }}
+          />
         )}
       </MapContainer>
       <p className="map-hint">只顯示通過來源與座標驗證的官方資料；距離皆為直線距離。</p>

@@ -25,11 +25,31 @@ test('production manifest 涵蓋雙北 41 區且不引用 Demo', async () => {
   }
 })
 
-test('正式價格符合自動品質門檻', async () => {
+test('價格須同時通過自動與人工品質門檻', async () => {
   const manifest = JSON.parse(await readFile(resolve(data, 'manifest.json'), 'utf8'))
   const price = manifest.sources['actual-price']
-  assert.equal(price.status, 'official')
   assert.ok(price.matchingRate >= 0.95)
   assert.ok(price.recordCount > 0)
   assert.equal(new Set(price.coverage.districts).size, 41)
+  assert.equal(price.qualityGates.automated.status, 'passed')
+  assert.equal(
+    price.status,
+    price.qualityGates.manualAudit.status === 'passed' ? 'official' : 'unavailable',
+  )
+})
+
+test('災害候選資料涵蓋 41 區與十種情境且受人工閘門控制', async () => {
+  const manifest = JSON.parse(await readFile(resolve(data, 'manifest.json'), 'utf8'))
+  assert.equal(manifest.sources['district-boundary'].status, 'official')
+  assert.equal(manifest.sources['district-boundary'].files.length, 41)
+  assert.equal(manifest.sources.flood.files.length, 410)
+  assert.equal(manifest.sources.liquefaction.files.length, 41)
+  for (const id of ['flood', 'liquefaction']) {
+    const source = manifest.sources[id]
+    assert.equal(source.qualityGates.automated.status, 'passed')
+    assert.equal(
+      source.status,
+      source.qualityGates.manualAudit.status === 'passed' ? 'official' : 'unavailable',
+    )
+  }
 })

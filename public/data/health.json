@@ -1,38 +1,38 @@
 {
   "schemaVersion": "1.0.0",
-  "generatedAt": "2026-07-19T04:09:51.209Z",
+  "generatedAt": "2026-07-19T07:35:16.150Z",
   "sources": {
     "actual-price": {
-      "status": "official",
-      "updatedAt": "2026-07-19T04:09:29.490Z",
-      "attemptedAt": "2026-07-19T04:09:29.489Z",
+      "status": "unavailable",
+      "updatedAt": "2026-07-19T06:10:33.054Z",
+      "attemptedAt": "2026-07-19T06:10:33.052Z",
       "lastAttempt": {
         "status": "success",
-        "message": "下載、schema 與品質檢查通過"
+        "message": "自動品質檢查通過；等待臺北／新北各 10 筆人工複核"
       },
-      "recordCount": 230466,
-      "matchingRate": 0.994017761253898
+      "recordCount": 230297,
+      "matchingRate": 0.9940133975587438
     },
     "flood": {
       "status": "unavailable",
-      "updatedAt": null,
-      "attemptedAt": null,
+      "updatedAt": "2022-08-12T00:00:00.000Z",
+      "attemptedAt": "2026-07-19T07:35:15.501Z",
       "lastAttempt": {
-        "status": "not-run",
-        "message": "尚未通過情境、CRS 與 topology 驗證"
+        "status": "success",
+        "message": "自動資料品質檢查通過；等待臺北／新北各 5 個位置的官方圖台人工抽查"
       },
-      "recordCount": 0,
+      "recordCount": 1550,
       "matchingRate": null
     },
     "liquefaction": {
       "status": "unavailable",
-      "updatedAt": null,
-      "attemptedAt": null,
+      "updatedAt": "2024-08-08T02:24:00.000Z",
+      "attemptedAt": "2026-07-19T07:35:15.501Z",
       "lastAttempt": {
-        "status": "not-run",
-        "message": "尚未通過區域圖資品質門檻"
+        "status": "success",
+        "message": "自動資料品質檢查通過；等待臺北／新北各 5 個位置的官方圖台人工抽查"
       },
-      "recordCount": 0,
+      "recordCount": 139,
       "matchingRate": null
     },
     "metro": {
@@ -154,6 +154,17 @@
         "message": "尚未建立最近三個完整年度快照"
       },
       "recordCount": 0,
+      "matchingRate": null
+    },
+    "district-boundary": {
+      "status": "official",
+      "updatedAt": "2025-03-18T00:00:00.000Z",
+      "attemptedAt": "2026-07-19T07:35:15.501Z",
+      "lastAttempt": {
+        "status": "success",
+        "message": "下載、schema 與品質檢查通過"
+      },
+      "recordCount": 41,
       "matchingRate": null
     }
   }

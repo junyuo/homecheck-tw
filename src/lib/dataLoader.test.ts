@@ -57,4 +57,103 @@ describe('資料載入錯誤', () => {
     expect(dataset.facilities.features).toHaveLength(0)
     expect(dataset.sources.metro?.status).toBe('failed')
   })
+
+  it('unavailable 候選檔不會被正式分析載入', async () => {
+    const manifest = {
+      schemaVersion: '2.0.0',
+      dataVersion: 'test',
+      generatedAt: '2026-07-19',
+      mode: 'production',
+      coverage: { cities: ['taipei'], districts: ['taipei/daan'], years: [2026] },
+      sources: {
+        'actual-price': {
+          id: 'actual-price',
+          status: 'unavailable',
+          version: 'price-v1',
+          updatedAt: '2026-07-19',
+          attemptedAt: '2026-07-19',
+          recordCount: 1,
+          coverage: { cities: ['taipei'], districts: ['taipei/daan'] },
+          downloadUrl: 'https://example.test',
+          sha256: 'test',
+          matchingRate: 1,
+          excluded: {},
+          lastAttempt: { status: 'success', message: '等待人工驗收' },
+          files: ['taipei/daan/transactions/2026.json'],
+        },
+        flood: {
+          id: 'flood',
+          status: 'unavailable',
+          version: 'risks-v1',
+          updatedAt: '2026-07-19',
+          attemptedAt: '2026-07-19',
+          recordCount: 1,
+          coverage: { cities: ['taipei'], districts: ['taipei/daan'] },
+          downloadUrl: 'https://example.test',
+          sha256: 'test',
+          matchingRate: null,
+          excluded: {},
+          lastAttempt: { status: 'success', message: '等待人工驗收' },
+          files: ['taipei/daan/risks/flood/24h-500.geojson'],
+        },
+      },
+    }
+    const fetcher = vi.fn(async (request: RequestInfo | URL) => {
+      if (String(request).endsWith('manifest.json')) return {
+        ok: true,
+        headers: { get: () => 'application/json' },
+        json: async () => manifest,
+      }
+      throw new Error('unavailable 檔案不應被請求')
+    }) as unknown as typeof fetch
+
+    const dataset = await loadDistrictData('taipei', 'daan', fetcher)
+    expect(dataset.transactions).toHaveLength(0)
+    expect(dataset.flood).toBeNull()
+    expect(dataset.availableFloodScenarios).toHaveLength(0)
+    expect(fetcher).toHaveBeenCalledTimes(1)
+  })
+
+  it('初始只載入指定淹水情境', async () => {
+    const files = [
+      'taipei/daan/risks/flood/6h-150.geojson',
+      'taipei/daan/risks/flood/24h-500.geojson',
+    ]
+    const source = {
+      id: 'flood',
+      status: 'official',
+      version: 'risks-v1',
+      updatedAt: '2026-07-19',
+      attemptedAt: '2026-07-19',
+      recordCount: 2,
+      coverage: { cities: ['taipei'], districts: ['taipei/daan'] },
+      downloadUrl: 'https://example.test',
+      sha256: 'test',
+      matchingRate: null,
+      excluded: {},
+      lastAttempt: { status: 'success', message: 'ok' },
+      files,
+    }
+    const manifest = {
+      schemaVersion: '2.0.0',
+      dataVersion: 'test',
+      generatedAt: '2026-07-19',
+      mode: 'production',
+      coverage: { cities: ['taipei'], districts: ['taipei/daan'], years: [] },
+      sources: { flood: source },
+    }
+    const emptyRisk = { type: 'FeatureCollection', features: [] }
+    const fetchMock = vi.fn(async (request: RequestInfo | URL) => ({
+      ok: true,
+      headers: { get: () => 'application/json' },
+      json: async () => String(request).endsWith('manifest.json') ? manifest : emptyRisk,
+    }))
+    const fetcher = fetchMock as unknown as typeof fetch
+
+    const dataset = await loadDistrictData('taipei', 'daan', fetcher, '6h-150')
+    expect(dataset.floodScenario).toBe('6h-150')
+    expect(dataset.availableFloodScenarios).toEqual(['6h-150', '24h-500'])
+    expect(fetchMock.mock.calls.some(([request]) =>
+      String(request).includes('24h-500.geojson'))).toBe(false)
+  })
 })

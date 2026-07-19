@@ -18,6 +18,7 @@ const input: PropertyInput = {
   parkingPrice: 0,
   parkingAreaPing: 0,
   radius: 500,
+  floodScenario: '24h-500',
 }
 
 describe('價格計算', () => {
@@ -82,6 +83,7 @@ describe('空間分析', () => {
           level: 'attention',
           sourceType: 'official',
           officialCategory: '中',
+          riskType: 'liquefaction',
           updatedAt: '2026-07-19',
         },
         geometry: { type: 'Polygon', coordinates: [[[121.54, 25.03], [121.55, 25.03], [121.55, 25.04], [121.54, 25.04], [121.54, 25.03]]] },

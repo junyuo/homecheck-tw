@@ -1,8 +1,9 @@
 import type { AnalysisResult, SavedProperty } from '../types'
+import { DEFAULT_FLOOD_SCENARIO } from '../config/risks'
 
 export const STORAGE_KEY = 'homecheck-tw:properties'
 export const MAX_PROPERTIES = 3
-export const STORAGE_SCHEMA_VERSION = 2
+export const STORAGE_SCHEMA_VERSION = 3
 
 interface StorageEnvelope {
   schemaVersion: typeof STORAGE_SCHEMA_VERSION
@@ -13,14 +14,36 @@ function encode(properties: SavedProperty[]): string {
   return JSON.stringify({ schemaVersion: STORAGE_SCHEMA_VERSION, properties } satisfies StorageEnvelope)
 }
 
-function migrateLegacy(items: SavedProperty[]): SavedProperty[] {
+const emptyRiskFinding = {
+  level: 'unknown' as const,
+  officialCategory: null,
+  scenario: null,
+  durationHours: null,
+  rainfallMm: null,
+  updatedAt: null,
+  coverageConfirmed: false,
+}
+
+function migrateLegacy(items: SavedProperty[], riskSnapshotLegacy = true): SavedProperty[] {
   return items.map((item) => {
     const legacy = item.result as AnalysisResult & { demo?: boolean }
     return {
       ...item,
       historicDemo: legacy.demo === true || legacy.dataQuality === 'historic-demo',
+      riskSnapshotLegacy: item.riskSnapshotLegacy ?? riskSnapshotLegacy,
       result: {
         ...legacy,
+        input: {
+          ...legacy.input,
+          floodScenario: legacy.input.floodScenario ?? DEFAULT_FLOOD_SCENARIO,
+        },
+        floodDetail: legacy.floodDetail ?? {
+          ...emptyRiskFinding,
+          scenario: DEFAULT_FLOOD_SCENARIO,
+          durationHours: 24,
+          rainfallMm: 500,
+        },
+        liquefactionDetail: legacy.liquefactionDetail ?? emptyRiskFinding,
         dataQuality: legacy.demo === true ? 'historic-demo' : (legacy.dataQuality ?? 'unavailable'),
         sources: legacy.sources ?? {},
       },
@@ -40,6 +63,9 @@ export function loadSavedProperties(storage: Pick<Storage, 'getItem'> = localSto
     if (Array.isArray(parsed)) return migrateLegacy(parsed).slice(0, MAX_PROPERTIES)
     if (parsed?.schemaVersion === STORAGE_SCHEMA_VERSION && Array.isArray(parsed.properties)) {
       return parsed.properties.slice(0, MAX_PROPERTIES)
+    }
+    if (parsed?.schemaVersion === 2 && Array.isArray(parsed.properties)) {
+      return migrateLegacy(parsed.properties).slice(0, MAX_PROPERTIES)
     }
     return []
   } catch {

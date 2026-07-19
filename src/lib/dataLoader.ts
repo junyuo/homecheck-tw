@@ -4,12 +4,14 @@ import type {
   DataSourceId,
   DistrictDataset,
   FacilityProperties,
+  FloodScenarioId,
   PointCollection,
   RiskCollection,
   RuntimeSourceState,
   SourceState,
   Transaction,
 } from '../types'
+import { DEFAULT_FLOOD_SCENARIO } from '../config/risks'
 
 const asset = (path: string) => `${import.meta.env.BASE_URL}data/${path}`
 
@@ -53,6 +55,7 @@ const runtimeState = (
   return {
     status: outsideCoverage ? 'unavailable' : (source?.status ?? 'unavailable'),
     updatedAt: outsideCoverage ? null : (source?.updatedAt ?? null),
+    validUntil: outsideCoverage ? null : source?.validUntil,
     message: outsideCoverage ? '此行政區不在來源涵蓋範圍' : (source?.lastAttempt.message ?? '尚未接入'),
   }
 }
@@ -69,6 +72,7 @@ async function loadFiles<T>(
 }
 
 function sourceFiles(source: SourceState | undefined, prefix: string, suffix: string): string[] {
+  if (!source || source.status === 'unavailable') return []
   return source?.files.filter((file) => file.startsWith(prefix) && file.endsWith(suffix)) ?? []
 }
 
@@ -90,6 +94,7 @@ export async function loadDistrictData(
   city: string,
   district: string,
   fetcher: typeof fetch = fetch,
+  floodScenario: FloodScenarioId = DEFAULT_FLOOD_SCENARIO,
 ): Promise<DistrictDataset> {
   const manifest = await loadManifest(fetcher)
   const prefix = `${city}/${district}/`
@@ -110,7 +115,20 @@ export async function loadDistrictData(
       .map((file) => ({ id, file })),
   )
   const accidentFiles = sourceFiles(manifest.sources.accidents, `${prefix}accidents/`, '.json')
-  const floodFiles = sourceFiles(manifest.sources.flood, `${prefix}risks/`, 'flood.geojson')
+  const floodPrefix = `${prefix}risks/flood/`
+  const availableFloodScenarios = sourceFiles(
+    manifest.sources.flood,
+    floodPrefix,
+    '.geojson',
+  ).map((file) => file.slice(floodPrefix.length, -'.geojson'.length) as FloodScenarioId)
+  const floodFiles = sourceFiles(
+    manifest.sources.flood,
+    floodPrefix,
+    `/${floodScenario}.geojson`,
+  )
+  if (!floodFiles.length && availableFloodScenarios.includes(floodScenario)) {
+    floodFiles.push(`${floodPrefix}${floodScenario}.geojson`)
+  }
   const liquefactionFiles = sourceFiles(
     manifest.sources.liquefaction,
     `${prefix}risks/`,
@@ -151,6 +169,8 @@ export async function loadDistrictData(
       features: accidents.values.flatMap((collection) => collection.features),
     },
     flood: floods.values[0] ?? null,
+    floodScenario,
+    availableFloodScenarios: [...new Set(availableFloodScenarios)],
     liquefaction: liquefactions.values[0] ?? null,
     sources,
     updatedAt: successfulDates.at(-1) ?? manifest.generatedAt,
@@ -161,7 +181,41 @@ export async function loadRiskLayers(
   city: string,
   district: string,
   fetcher: typeof fetch = fetch,
+  floodScenario: FloodScenarioId = DEFAULT_FLOOD_SCENARIO,
 ): Promise<{ flood: RiskCollection | null; liquefaction: RiskCollection | null }> {
-  const dataset = await loadDistrictData(city, district, fetcher)
+  const dataset = await loadDistrictData(city, district, fetcher, floodScenario)
   return { flood: dataset.flood, liquefaction: dataset.liquefaction }
+}
+
+const floodCaches = new WeakMap<typeof fetch, Map<string, Promise<RiskCollection>>>()
+
+export async function loadFloodScenario(
+  city: string,
+  district: string,
+  scenario: FloodScenarioId,
+  fetcher: typeof fetch = fetch,
+): Promise<RiskCollection> {
+  let cache = floodCaches.get(fetcher)
+  if (!cache) {
+    cache = new Map()
+    floodCaches.set(fetcher, cache)
+  }
+  const key = `${city}/${district}/${scenario}`
+  const cached = cache.get(key)
+  if (cached) return cached
+  const promise = loadManifest(fetcher).then((manifest) => {
+    if (manifest.sources.flood?.status === 'unavailable') {
+      throw new DataLoadError('淹水來源尚未通過發布閘門')
+    }
+    const expected = `${city}/${district}/risks/flood/${scenario}.geojson`
+    if (!manifest.sources.flood?.files.includes(expected)) {
+      throw new DataLoadError(`淹水情境 ${scenario} 尚未接入`)
+    }
+    return fetchJson<RiskCollection>(expected, fetcher)
+  }).catch((error) => {
+    cache?.delete(key)
+    throw error
+  })
+  cache.set(key, promise)
+  return promise
 }
