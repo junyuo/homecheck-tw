@@ -1,0 +1,13 @@
+{
+  "type":"FeatureCollection",
+  "features":[
+    {"type":"Feature","properties":{"name":"Demo 和平捷運站","category":"metro","demo":true},"geometry":{"type":"Point","coordinates":[121.5438,25.0252]}},
+    {"type":"Feature","properties":{"name":"Demo 公車站 A","category":"bus","demo":true},"geometry":{"type":"Point","coordinates":[121.5427,25.0273]}},
+    {"type":"Feature","properties":{"name":"Demo 公車站 B","category":"bus","demo":true},"geometry":{"type":"Point","coordinates":[121.5451,25.0264]}},
+    {"type":"Feature","properties":{"name":"Demo 國小","category":"school","demo":true},"geometry":{"type":"Point","coordinates":[121.5412,25.0258]}},
+    {"type":"Feature","properties":{"name":"Demo 診所","category":"medical","demo":true},"geometry":{"type":"Point","coordinates":[121.5444,25.0281]}},
+    {"type":"Feature","properties":{"name":"Demo 公園","category":"park","demo":true},"geometry":{"type":"Point","coordinates":[121.5460,25.0248]}},
+    {"type":"Feature","properties":{"name":"Demo 市場","category":"market","demo":true},"geometry":{"type":"Point","coordinates":[121.5408,25.0280]}},
+    {"type":"Feature","properties":{"name":"Demo 圖書館","category":"library","demo":true},"geometry":{"type":"Point","coordinates":[121.5471,25.0274]}}
+  ]
+}

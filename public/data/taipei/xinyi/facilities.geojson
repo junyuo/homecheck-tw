@@ -1,0 +1,7 @@
+{"type":"FeatureCollection","features":[
+  {"type":"Feature","properties":{"name":"Demo 市府捷運站","category":"metro","demo":true},"geometry":{"type":"Point","coordinates":[121.5652,25.0330]}},
+  {"type":"Feature","properties":{"name":"Demo 公車站","category":"bus","demo":true},"geometry":{"type":"Point","coordinates":[121.5639,25.0342]}},
+  {"type":"Feature","properties":{"name":"Demo 醫療院所","category":"medical","demo":true},"geometry":{"type":"Point","coordinates":[121.5670,25.0324]}},
+  {"type":"Feature","properties":{"name":"Demo 公園","category":"park","demo":true},"geometry":{"type":"Point","coordinates":[121.5627,25.0322]}},
+  {"type":"Feature","properties":{"name":"Demo 停車場","category":"parking","demo":true},"geometry":{"type":"Point","coordinates":[121.5665,25.0344]}}
+]}

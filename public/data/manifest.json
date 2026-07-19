@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "1.0.0",
+  "dataVersion": "demo-2026-07-19",
+  "generatedAt": "2026-07-19T00:00:00+08:00",
+  "mode": "demo",
+  "notice": "所有資料均為人造 Demo，只用於驗證網站功能，不代表任何真實地址、交易、設施或災害狀態。",
+  "coverage": {
+    "cities": ["taipei", "new-taipei"],
+    "districts": ["taipei/daan", "taipei/xinyi", "new-taipei/banqiao"],
+    "years": [2022, 2023, 2024, 2025, 2026]
+  },
+  "sources": [
+    { "id": "actual-price", "status": "demo", "updatedAt": null },
+    { "id": "facilities", "status": "demo", "updatedAt": null },
+    { "id": "accidents", "status": "demo", "updatedAt": null },
+    { "id": "flood", "status": "demo", "updatedAt": null },
+    { "id": "liquefaction", "status": "demo", "updatedAt": null }
+  ]
+}

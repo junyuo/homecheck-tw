@@ -1,0 +1,9 @@
+[
+  {"id":"demo-bq-01","date":"2022-04-15","latitude":25.0112,"longitude":121.4604,"totalPrice":19400000,"areaPing":34.5,"age":20,"buildingType":"highrise","floor":5,"specialTransaction":false,"parkingPrice":1900000},
+  {"id":"demo-bq-02","date":"2022-10-22","latitude":25.0128,"longitude":121.4630,"totalPrice":20500000,"areaPing":36.2,"age":16,"buildingType":"highrise","floor":8,"specialTransaction":false,"parkingPrice":2100000},
+  {"id":"demo-bq-03","date":"2023-07-03","latitude":25.0105,"longitude":121.4640,"totalPrice":21100000,"areaPing":37.1,"age":14,"buildingType":"highrise","floor":9,"specialTransaction":false,"parkingPrice":2200000},
+  {"id":"demo-bq-04","date":"2024-01-19","latitude":25.0136,"longitude":121.4615,"totalPrice":20700000,"areaPing":35.4,"age":21,"buildingType":"highrise","floor":6,"specialTransaction":false,"parkingPrice":2000000},
+  {"id":"demo-bq-05","date":"2024-09-07","latitude":25.0118,"longitude":121.4651,"totalPrice":22000000,"areaPing":36.8,"age":17,"buildingType":"highrise","floor":10,"specialTransaction":false,"parkingPrice":2300000},
+  {"id":"demo-bq-06","date":"2025-06-28","latitude":25.0142,"longitude":121.4627,"totalPrice":22600000,"areaPing":37.3,"age":15,"buildingType":"highrise","floor":11,"specialTransaction":false,"parkingPrice":2400000},
+  {"id":"demo-bq-07","date":"2026-02-11","latitude":25.0109,"longitude":121.4621,"totalPrice":21800000,"areaPing":35.7,"age":18,"buildingType":"highrise","floor":7,"specialTransaction":false,"parkingPrice":2200000}
+]

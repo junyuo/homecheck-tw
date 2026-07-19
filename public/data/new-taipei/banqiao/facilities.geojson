@@ -1,0 +1,7 @@
+{"type":"FeatureCollection","features":[
+  {"type":"Feature","properties":{"name":"Demo 板橋捷運站","category":"metro","demo":true},"geometry":{"type":"Point","coordinates":[121.4622,25.0130]}},
+  {"type":"Feature","properties":{"name":"Demo 板橋火車站","category":"rail","demo":true},"geometry":{"type":"Point","coordinates":[121.4630,25.0140]}},
+  {"type":"Feature","properties":{"name":"Demo 公車站","category":"bus","demo":true},"geometry":{"type":"Point","coordinates":[121.4611,25.0118]}},
+  {"type":"Feature","properties":{"name":"Demo 公園","category":"park","demo":true},"geometry":{"type":"Point","coordinates":[121.4640,25.0110]}},
+  {"type":"Feature","properties":{"name":"Demo 圖書館","category":"library","demo":true},"geometry":{"type":"Point","coordinates":[121.4598,25.0125]}}
+]}

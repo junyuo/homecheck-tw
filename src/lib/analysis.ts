@@ -1,0 +1,206 @@
+import booleanPointInPolygon from '@turf/boolean-point-in-polygon'
+import distance from '@turf/distance'
+import { point } from '@turf/helpers'
+import type {
+  AnalysisResult,
+  ChecklistItem,
+  DistrictDataset,
+  PointCollection,
+  PriceAnalysis,
+  PropertyInput,
+  RiskCollection,
+  RiskLevel,
+  Transaction,
+} from '../types'
+
+export function calculateUnitPrice(totalPrice: number, areaPing: number, parkingPrice = 0): number {
+  if (areaPing <= 0) return 0
+  return Math.round(((totalPrice - Math.max(0, parkingPrice)) / areaPing) * 100) / 100
+}
+
+export function quantile(values: number[], percentile: number): number | null {
+  if (!values.length) return null
+  const sorted = [...values].sort((a, b) => a - b)
+  const position = (sorted.length - 1) * percentile
+  const lower = Math.floor(position)
+  const upper = Math.ceil(position)
+  const weight = position - lower
+  return sorted[lower] + (sorted[upper] - sorted[lower]) * weight
+}
+
+export function distanceMeters(
+  a: { latitude: number; longitude: number },
+  b: { latitude: number; longitude: number },
+): number {
+  return distance(point([a.longitude, a.latitude]), point([b.longitude, b.latitude]), {
+    units: 'kilometers',
+  }) * 1000
+}
+
+export function pointsWithinRadius<T>(
+  collection: PointCollection<T>,
+  location: { latitude: number; longitude: number },
+  radius: number,
+): PointCollection<T>['features'] {
+  return collection.features.filter((feature) =>
+    distanceMeters(location, {
+      latitude: feature.geometry.coordinates[1],
+      longitude: feature.geometry.coordinates[0],
+    }) <= radius,
+  )
+}
+
+export function riskAtPoint(
+  location: { latitude: number; longitude: number },
+  collection: RiskCollection,
+): RiskLevel {
+  const match = collection.features.find((feature) =>
+    booleanPointInPolygon(point([location.longitude, location.latitude]), feature),
+  )
+  return match?.properties.level ?? 'unknown'
+}
+
+function comparableTransactions(
+  input: PropertyInput,
+  transactions: Transaction[],
+  radius: number,
+): Transaction[] {
+  return transactions.filter((transaction) => {
+    const closeEnough = distanceMeters(input, transaction) <= radius
+    const ageMatch = Math.abs(transaction.age - input.age) <= 10
+    return closeEnough &&
+      ageMatch &&
+      transaction.buildingType === input.buildingType &&
+      !transaction.specialTransaction
+  })
+}
+
+export function analyzePrice(input: PropertyInput, transactions: Transaction[]): PriceAnalysis {
+  let radiusUsed = 500
+  let comparable = comparableTransactions(input, transactions, radiusUsed)
+  if (comparable.length < 5) {
+    radiusUsed = 1000
+    comparable = comparableTransactions(input, transactions, radiusUsed)
+  }
+  const prices = comparable.map((item) =>
+    calculateUnitPrice(item.totalPrice, item.areaPing, item.parkingPrice ?? 0),
+  )
+  const median = quantile(prices, 0.5)
+  const unitPrice = calculateUnitPrice(
+    input.totalPrice,
+    input.areaPing,
+    input.hasParking ? input.parkingPrice : 0,
+  )
+  const differencePercent = median && comparable.length >= 5
+    ? ((unitPrice - median) / median) * 100
+    : null
+  const byYear = new Map<number, number[]>()
+  comparable.forEach((item) => {
+    const year = new Date(item.date).getFullYear()
+    byYear.set(year, [...(byYear.get(year) ?? []), calculateUnitPrice(item.totalPrice, item.areaPing, item.parkingPrice)])
+  })
+  return {
+    unitPrice,
+    median,
+    q1: quantile(prices, 0.25),
+    q3: quantile(prices, 0.75),
+    sampleCount: comparable.length,
+    differencePercent,
+    radiusUsed,
+    parkingExcluded: input.hasParking && input.parkingPrice > 0,
+    insufficient: comparable.length < 5,
+    trend: [...byYear.entries()]
+      .sort(([a], [b]) => a - b)
+      .map(([year, values]) => ({ year, median: quantile(values, 0.5) ?? 0 })),
+  }
+}
+
+function makeChecklist(
+  price: PriceAnalysis,
+  flood: RiskLevel,
+  liquefaction: RiskLevel,
+  accidentCount: number,
+): ChecklistItem[] {
+  const items: ChecklistItem[] = []
+  if (flood !== 'low') items.push({
+    id: 'flood',
+    text: '地下室或一樓過去是否發生淹水？社區有哪些防水與抽水措施？',
+    level: flood,
+    checked: false,
+  })
+  if (liquefaction !== 'low') items.push({
+    id: 'liquefaction',
+    text: '可以取得基地地質調查、地質改良及建物結構資料嗎？',
+    level: liquefaction,
+    checked: false,
+  })
+  if (price.insufficient || (price.differencePercent ?? 0) > 10) items.push({
+    id: 'price',
+    text: price.insufficient
+      ? '可否提供更多同社區或鄰近相似物件的近期成交資料？'
+      : '開價包含哪些裝潢、設備與車位價值？議價依據為何？',
+    level: price.insufficient ? 'unknown' : 'attention',
+    checked: false,
+  })
+  if (accidentCount > 0) items.push({
+    id: 'traffic',
+    text: '尖峰與夜間的車流、噪音及行人安全狀況如何？',
+    level: 'attention',
+    checked: false,
+  })
+  items.push(
+    { id: 'repair', text: '社區是否有重大修繕、漏水或外牆維護紀錄？', level: 'attention', checked: false },
+    { id: 'fund', text: '管委會公共基金餘額與近期重大支出為何？', level: 'attention', checked: false },
+    { id: 'license', text: '是否可以取得建物使用執照與車位權利資料？', level: 'attention', checked: false },
+  )
+  const rank: Record<RiskLevel, number> = { priority: 0, attention: 1, unknown: 2, low: 3 }
+  return items.sort((a, b) => rank[a.level] - rank[b.level])
+}
+
+export function buildAnalysis(
+  input: PropertyInput,
+  dataset: DistrictDataset,
+  flood: RiskCollection,
+  liquefaction: RiskCollection,
+): AnalysisResult {
+  const price = analyzePrice(input, dataset.transactions)
+  const nearbyFacilities = pointsWithinRadius(dataset.facilities, input, input.radius)
+  const nearbyAccidents = pointsWithinRadius(dataset.accidents, input, input.radius)
+  const metro = dataset.facilities.features.filter((feature) => feature.properties.category === 'metro')
+  const rail = dataset.facilities.features.filter((feature) => feature.properties.category === 'rail')
+  const nearest = (features: typeof metro) => features.length
+    ? Math.min(...features.map((feature) => distanceMeters(input, {
+      latitude: feature.geometry.coordinates[1],
+      longitude: feature.geometry.coordinates[0],
+    })))
+    : null
+  const evaluatedFlood = riskAtPoint(input, flood)
+  const evaluatedLiquefaction = riskAtPoint(input, liquefaction)
+  const floodIsDemo = flood.features.some((feature) => feature.properties.sourceType === 'demo')
+  const liquefactionIsDemo = liquefaction.features.some((feature) => feature.properties.sourceType === 'demo')
+  const floodLevel: RiskLevel = floodIsDemo ? 'unknown' : evaluatedFlood
+  const liquefactionLevel: RiskLevel = liquefactionIsDemo ? 'unknown' : evaluatedLiquefaction
+  const completenessSignals = [
+    price.sampleCount >= 5,
+    floodLevel !== 'unknown',
+    liquefactionLevel !== 'unknown',
+    metro.length > 0 || rail.length > 0,
+    dataset.facilities.features.length > 0,
+    dataset.accidents.features.length > 0,
+  ]
+  return {
+    input,
+    price,
+    flood: floodLevel,
+    liquefaction: liquefactionLevel,
+    nearestMetro: nearest(metro),
+    nearestRail: nearest(rail),
+    busCount: nearbyFacilities.filter((item) => item.properties.category === 'bus').length,
+    facilityCount: nearbyFacilities.filter((item) => !['metro', 'rail', 'bus'].includes(item.properties.category)).length,
+    accidentCount: nearbyAccidents.length,
+    completeness: Math.round(completenessSignals.filter(Boolean).length / completenessSignals.length * 100),
+    checklist: makeChecklist(price, floodLevel, liquefactionLevel, nearbyAccidents.length),
+    updatedAt: dataset.updatedAt,
+    demo: dataset.isDemo,
+  }
+}
