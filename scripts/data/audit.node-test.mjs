@@ -104,6 +104,7 @@ test('災害驗收要求每市五點與指定案例覆蓋', () => {
   ])
   samples.forEach((sample, index) => Object.assign(sample, {
     observedCategory: sample.expectedCategory,
+    verificationMethod: 'official-map',
     longitude: Number((121.5 + index / 10000).toFixed(5)),
     latitude: Number((25 + index / 10000).toFixed(5)),
   }))

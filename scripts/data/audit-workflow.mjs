@@ -148,7 +148,7 @@ function priceRecord(candidate, { result, attempts, mismatchFields, now }) {
   return record
 }
 
-function riskRecord(candidate, { result, observed, attempts, now }) {
+function riskRecord(candidate, { result, observed, attempts, evidence, now }) {
   if (!['matched', 'mismatch'].includes(result)) {
     throw new Error('災害 result 只接受 matched 或 mismatch')
   }
@@ -162,6 +162,10 @@ function riskRecord(candidate, { result, observed, attempts, now }) {
   if (result === 'mismatch' && observed === candidate.expectedCategory) {
     throw new Error('observed 與 expected 相同時不得記為 mismatch')
   }
+  const verificationMethod = evidence?.verificationMethod ?? 'official-map'
+  if (!['official-map', 'official-raw-offline'].includes(verificationMethod)) {
+    throw new Error(`未知災害驗證方式：${verificationMethod}`)
+  }
   return {
     id: candidate.id,
     source: candidate.source,
@@ -174,6 +178,8 @@ function riskRecord(candidate, { result, observed, attempts, now }) {
     observedCategory: observed,
     scenario: candidate.scenario ?? null,
     result,
+    verificationMethod,
+    ...(evidence ? { evidence } : {}),
     checkedAt: now,
     attemptCount: attempts,
   }
@@ -186,6 +192,7 @@ export async function recordAudit(root, {
   observed,
   attempts = 1,
   mismatchFields = [],
+  evidence = null,
   replace = false,
   now = new Date().toISOString(),
 }) {
@@ -206,7 +213,7 @@ export async function recordAudit(root, {
   }
   const record = isPrice
     ? priceRecord(candidate, { result, attempts, mismatchFields, now })
-    : riskRecord(candidate, { result, observed, attempts, now })
+    : riskRecord(candidate, { result, observed, attempts, evidence, now })
   if (existingIndex >= 0) audit.samples[existingIndex] = record
   else audit.samples.push(record)
   audit.checkedAt = now
@@ -250,6 +257,13 @@ export async function auditStatus(root) {
     inconclusive: priceSamples.filter((sample) => sample.result === 'inconclusive').length,
     mismatches: [...priceSamples, ...riskSamples]
       .filter((sample) => sample.result === 'mismatch').length,
+    verificationMethods: Object.fromEntries(['flood', 'liquefaction'].map((source) => [
+      source,
+      [...new Set(riskSamples
+        .filter((sample) => sample.source === source && sample.result === 'matched')
+        .map((sample) => sample.verificationMethod)
+        .filter(Boolean))],
+    ])),
   }
 }
 

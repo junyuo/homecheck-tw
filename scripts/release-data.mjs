@@ -60,6 +60,8 @@ async function main() {
       await verifyCandidate(source)
       const evaluation = evaluateRiskAudit(audit, id, {
         adapterVersion: source.qualityGates.automated.adapterVersion,
+        sourceSha256: source.sha256,
+        requireEvidenceSourceSha: true,
       })
       promoteSource(source, evaluation, audit, now)
     }

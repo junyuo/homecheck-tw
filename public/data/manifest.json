@@ -1,7 +1,7 @@
 {
   "schemaVersion": "2.0.0",
-  "dataVersion": "production-2026-07-19",
-  "generatedAt": "2026-07-19T08:15:35.488Z",
+  "dataVersion": "production-2026-07-20",
+  "generatedAt": "2026-07-20T01:54:44.449Z",
   "mode": "production",
   "coverage": {
     "cities": [
@@ -63,10 +63,10 @@
   "sources": {
     "actual-price": {
       "id": "actual-price",
-      "status": "unavailable",
+      "status": "official",
       "version": "price-2026-07-19",
       "updatedAt": "2026-07-19T06:10:33.054Z",
-      "attemptedAt": "2026-07-19T06:10:33.052Z",
+      "attemptedAt": "2026-07-20T01:54:44.449Z",
       "recordCount": 230297,
       "coverage": {
         "cities": [
@@ -139,7 +139,7 @@
       },
       "lastAttempt": {
         "status": "success",
-        "message": "自動品質檢查通過；等待臺北／新北各 10 筆人工複核"
+        "message": "人工驗收 20/20 通過，候選資料正式發布"
       },
       "files": [
         "taipei/zhongzheng/transactions/2021.json",
@@ -384,20 +384,20 @@
           "datasetSha256": "626c3635d395ca543875067b6e6ea8f1b37c9ed73dbb81af7f3d111274f54c76"
         },
         "manualAudit": {
-          "status": "pending",
+          "status": "passed",
           "adapterVersion": "price-v1",
-          "checkedAt": "2026-07-19T08:08:00.000Z",
-          "sampleCount": 2,
+          "checkedAt": "2026-07-20T01:11:24.231Z",
+          "sampleCount": 20,
           "requiredSampleCount": 20
         }
       }
     },
     "flood": {
       "id": "flood",
-      "status": "unavailable",
+      "status": "official",
       "version": "flood-2022-08-12-465d5df4",
       "updatedAt": "2022-08-12T00:00:00.000Z",
-      "attemptedAt": "2026-07-19T07:35:15.501Z",
+      "attemptedAt": "2026-07-20T01:54:44.449Z",
       "recordCount": 1550,
       "coverage": {
         "cities": [
@@ -456,7 +456,7 @@
       },
       "lastAttempt": {
         "status": "success",
-        "message": "自動資料品質檢查通過；等待臺北／新北各 5 個位置的官方圖台人工抽查"
+        "message": "人工驗收 10/10 通過，候選資料正式發布"
       },
       "files": [
         "taipei/zhongzheng/risks/flood/6h-150.geojson",
@@ -881,20 +881,23 @@
           "datasetSha256": "06d5d7162581f7583ac1efb08d673a96d69df054390f9ad8070b49f1e4cd4c52"
         },
         "manualAudit": {
-          "status": "pending",
+          "status": "passed",
           "adapterVersion": "risks-v1",
-          "checkedAt": null,
-          "sampleCount": 0,
-          "requiredSampleCount": 10
+          "checkedAt": "2026-07-20T01:54:08.539Z",
+          "sampleCount": 10,
+          "requiredSampleCount": 10,
+          "verificationMethods": [
+            "official-raw-offline"
+          ]
         }
       }
     },
     "liquefaction": {
       "id": "liquefaction",
-      "status": "unavailable",
+      "status": "official",
       "version": "liquefaction-2024-08-08-101ddc31",
       "updatedAt": "2024-08-08T02:24:00.000Z",
-      "attemptedAt": "2026-07-19T07:35:15.501Z",
+      "attemptedAt": "2026-07-20T01:54:44.449Z",
       "recordCount": 139,
       "coverage": {
         "cities": [
@@ -953,7 +956,7 @@
       },
       "lastAttempt": {
         "status": "success",
-        "message": "自動資料品質檢查通過；等待臺北／新北各 5 個位置的官方圖台人工抽查"
+        "message": "人工驗收 10/10 通過，候選資料正式發布"
       },
       "files": [
         "taipei/zhongzheng/risks/liquefaction.geojson",
@@ -1009,11 +1012,14 @@
           "datasetSha256": "2f4bca737bc99a42f74345497b03e77623ba1519df7e7d66aef7efbbb535932f"
         },
         "manualAudit": {
-          "status": "pending",
+          "status": "passed",
           "adapterVersion": "risks-v1",
-          "checkedAt": null,
-          "sampleCount": 0,
-          "requiredSampleCount": 10
+          "checkedAt": "2026-07-20T01:54:08.539Z",
+          "sampleCount": 10,
+          "requiredSampleCount": 10,
+          "verificationMethods": [
+            "official-raw-offline"
+          ]
         }
       }
     },
@@ -1131,10 +1137,10 @@
     },
     "rail": {
       "id": "rail",
-      "status": "unavailable",
+      "status": "official",
       "version": "rail-2026-07-19",
       "updatedAt": "2026-07-19T08:15:35.490Z",
-      "attemptedAt": "2026-07-19T08:15:35.488Z",
+      "attemptedAt": "2026-07-20T01:54:44.449Z",
       "recordCount": 29,
       "coverage": {
         "cities": [
@@ -1195,7 +1201,7 @@
       },
       "lastAttempt": {
         "status": "success",
-        "message": "臺鐵自動 QA 通過；等待價格與災害來源先完成正式發布"
+        "message": "人工驗收 9/9 通過，候選資料正式發布"
       },
       "files": [
         "taipei/zhongzheng/facilities/rail.geojson",
@@ -1252,7 +1258,7 @@
         "manualAudit": {
           "status": "passed",
           "adapterVersion": "rail-v1",
-          "checkedAt": "2026-07-19T08:19:27.000Z",
+          "checkedAt": "2026-07-19T08:19:27Z",
           "sampleCount": 9,
           "requiredSampleCount": 9
         }

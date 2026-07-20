@@ -16,7 +16,9 @@ function printProgress(status) {
     const item = status[source]
     console.log(
       `[audit] ${source}: ${item.passed ? 'passed' : 'pending'} ` +
-      `${item.sampleCount}/${item.requiredSampleCount}，mismatch ${item.mismatches}`,
+      `${item.sampleCount}/${item.requiredSampleCount}，mismatch ${item.mismatches}` +
+      (source === 'price' ? '' :
+        `，方式 ${(status.verificationMethods[source] ?? []).join(', ') || '尚無'}`),
     )
   }
   console.log(

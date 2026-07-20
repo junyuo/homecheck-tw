@@ -50,6 +50,7 @@ function riskCoveragePassed(source, samples) {
       sample.source === source &&
       sample.city === city &&
       sample.observedCategory === sample.expectedCategory &&
+      ['official-map', 'official-raw-offline'].includes(sample.verificationMethod) &&
       Number.isFinite(sample.latitude) &&
       Number.isFinite(sample.longitude) &&
       (String(sample.latitude).split('.')[1] ?? '').length <= 5 &&
@@ -73,6 +74,8 @@ function riskCoveragePassed(source, samples) {
 
 export function evaluateRiskAudit(audit, source, {
   adapterVersion,
+  sourceSha256,
+  requireEvidenceSourceSha = false,
 } = {}) {
   const samples = Array.isArray(audit?.samples) ? audit.samples : []
   const sourceSamples = samples.filter((sample) => sample.source === source)
@@ -81,16 +84,27 @@ export function evaluateRiskAudit(audit, source, {
     city,
     [...uniqueMatchedSamples(sourceSamples, (sample) => sample.city === city)].length,
   ]))
+  const offlineEvidenceValid = !requireEvidenceSourceSha || sourceSamples
+    .filter((sample) => sample.verificationMethod === 'official-raw-offline')
+    .every((sample) =>
+      sample.evidence?.sourceSha256 === sourceSha256 &&
+      /^[a-f0-9]{64}$/.test(sample.evidence?.queryOutputSha256 ?? ''))
   const passed = audit?.status === 'passed' &&
     audit?.adapterVersion === adapterVersion &&
     mismatches === 0 &&
+    offlineEvidenceValid &&
     riskCoveragePassed(source, sourceSamples)
+  const verificationMethods = [...new Set(sourceSamples
+    .filter((sample) => sample.result === 'matched')
+    .map((sample) => sample.verificationMethod)
+    .filter(Boolean))]
   return {
     passed,
     sampleCount: counts.taipei + counts['new-taipei'],
     requiredSampleCount: 10,
     counts,
     mismatches,
+    verificationMethods,
   }
 }
 
@@ -101,6 +115,9 @@ export function manualGate(evaluation, adapterVersion, checkedAt) {
     checkedAt: checkedAt ?? null,
     sampleCount: evaluation.sampleCount,
     requiredSampleCount: evaluation.requiredSampleCount,
+    ...(evaluation.verificationMethods?.length
+      ? { verificationMethods: evaluation.verificationMethods }
+      : {}),
   }
 }
 

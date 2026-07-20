@@ -10,17 +10,17 @@
 
 | 來源 | 狀態 | 說明 |
 | --- | --- | --- |
-| 內政部實價登錄 | unavailable（候選） | 最近五年雙北中古公寓、華廈、住宅大樓；230,297 筆，門牌精確匹配率 99.40%；人工複核目前 2／20 筆，另有 1 筆 inconclusive 不計入 |
+| 內政部實價登錄 | official | 最近五年雙北中古公寓、華廈、住宅大樓；230,297 筆，門牌精確匹配率 99.40%；人工複核 20／20 通過，另有 7 筆 inconclusive 不計入 |
 | 臺北捷運車站 | official | 109 個營運車站靜態快照 |
 | 新北公車站位 | official | 依 `stoplocationid` 去重後 2,339 個實體站位 |
 | 國土測繪中心行政區界 | official | 臺北 12 區、新北 29 區均已裁切 |
-| 臺鐵車站 | unavailable（候選） | 官方免金鑰 JSON 產生 29 個實體站、41 區檔案；9／9 人工抽查通過，待價格與災害來源先正式發布 |
+| 臺鐵車站 | official | 官方免金鑰 JSON 產生 29 個實體站、41 區檔案；9／9 人工抽查通過 |
 | 臺北公車 | unavailable | 官方現有站位檔停留在 2021 年，不拿舊資料冒充現況 |
-| 淹水、土壤液化 | unavailable（候選） | 自動 QA 已通過；410 個淹水情境檔與 41 個液化檔等待每來源、每市 5 點官方圖台人工抽查 |
+| 淹水、土壤液化 | official | 自動 QA 已通過；410 個淹水情境檔與 41 個液化檔，各完成臺北／新北 5 點官方 raw 原始分類複核 |
 | 學校、醫療、公園、市場、停車場、圖書館 | unavailable | 每類來源獨立接入，不以單一成功類別代表全部 |
 | A1／A2 事故 | unavailable | 尚未完成最近三個完整年度的去識別快照 |
 
-最新機器可讀狀態以 [`public/data/manifest.json`](public/data/manifest.json) 和 [`public/data/health.json`](public/data/health.json) 為準。實價筆數與匹配率會隨官方更新而變動；上表是 2026-07-19 本機產出的快照。
+最新機器可讀狀態以 [`public/data/manifest.json`](public/data/manifest.json) 和 [`public/data/health.json`](public/data/health.json) 為準。實價筆數與匹配率會隨官方更新而變動；上表是 2026-07-20 本機正式發布的快照。
 
 ## 分析規則
 
@@ -99,9 +99,11 @@ npm run audit:record -- --source=price --id=<id> --result=inconclusive --attempt
 npm run audit:record -- --source=price --id=<id> --result=mismatch --mismatch-fields=totalPrice,floor
 npm run audit:record -- --source=flood --id=<id> --result=matched --observed=0.5-1.0
 npm run audit:record -- --source=liquefaction --id=<id> --result=matched --observed=高潛勢
+npm run audit:evidence -- --source=flood --id=<id>
+npm run audit:evidence -- --source=flood --id=<id> --confirm
 ```
 
-價格 `matched` 表示七個必要欄位已逐一一致；重做既有 ID 必須明確加上 `--replace`。`inconclusive` 至少需兩次查詢，CLI 會提示同城市、同建物型態的備援樣本。災害 `observed` 必須填官方圖台實際分類。
+價格 `matched` 表示七個必要欄位已逐一一致；重做既有 ID 必須明確加上 `--replace`。`inconclusive` 至少需兩次查詢，CLI 會提示同城市、同建物型態的備援樣本。災害可人工填入官方圖台分類，或以 `audit:evidence` 直接查詢官方 raw SHP／GeoJSON；未加 `--confirm` 只預覽且不寫檔，多重匹配、分類衝突、未知 CRS 或來源雜湊不符均會阻擋。
 
 ## 更新資料
 
@@ -136,7 +138,7 @@ npm run update-data -- --source=transport
 
 實價登錄自動門檻為整體匹配率至少 95%、有合格交易的各區至少 85%、41 區均有輸出、核心欄位及座標有效。每市會依穩定雜湊產生 10 筆主要樣本與 20 筆備援，主要樣本需涵蓋公寓、華廈、住宅大樓；官方查詢逾時或找不到可獨立核對紀錄時標為 `inconclusive`，改用同型態備援，不算通過。臺北／新北各 10 筆全部欄位一致後，才可由 `unavailable` 切換為 `official`。
 
-災害 adapter 會驗證 10 種情境、CRS、雙北座標、面 geometry、未知深度比率、41 區檔案數及 5 MB 上限；淹水或液化各需完成臺北／新北至少 5 個位置的官方圖台抽查後才切換為 `official`。未通過人工閘門的候選檔不會被 production loader 載入。
+災害 adapter 會驗證 10 種情境、CRS、雙北座標、面 geometry、未知深度比率、41 區檔案數及 5 MB 上限；淹水與液化各完成臺北／新北至少 5 個位置的官方 raw 原始分類複核後才切換為 `official`。證據保存 CRS、原始欄位、匹配數、來源與查詢摘要雜湊，不保存地址或完整 geometry；官方圖台恢復後再依來源、城市各抽一點交叉核對。
 
 完成稽核後，以發布工具只檢查並提升既有候選；它不下載或重建大型圖資，失敗不修改 last-good：
 
@@ -180,7 +182,7 @@ Repository 若不叫 `homecheck-tw`，需同步修改 `vite.config.ts` 的 Pages
 
 - 地址文字只供顯示；分析位置由使用者在地圖確認，不呼叫第三方 geocoder。
 - 公開資料可能有時間差、缺漏、定位誤差或 schema 變動。
-- 價格、液化與淹水候選資料雖已通過自動 QA，仍待完成人工發布閘門；臺鐵已完成獨立稽核，但依本輪發布順序仍等待前三項來源正式發布。灰色不是零風險。
+- 淹水與液化屬區域性潛勢圖資，灰色代表未確認覆蓋，不代表零風險；官方圖台恢復後仍需進行補充交叉抽查。
 - 目前未提供活動斷層、坡地、歷史災害、主要道路、銀行鑑價、建物結構認證、會員或雲端同步。
 
 ## 免責聲明

@@ -1,36 +1,36 @@
 {
   "schemaVersion": "1.0.0",
-  "generatedAt": "2026-07-19T08:17:58.099Z",
+  "generatedAt": "2026-07-20T01:54:44.890Z",
   "sources": {
     "actual-price": {
-      "status": "unavailable",
+      "status": "official",
       "updatedAt": "2026-07-19T06:10:33.054Z",
-      "attemptedAt": "2026-07-19T06:10:33.052Z",
+      "attemptedAt": "2026-07-20T01:54:44.449Z",
       "lastAttempt": {
         "status": "success",
-        "message": "自動品質檢查通過；等待臺北／新北各 10 筆人工複核"
+        "message": "人工驗收 20/20 通過，候選資料正式發布"
       },
       "recordCount": 230297,
       "matchingRate": 0.9940133975587438
     },
     "flood": {
-      "status": "unavailable",
+      "status": "official",
       "updatedAt": "2022-08-12T00:00:00.000Z",
-      "attemptedAt": "2026-07-19T07:35:15.501Z",
+      "attemptedAt": "2026-07-20T01:54:44.449Z",
       "lastAttempt": {
         "status": "success",
-        "message": "自動資料品質檢查通過；等待臺北／新北各 5 個位置的官方圖台人工抽查"
+        "message": "人工驗收 10/10 通過，候選資料正式發布"
       },
       "recordCount": 1550,
       "matchingRate": null
     },
     "liquefaction": {
-      "status": "unavailable",
+      "status": "official",
       "updatedAt": "2024-08-08T02:24:00.000Z",
-      "attemptedAt": "2026-07-19T07:35:15.501Z",
+      "attemptedAt": "2026-07-20T01:54:44.449Z",
       "lastAttempt": {
         "status": "success",
-        "message": "自動資料品質檢查通過；等待臺北／新北各 5 個位置的官方圖台人工抽查"
+        "message": "人工驗收 10/10 通過，候選資料正式發布"
       },
       "recordCount": 139,
       "matchingRate": null
@@ -47,12 +47,12 @@
       "matchingRate": null
     },
     "rail": {
-      "status": "unavailable",
+      "status": "official",
       "updatedAt": "2026-07-19T08:15:35.490Z",
-      "attemptedAt": "2026-07-19T08:15:35.488Z",
+      "attemptedAt": "2026-07-20T01:54:44.449Z",
       "lastAttempt": {
         "status": "success",
-        "message": "臺鐵自動 QA 通過；等待價格與災害來源先完成正式發布"
+        "message": "人工驗收 9/9 通過，候選資料正式發布"
       },
       "recordCount": 29,
       "matchingRate": null

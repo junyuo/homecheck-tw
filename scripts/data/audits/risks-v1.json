@@ -1,7 +1,7 @@
 {
   "adapterVersion": "risks-v1",
-  "status": "pending",
-  "checkedAt": null,
+  "status": "passed",
+  "checkedAt": "2026-07-20T01:54:08.539Z",
   "method": "與水利署及地質主管機關官方圖台人工抽查",
   "fingerprints": {
     "flood": {
@@ -13,6 +13,605 @@
       "datasetSha256": "2f4bca737bc99a42f74345497b03e77623ba1519df7e7d66aef7efbbb535932f"
     }
   },
-  "samples": [],
+  "samples": [
+    {
+      "id": "8b2e2f9d08129553afb761c2",
+      "source": "flood",
+      "city": "taipei",
+      "district": "beitou",
+      "longitude": 121.47551,
+      "latitude": 25.12427,
+      "caseType": "red",
+      "expectedCategory": "1.0-2.0",
+      "observedCategory": "1.0-2.0",
+      "scenario": "24h-500",
+      "result": "matched",
+      "verificationMethod": "official-raw-offline",
+      "evidence": {
+        "verificationMethod": "official-raw-offline",
+        "sourceSha256": "465d5df4ec1af9223fecc1a5cdadb49fd7a000d1504f7b9111a9b73f5ce7c3a4",
+        "crs": "EPSG:3826",
+        "rawMatchCount": 1,
+        "rawMatches": [
+          {
+            "layer": "Flood_500mm_24HR",
+            "rawField": "flood_dept",
+            "rawValue": "1.0-2.0",
+            "category": "1.0-2.0"
+          }
+        ],
+        "checkedAt": "2026-07-20T01:52:39.156Z",
+        "queryOutputSha256": "7afb451f7100f03b3ae187628f2bcfa8478aab1121f73fe84bb37cf4f5224a1e"
+      },
+      "checkedAt": "2026-07-20T01:52:46.010Z",
+      "attemptCount": 1
+    },
+    {
+      "id": "9741f0a552262956a43f4d8a",
+      "source": "flood",
+      "city": "taipei",
+      "district": "songshan",
+      "longitude": 121.5554,
+      "latitude": 25.0653,
+      "caseType": "red",
+      "expectedCategory": "0.5-1.0",
+      "observedCategory": "0.5-1.0",
+      "scenario": "24h-500",
+      "result": "matched",
+      "verificationMethod": "official-raw-offline",
+      "evidence": {
+        "verificationMethod": "official-raw-offline",
+        "sourceSha256": "465d5df4ec1af9223fecc1a5cdadb49fd7a000d1504f7b9111a9b73f5ce7c3a4",
+        "crs": "EPSG:3826",
+        "rawMatchCount": 1,
+        "rawMatches": [
+          {
+            "layer": "Flood_500mm_24HR",
+            "rawField": "flood_dept",
+            "rawValue": "0.5-1.0",
+            "category": "0.5-1.0"
+          }
+        ],
+        "checkedAt": "2026-07-20T01:52:46.173Z",
+        "queryOutputSha256": "0fe3aadb90097d0da290d693141a53645ff6ef08e409a2620990421d88a7a1c0"
+      },
+      "checkedAt": "2026-07-20T01:52:52.816Z",
+      "attemptCount": 1
+    },
+    {
+      "id": "0a32e9b20397aeda27069392",
+      "source": "flood",
+      "city": "taipei",
+      "district": "zhongshan",
+      "longitude": 121.54286,
+      "latitude": 25.08097,
+      "caseType": "yellow",
+      "expectedCategory": "0.3-0.5",
+      "observedCategory": "0.3-0.5",
+      "scenario": "24h-500",
+      "result": "matched",
+      "verificationMethod": "official-raw-offline",
+      "evidence": {
+        "verificationMethod": "official-raw-offline",
+        "sourceSha256": "465d5df4ec1af9223fecc1a5cdadb49fd7a000d1504f7b9111a9b73f5ce7c3a4",
+        "crs": "EPSG:3826",
+        "rawMatchCount": 1,
+        "rawMatches": [
+          {
+            "layer": "Flood_500mm_24HR",
+            "rawField": "flood_dept",
+            "rawValue": "0.3-0.5",
+            "category": "0.3-0.5"
+          }
+        ],
+        "checkedAt": "2026-07-20T01:52:52.979Z",
+        "queryOutputSha256": "998cf75a6d723f3c267dfe13e183a46c5169a7b9deab0cc774507c706354670f"
+      },
+      "checkedAt": "2026-07-20T01:52:59.703Z",
+      "attemptCount": 1
+    },
+    {
+      "id": "40e1c6ea8daa9d6ac461120e",
+      "source": "flood",
+      "city": "taipei",
+      "district": "wanhua",
+      "longitude": 121.49238,
+      "latitude": 25.032,
+      "caseType": "yellow",
+      "expectedCategory": "0.3-0.5",
+      "observedCategory": "0.3-0.5",
+      "scenario": "24h-500",
+      "result": "matched",
+      "verificationMethod": "official-raw-offline",
+      "evidence": {
+        "verificationMethod": "official-raw-offline",
+        "sourceSha256": "465d5df4ec1af9223fecc1a5cdadb49fd7a000d1504f7b9111a9b73f5ce7c3a4",
+        "crs": "EPSG:3826",
+        "rawMatchCount": 1,
+        "rawMatches": [
+          {
+            "layer": "Flood_500mm_24HR",
+            "rawField": "flood_dept",
+            "rawValue": "0.3-0.5",
+            "category": "0.3-0.5"
+          }
+        ],
+        "checkedAt": "2026-07-20T01:52:59.873Z",
+        "queryOutputSha256": "385e1cbd4cb1ffa787f7b2e24d97aff7ffe13f58a894f9e10f212ac333342867"
+      },
+      "checkedAt": "2026-07-20T01:53:06.725Z",
+      "attemptCount": 1
+    },
+    {
+      "id": "0f2e7dc148d4538da8fd8063",
+      "source": "flood",
+      "city": "taipei",
+      "district": "zhongzheng",
+      "longitude": 121.51072,
+      "latitude": 25.03338,
+      "caseType": "unknown",
+      "expectedCategory": "未確認覆蓋",
+      "observedCategory": "未確認覆蓋",
+      "scenario": "24h-500",
+      "result": "matched",
+      "verificationMethod": "official-raw-offline",
+      "evidence": {
+        "verificationMethod": "official-raw-offline",
+        "sourceSha256": "465d5df4ec1af9223fecc1a5cdadb49fd7a000d1504f7b9111a9b73f5ce7c3a4",
+        "crs": "EPSG:3826",
+        "rawMatchCount": 0,
+        "rawMatches": [],
+        "checkedAt": "2026-07-20T01:53:06.892Z",
+        "queryOutputSha256": "283c12ba1ca14a1d851a74ff93f2e6d3fedfe87d16769bbc4e0487d331380f74"
+      },
+      "checkedAt": "2026-07-20T01:53:10.712Z",
+      "attemptCount": 1
+    },
+    {
+      "id": "0739ada9d9b1f289d2000542",
+      "source": "flood",
+      "city": "new-taipei",
+      "district": "yingge",
+      "longitude": 121.33431,
+      "latitude": 24.94202,
+      "caseType": "red",
+      "expectedCategory": "1.0-2.0",
+      "observedCategory": "1.0-2.0",
+      "scenario": "24h-500",
+      "result": "matched",
+      "verificationMethod": "official-raw-offline",
+      "evidence": {
+        "verificationMethod": "official-raw-offline",
+        "sourceSha256": "465d5df4ec1af9223fecc1a5cdadb49fd7a000d1504f7b9111a9b73f5ce7c3a4",
+        "crs": "EPSG:3826",
+        "rawMatchCount": 1,
+        "rawMatches": [
+          {
+            "layer": "Flood_500mm_24HR",
+            "rawField": "flood_dept",
+            "rawValue": "1.0-2.0",
+            "category": "1.0-2.0"
+          }
+        ],
+        "checkedAt": "2026-07-20T01:53:10.883Z",
+        "queryOutputSha256": "654c717006ab6150b8d52cda243129972933c0df8c929bb2631d80d410d03a91"
+      },
+      "checkedAt": "2026-07-20T01:53:17.666Z",
+      "attemptCount": 1
+    },
+    {
+      "id": "12f0de7f95dcabd9bfa32bcc",
+      "source": "flood",
+      "city": "new-taipei",
+      "district": "jinshan",
+      "longitude": 121.63175,
+      "latitude": 25.23227,
+      "caseType": "red",
+      "expectedCategory": ">3.0",
+      "observedCategory": ">3.0",
+      "scenario": "24h-500",
+      "result": "matched",
+      "verificationMethod": "official-raw-offline",
+      "evidence": {
+        "verificationMethod": "official-raw-offline",
+        "sourceSha256": "465d5df4ec1af9223fecc1a5cdadb49fd7a000d1504f7b9111a9b73f5ce7c3a4",
+        "crs": "EPSG:3826",
+        "rawMatchCount": 1,
+        "rawMatches": [
+          {
+            "layer": "Flood_500mm_24HR",
+            "rawField": "flood_dept",
+            "rawValue": ">3.0",
+            "category": ">3.0"
+          }
+        ],
+        "checkedAt": "2026-07-20T01:53:17.842Z",
+        "queryOutputSha256": "4323b2e3aa69d11573a4e54d2856e74f2a7e500e3b54b600992d45d005be177a"
+      },
+      "checkedAt": "2026-07-20T01:53:24.784Z",
+      "attemptCount": 1
+    },
+    {
+      "id": "05a0d4473c986efdaed4a5b3",
+      "source": "flood",
+      "city": "new-taipei",
+      "district": "xinzhuang",
+      "longitude": 121.46159,
+      "latitude": 25.05344,
+      "caseType": "yellow",
+      "expectedCategory": "0.3-0.5",
+      "observedCategory": "0.3-0.5",
+      "scenario": "24h-500",
+      "result": "matched",
+      "verificationMethod": "official-raw-offline",
+      "evidence": {
+        "verificationMethod": "official-raw-offline",
+        "sourceSha256": "465d5df4ec1af9223fecc1a5cdadb49fd7a000d1504f7b9111a9b73f5ce7c3a4",
+        "crs": "EPSG:3826",
+        "rawMatchCount": 1,
+        "rawMatches": [
+          {
+            "layer": "Flood_500mm_24HR",
+            "rawField": "flood_dept",
+            "rawValue": "0.3-0.5",
+            "category": "0.3-0.5"
+          }
+        ],
+        "checkedAt": "2026-07-20T01:53:24.960Z",
+        "queryOutputSha256": "1eb26627a104caed2664422736bfacacba88503289668fe451d23852acce60f4"
+      },
+      "checkedAt": "2026-07-20T01:53:31.703Z",
+      "attemptCount": 1
+    },
+    {
+      "id": "0f44f0f3f2c3b2f0c259db0c",
+      "source": "flood",
+      "city": "new-taipei",
+      "district": "wugu",
+      "longitude": 121.45378,
+      "latitude": 25.10512,
+      "caseType": "yellow",
+      "expectedCategory": "0.3-0.5",
+      "observedCategory": "0.3-0.5",
+      "scenario": "24h-500",
+      "result": "matched",
+      "verificationMethod": "official-raw-offline",
+      "evidence": {
+        "verificationMethod": "official-raw-offline",
+        "sourceSha256": "465d5df4ec1af9223fecc1a5cdadb49fd7a000d1504f7b9111a9b73f5ce7c3a4",
+        "crs": "EPSG:3826",
+        "rawMatchCount": 1,
+        "rawMatches": [
+          {
+            "layer": "Flood_500mm_24HR",
+            "rawField": "flood_dept",
+            "rawValue": "0.3-0.5",
+            "category": "0.3-0.5"
+          }
+        ],
+        "checkedAt": "2026-07-20T01:53:31.885Z",
+        "queryOutputSha256": "54121f414bc4b863cac5bce468bb091a97e6dc4721cd46bfa8944a703d6bb417"
+      },
+      "checkedAt": "2026-07-20T01:53:38.511Z",
+      "attemptCount": 1
+    },
+    {
+      "id": "089d55b744be7f36763d6dba",
+      "source": "flood",
+      "city": "new-taipei",
+      "district": "xindian",
+      "longitude": 121.51483,
+      "latitude": 24.93175,
+      "caseType": "unknown",
+      "expectedCategory": "未確認覆蓋",
+      "observedCategory": "未確認覆蓋",
+      "scenario": "24h-500",
+      "result": "matched",
+      "verificationMethod": "official-raw-offline",
+      "evidence": {
+        "verificationMethod": "official-raw-offline",
+        "sourceSha256": "465d5df4ec1af9223fecc1a5cdadb49fd7a000d1504f7b9111a9b73f5ce7c3a4",
+        "crs": "EPSG:3826",
+        "rawMatchCount": 0,
+        "rawMatches": [],
+        "checkedAt": "2026-07-20T01:53:38.684Z",
+        "queryOutputSha256": "1da5e0082c346b1cf3cdaa69a6485e05f0a5f5d331fea3ae022809be2a8cbe3a"
+      },
+      "checkedAt": "2026-07-20T01:53:42.416Z",
+      "attemptCount": 1
+    },
+    {
+      "id": "0014f75adc611713bd9bc243",
+      "source": "liquefaction",
+      "city": "taipei",
+      "district": "datong",
+      "longitude": 121.51529,
+      "latitude": 25.06019,
+      "caseType": "high",
+      "expectedCategory": "高潛勢",
+      "observedCategory": "高潛勢",
+      "scenario": null,
+      "result": "matched",
+      "verificationMethod": "official-raw-offline",
+      "evidence": {
+        "verificationMethod": "official-raw-offline",
+        "sourceSha256": "101ddc3171ff716214524a2d240eb5dc01d47f3dfc3108b37fd50de68960b64f",
+        "crs": "EPSG:4326",
+        "rawMatchCount": 1,
+        "rawMatches": [
+          {
+            "layer": "TPLiquid_84",
+            "rawField": "class",
+            "rawValue": "1",
+            "category": "高潛勢"
+          }
+        ],
+        "checkedAt": "2026-07-20T01:53:58.558Z",
+        "queryOutputSha256": "33061c5c1770a311347a677a4705497d2cc25e77667c1d4da9c59a365dce91e9"
+      },
+      "checkedAt": "2026-07-20T01:53:59.007Z",
+      "attemptCount": 1
+    },
+    {
+      "id": "00752c0b20268b68cd667e96",
+      "source": "liquefaction",
+      "city": "taipei",
+      "district": "neihu",
+      "longitude": 121.58608,
+      "latitude": 25.06284,
+      "caseType": "medium",
+      "expectedCategory": "中潛勢",
+      "observedCategory": "中潛勢",
+      "scenario": null,
+      "result": "matched",
+      "verificationMethod": "official-raw-offline",
+      "evidence": {
+        "verificationMethod": "official-raw-offline",
+        "sourceSha256": "101ddc3171ff716214524a2d240eb5dc01d47f3dfc3108b37fd50de68960b64f",
+        "crs": "EPSG:4326",
+        "rawMatchCount": 1,
+        "rawMatches": [
+          {
+            "layer": "TPLiquid_84",
+            "rawField": "class",
+            "rawValue": "2",
+            "category": "中潛勢"
+          }
+        ],
+        "checkedAt": "2026-07-20T01:53:59.163Z",
+        "queryOutputSha256": "b4ff1adc0421d3d0b6d436dc56be59ff6bf6b941056d767342b4066d79fe421a"
+      },
+      "checkedAt": "2026-07-20T01:53:59.608Z",
+      "attemptCount": 1
+    },
+    {
+      "id": "017a568f7acced71d1767e68",
+      "source": "liquefaction",
+      "city": "taipei",
+      "district": "shilin",
+      "longitude": 121.52157,
+      "latitude": 25.10486,
+      "caseType": "low",
+      "expectedCategory": "低潛勢",
+      "observedCategory": "低潛勢",
+      "scenario": null,
+      "result": "matched",
+      "verificationMethod": "official-raw-offline",
+      "evidence": {
+        "verificationMethod": "official-raw-offline",
+        "sourceSha256": "101ddc3171ff716214524a2d240eb5dc01d47f3dfc3108b37fd50de68960b64f",
+        "crs": "EPSG:4326",
+        "rawMatchCount": 1,
+        "rawMatches": [
+          {
+            "layer": "TPLiquid_84",
+            "rawField": "class",
+            "rawValue": "3",
+            "category": "低潛勢"
+          }
+        ],
+        "checkedAt": "2026-07-20T01:53:59.815Z",
+        "queryOutputSha256": "d4b7cfa00cd849d141f65da35101dc1204ed9d7af853d70261f4c5cbea2475ec"
+      },
+      "checkedAt": "2026-07-20T01:54:00.260Z",
+      "attemptCount": 1
+    },
+    {
+      "id": "1d80a750bd791a8e76e7cedc",
+      "source": "liquefaction",
+      "city": "taipei",
+      "district": "beitou",
+      "longitude": 121.52332,
+      "latitude": 25.15299,
+      "caseType": "uncovered",
+      "expectedCategory": "未確認覆蓋",
+      "observedCategory": "未確認覆蓋",
+      "scenario": null,
+      "result": "matched",
+      "verificationMethod": "official-raw-offline",
+      "evidence": {
+        "verificationMethod": "official-raw-offline",
+        "sourceSha256": "101ddc3171ff716214524a2d240eb5dc01d47f3dfc3108b37fd50de68960b64f",
+        "crs": "EPSG:4326",
+        "rawMatchCount": 0,
+        "rawMatches": [],
+        "checkedAt": "2026-07-20T01:54:00.419Z",
+        "queryOutputSha256": "b1693ab5961e59426a9076cb798ea8ae0be5abe21af38a375e6a90dc5aad4991"
+      },
+      "checkedAt": "2026-07-20T01:54:00.849Z",
+      "attemptCount": 1
+    },
+    {
+      "id": "295f58d7f0f38a31f20cfe39",
+      "source": "liquefaction",
+      "city": "taipei",
+      "district": "xinyi",
+      "longitude": 121.57923,
+      "latitude": 25.02571,
+      "caseType": "uncovered",
+      "expectedCategory": "未確認覆蓋",
+      "observedCategory": "未確認覆蓋",
+      "scenario": null,
+      "result": "matched",
+      "verificationMethod": "official-raw-offline",
+      "evidence": {
+        "verificationMethod": "official-raw-offline",
+        "sourceSha256": "101ddc3171ff716214524a2d240eb5dc01d47f3dfc3108b37fd50de68960b64f",
+        "crs": "EPSG:4326",
+        "rawMatchCount": 0,
+        "rawMatches": [],
+        "checkedAt": "2026-07-20T01:54:01.008Z",
+        "queryOutputSha256": "aa82f1ab33d666ed8203b58696064ee293f96cb86a44baf717e11384c996b4b6"
+      },
+      "checkedAt": "2026-07-20T01:54:01.428Z",
+      "attemptCount": 1
+    },
+    {
+      "id": "1c6e5f7a022e8fe8f52da07f",
+      "source": "liquefaction",
+      "city": "new-taipei",
+      "district": "banqiao",
+      "longitude": 121.46716,
+      "latitude": 25.01477,
+      "caseType": "high",
+      "expectedCategory": "高潛勢",
+      "observedCategory": "高潛勢",
+      "scenario": null,
+      "result": "matched",
+      "verificationMethod": "official-raw-offline",
+      "evidence": {
+        "verificationMethod": "official-raw-offline",
+        "sourceSha256": "101ddc3171ff716214524a2d240eb5dc01d47f3dfc3108b37fd50de68960b64f",
+        "crs": "EPSG:4326",
+        "rawMatchCount": 1,
+        "rawMatches": [
+          {
+            "layer": "liquefaction-高潛勢",
+            "rawField": "分級",
+            "rawValue": "高潛勢",
+            "category": "高潛勢"
+          }
+        ],
+        "checkedAt": "2026-07-20T01:54:01.589Z",
+        "queryOutputSha256": "9711826ec211e58a7c8fb64af942d14784dd33357bbe35694ef575a63532e5e9"
+      },
+      "checkedAt": "2026-07-20T01:54:02.826Z",
+      "attemptCount": 1
+    },
+    {
+      "id": "0b8f1a4f93489f7336fd4196",
+      "source": "liquefaction",
+      "city": "new-taipei",
+      "district": "bali",
+      "longitude": 121.45863,
+      "latitude": 25.11547,
+      "caseType": "medium",
+      "expectedCategory": "中潛勢",
+      "observedCategory": "中潛勢",
+      "scenario": null,
+      "result": "matched",
+      "verificationMethod": "official-raw-offline",
+      "evidence": {
+        "verificationMethod": "official-raw-offline",
+        "sourceSha256": "101ddc3171ff716214524a2d240eb5dc01d47f3dfc3108b37fd50de68960b64f",
+        "crs": "EPSG:4326",
+        "rawMatchCount": 1,
+        "rawMatches": [
+          {
+            "layer": "liquefaction-中潛勢",
+            "rawField": "分級",
+            "rawValue": "中潛勢",
+            "category": "中潛勢"
+          }
+        ],
+        "checkedAt": "2026-07-20T01:54:02.987Z",
+        "queryOutputSha256": "efc366c2e3dac3f207fae916553ab5c70ce52cc53f5454899fa314f5179d7a1a"
+      },
+      "checkedAt": "2026-07-20T01:54:04.227Z",
+      "attemptCount": 1
+    },
+    {
+      "id": "19790fdb41f31294ad07c7eb",
+      "source": "liquefaction",
+      "city": "new-taipei",
+      "district": "banqiao",
+      "longitude": 121.43245,
+      "latitude": 24.98754,
+      "caseType": "low",
+      "expectedCategory": "低潛勢",
+      "observedCategory": "低潛勢",
+      "scenario": null,
+      "result": "matched",
+      "verificationMethod": "official-raw-offline",
+      "evidence": {
+        "verificationMethod": "official-raw-offline",
+        "sourceSha256": "101ddc3171ff716214524a2d240eb5dc01d47f3dfc3108b37fd50de68960b64f",
+        "crs": "EPSG:4326",
+        "rawMatchCount": 1,
+        "rawMatches": [
+          {
+            "layer": "liquefaction-低潛勢",
+            "rawField": "分級",
+            "rawValue": "低潛勢",
+            "category": "低潛勢"
+          }
+        ],
+        "checkedAt": "2026-07-20T01:54:04.392Z",
+        "queryOutputSha256": "99e5338333b8b3e773fa28966001d24630cf8bc32245593e787bfcf269eed383"
+      },
+      "checkedAt": "2026-07-20T01:54:05.607Z",
+      "attemptCount": 1
+    },
+    {
+      "id": "048a5ca49b4e6a0cd7c04f17",
+      "source": "liquefaction",
+      "city": "new-taipei",
+      "district": "yingge",
+      "longitude": 121.34737,
+      "latitude": 24.95789,
+      "caseType": "uncovered",
+      "expectedCategory": "未確認覆蓋",
+      "observedCategory": "未確認覆蓋",
+      "scenario": null,
+      "result": "matched",
+      "verificationMethod": "official-raw-offline",
+      "evidence": {
+        "verificationMethod": "official-raw-offline",
+        "sourceSha256": "101ddc3171ff716214524a2d240eb5dc01d47f3dfc3108b37fd50de68960b64f",
+        "crs": "EPSG:4326",
+        "rawMatchCount": 0,
+        "rawMatches": [],
+        "checkedAt": "2026-07-20T01:54:05.770Z",
+        "queryOutputSha256": "8d21d17bfb6bed9ad8bcc7ba04270232a0de4ba134cff4190cd4b9961348a5df"
+      },
+      "checkedAt": "2026-07-20T01:54:07.046Z",
+      "attemptCount": 1
+    },
+    {
+      "id": "050e354c1fe47f5a4de2b2d3",
+      "source": "liquefaction",
+      "city": "new-taipei",
+      "district": "xizhi",
+      "longitude": 121.65606,
+      "latitude": 25.06113,
+      "caseType": "uncovered",
+      "expectedCategory": "未確認覆蓋",
+      "observedCategory": "未確認覆蓋",
+      "scenario": null,
+      "result": "matched",
+      "verificationMethod": "official-raw-offline",
+      "evidence": {
+        "verificationMethod": "official-raw-offline",
+        "sourceSha256": "101ddc3171ff716214524a2d240eb5dc01d47f3dfc3108b37fd50de68960b64f",
+        "crs": "EPSG:4326",
+        "rawMatchCount": 0,
+        "rawMatches": [],
+        "checkedAt": "2026-07-20T01:54:07.219Z",
+        "queryOutputSha256": "d0cbdca62997697d09b352fceee91324382cb0fc985dd555ceb514c4e8dc71e0"
+      },
+      "checkedAt": "2026-07-20T01:54:08.539Z",
+      "attemptCount": 1
+    }
+  ],
   "notes": "完成每個災害來源、每市至少 5 個位置且符合案例覆蓋前維持 pending；座標僅保存至小數點後 5 位。"
 }
