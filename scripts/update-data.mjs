@@ -11,6 +11,7 @@ import {
 import { ALL_DISTRICTS } from './data/constants.mjs'
 import { sourceFilesSha256, validateData, writeHealth } from './data/manifest.mjs'
 import { updateOfficialPrice } from './data/price.mjs'
+import { updateOfficialCommunity } from './data/community.mjs'
 import { updateOfficialFacilities } from './data/facilities.mjs'
 import { updateOfficialRisks } from './data/risks.mjs'
 import { updateOfficialTransport } from './data/transport.mjs'
@@ -356,7 +357,7 @@ async function main() {
     }
   }
   if (shouldRun('facilities')) {
-    log('facilities', '更新雙北路外停車場與醫院')
+    log('facilities', '更新雙北路外停車場、醫院、學校與公園綠地')
     const update = await updateOfficialFacilities({
       output: staging,
       cache,
@@ -377,12 +378,17 @@ async function main() {
         const id = result.id
         if (result.status === 'failed') {
           failed = true
-          manifest.sources[id] = sourceFailure(
+          const nextSource = sourceFailure(
             manifest.sources[id],
             id,
             now,
             result.error,
           )
+          if (result.error.includes('門牌匹配率') || result.error.includes('未達 95%')) {
+            nextSource.status = 'unavailable'
+            nextSource.lastAttempt.message = `自動 QA 未達發布門檻：${result.error}`
+          }
+          manifest.sources[id] = nextSource
           log('facilities', `${id} 失敗：${result.error}`)
           continue
         }
@@ -434,6 +440,96 @@ async function main() {
       }
     } else {
       for (const result of update.results) {
+        if (result.status === 'failed') failed = true
+        log(
+          'facilities',
+          result.status === 'failed'
+            ? `${result.id} dry run 失敗：${result.error}`
+            : `${result.id} dry run：${result.recordCount.toLocaleString('zh-TW')} 筆`,
+        )
+      }
+    }
+    const community = await updateOfficialCommunity({
+      output: staging,
+      cache,
+      now: new Date(),
+      dryRun,
+      reuseCache: process.env.REUSE_DATA_CACHE === 'true',
+      previous: {
+        school: manifest.sources.school,
+        park: manifest.sources.park,
+      },
+    })
+    if (!dryRun) {
+      const audit = JSON.parse(await readFile(
+        join(root, 'scripts', 'data', 'audits', 'community-v1.json'),
+        'utf8',
+      ))
+      for (const result of community.results) {
+        const id = result.id
+        if (result.status === 'failed') {
+          failed = true
+          const nextSource = sourceFailure(
+            manifest.sources[id],
+            id,
+            now,
+            result.error,
+          )
+          if (result.error.includes('門牌匹配率') || result.error.includes('未達 95%')) {
+            nextSource.status = 'unavailable'
+            nextSource.lastAttempt.message = `自動 QA 未達發布門檻：${result.error}`
+          }
+          manifest.sources[id] = nextSource
+          log('facilities', `${id} 失敗：${result.error}`)
+          continue
+        }
+        const datasetSha256 = await sourceFilesSha256(staging, result.files)
+        const evaluation = evaluateFacilityAudit(audit, id, {
+          adapterVersion: result.adapterVersion,
+        })
+        const nextSource = officialSource(
+          manifest.sources[id],
+          {
+            ...result,
+            qualityGates: {
+              automated: {
+                status: 'passed',
+                adapterVersion: result.adapterVersion,
+                checkedAt: now,
+                datasetSha256,
+              },
+              manualAudit: manualGate(
+                evaluation,
+                result.adapterVersion,
+                audit.checkedAt,
+              ),
+            },
+          },
+          now,
+          id === 'school'
+            ? 'https://data.gov.tw/dataset/6087'
+            : 'https://data.taipei/dataset/detail?id=ea732fb5-4bec-4be7-93f2-8ab91e74a6c6',
+          {
+            cities: ['taipei', 'new-taipei'],
+            districts: ALL_DISTRICTS.map(({ city, slug }) => `${city}/${slug}`),
+          },
+        )
+        if (!evaluation.passed) {
+          nextSource.status = 'unavailable'
+          nextSource.lastAttempt = {
+            status: 'success',
+            message: '自動 QA 通過；等待臺北／新北各 5 筆官方原始檔離線驗收',
+          }
+        }
+        manifest.sources[id] = nextSource
+        log(
+          'facilities',
+          `${id}：${result.recordCount.toLocaleString('zh-TW')} 筆` +
+          `${evaluation.passed ? '，正式' : '，候選'}`,
+        )
+      }
+    } else {
+      for (const result of community.results) {
         if (result.status === 'failed') failed = true
         log(
           'facilities',

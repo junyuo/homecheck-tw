@@ -3,7 +3,7 @@ import { DEFAULT_FLOOD_SCENARIO } from '../config/risks'
 
 export const STORAGE_KEY = 'homecheck-tw:properties'
 export const MAX_PROPERTIES = 3
-export const STORAGE_SCHEMA_VERSION = 4
+export const STORAGE_SCHEMA_VERSION = 5
 
 interface StorageEnvelope {
   schemaVersion: typeof STORAGE_SCHEMA_VERSION
@@ -24,14 +24,20 @@ const emptyRiskFinding = {
   coverageConfirmed: false,
 }
 
-function migrateLegacy(items: SavedProperty[], riskSnapshotLegacy = true): SavedProperty[] {
+function migrateLegacy(
+  items: SavedProperty[],
+  riskSnapshotLegacy = true,
+  lifeSnapshotLegacy = true,
+  communitySnapshotLegacy = true,
+): SavedProperty[] {
   return items.map((item) => {
     const legacy = item.result as AnalysisResult & { demo?: boolean }
     return {
       ...item,
       historicDemo: legacy.demo === true || legacy.dataQuality === 'historic-demo',
       riskSnapshotLegacy: item.riskSnapshotLegacy ?? riskSnapshotLegacy,
-      lifeSnapshotLegacy: item.lifeSnapshotLegacy ?? true,
+      lifeSnapshotLegacy: item.lifeSnapshotLegacy ?? lifeSnapshotLegacy,
+      communitySnapshotLegacy: item.communitySnapshotLegacy ?? communitySnapshotLegacy,
       result: {
         ...legacy,
         input: {
@@ -45,9 +51,23 @@ function migrateLegacy(items: SavedProperty[], riskSnapshotLegacy = true): Saved
           rainfallMm: 500,
         },
         liquefactionDetail: legacy.liquefactionDetail ?? emptyRiskFinding,
-        lifeFacilities: legacy.lifeFacilities ?? {
-          medical: { count: 0, nearestDistance: null, nearestName: null },
-          parking: { count: 0, nearestDistance: null, nearestName: null },
+        lifeFacilities: {
+          medical: legacy.lifeFacilities?.medical ??
+            { count: 0, nearestDistance: null, nearestName: null },
+          parking: legacy.lifeFacilities?.parking ??
+            { count: 0, nearestDistance: null, nearestName: null },
+          school: legacy.lifeFacilities?.school ?? {
+            count: 0,
+            nearestDistance: null,
+            nearestName: null,
+            byLevel: { elementary: 0, junior: 0, senior: 0, special: 0 },
+          },
+          park: legacy.lifeFacilities?.park ?? {
+            count: 0,
+            nearestDistance: null,
+            nearestName: null,
+            nearestType: null,
+          },
         },
         dataQuality: legacy.demo === true ? 'historic-demo' : (legacy.dataQuality ?? 'unavailable'),
         sources: legacy.sources ?? {},
@@ -69,8 +89,11 @@ export function loadSavedProperties(storage: Pick<Storage, 'getItem'> = localSto
     if (parsed?.schemaVersion === STORAGE_SCHEMA_VERSION && Array.isArray(parsed.properties)) {
       return parsed.properties.slice(0, MAX_PROPERTIES)
     }
+    if (parsed?.schemaVersion === 4 && Array.isArray(parsed.properties)) {
+      return migrateLegacy(parsed.properties, false, false, true).slice(0, MAX_PROPERTIES)
+    }
     if (parsed?.schemaVersion === 3 && Array.isArray(parsed.properties)) {
-      return migrateLegacy(parsed.properties, false).slice(0, MAX_PROPERTIES)
+      return migrateLegacy(parsed.properties, false, true, true).slice(0, MAX_PROPERTIES)
     }
     if (parsed?.schemaVersion === 2 && Array.isArray(parsed.properties)) {
       return migrateLegacy(parsed.properties).slice(0, MAX_PROPERTIES)

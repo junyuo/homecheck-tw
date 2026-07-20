@@ -3,7 +3,14 @@ import { readFile } from 'node:fs/promises'
 import { join, resolve } from 'node:path'
 import { sha256 } from './core.mjs'
 import { FLOOD_SCENARIOS } from './constants.mjs'
-import { buildNewTaipeiAddressIndex } from './address-index.mjs'
+import { buildNewTaipeiAddressIndex, buildTaipeiAddressIndex } from './address-index.mjs'
+import {
+  mergeSchoolCampuses,
+  loadCommunityBoundaries,
+  parseNewTaipeiParks,
+  parseSchools,
+  parseTaipeiParks,
+} from './community.mjs'
 import {
   parseNewTaipeiHospitals,
   parseNewTaipeiParking,
@@ -370,5 +377,132 @@ export async function buildFacilityEvidence(root, {
     blocked: false,
     reason: null,
     result: matched ? 'matched' : 'mismatch',
+  }
+}
+
+function allCommunityCandidates(value) {
+  return ['school', 'park'].flatMap((source) =>
+    Object.values(value.samples[source]).flat()
+      .map((sample) => ({ ...sample, source })))
+}
+
+async function communityRawBuffers(root, source) {
+  const directory = join(root, '.data-cache', 'community')
+  const names = source === 'school'
+    ? ['elementary.json', 'junior.json', 'senior.json', 'special.csv']
+    : ['taipei-park.json', 'new-taipei-park.csv']
+  const buffers = await Promise.all(names.map((name) => readFile(join(directory, name))))
+  return {
+    buffers,
+    sourceSha256: sha256(buffers.map((buffer) => sha256(buffer)).join(':')),
+  }
+}
+
+export async function buildCommunityEvidence(root, {
+  source,
+  id,
+  now = new Date().toISOString(),
+}) {
+  if (!['school', 'park'].includes(source)) throw new Error(`不支援的 source：${source}`)
+  const [manifest, candidates] = await Promise.all([
+    readJson(join(root, 'public', 'data', 'manifest.json')),
+    readJson(join(root, '.data-cache', 'community-audit-candidates.json')),
+  ])
+  const candidate = allCommunityCandidates(candidates)
+    .find((item) => item.source === source && item.id === id)
+  if (!candidate) throw new Error(`${source} 候選清單不存在 ID ${id}`)
+  const manifestSource = manifest.sources[source]
+  if (candidates.adapterVersion !== manifestSource.qualityGates.automated.adapterVersion) {
+    throw new Error(`${source} candidate adapter 版本與 manifest 不一致`)
+  }
+  const fingerprint = candidates.fingerprints[source]
+  if (fingerprint.sourceSha256 !== manifestSource.sha256 ||
+      fingerprint.datasetSha256 !== manifestSource.qualityGates.automated.datasetSha256) {
+    throw new Error(`${source} 候選 fingerprints 與 manifest 不一致`)
+  }
+  const raw = await communityRawBuffers(root, source)
+  if (raw.sourceSha256 !== fingerprint.sourceSha256) {
+    throw new Error(`${source} raw cache 雜湊與候選來源不一致`)
+  }
+  const cache = join(root, '.data-cache')
+  const indexes = {
+    taipei: await buildTaipeiAddressIndex(cache, true),
+    'new-taipei': await buildNewTaipeiAddressIndex(cache, true),
+  }
+  for (const city of ['taipei', 'new-taipei']) {
+    if (indexes[city].sha256 !== candidates.addressIndexSha256[city]) {
+      throw new Error(`${source} ${city} 門牌索引雜湊與候選不一致`)
+    }
+  }
+  let parsed
+  const parseJson = (buffer) => JSON.parse(buffer.toString('utf8').replace(/^\uFEFF/, ''))
+  if (source === 'school') {
+    parsed = mergeSchoolCampuses(parseSchools({
+      elementary: parseJson(raw.buffers[0]),
+      junior: parseJson(raw.buffers[1]),
+      senior: parseJson(raw.buffers[2]),
+      special: raw.buffers[3].toString('utf8'),
+    }, indexes, now))
+  } else {
+    parsed = candidate.city === 'taipei'
+      ? parseTaipeiParks(
+        parseJson(raw.buffers[0]),
+        now,
+        await loadCommunityBoundaries(join(root, 'public', 'data')),
+      )
+      : parseNewTaipeiParks(raw.buffers[1].toString('utf8'), indexes['new-taipei'].index, now)
+  }
+  indexes.taipei.index.clear()
+  indexes['new-taipei'].index.clear()
+  const rawItem = parsed.find((item) => item.feature?.properties?.id === id)
+  if (!rawItem) {
+    return {
+      candidate,
+      blocked: true,
+      reason: '官方原始檔找不到候選 ID',
+      result: 'blocked',
+      evidence: null,
+    }
+  }
+  const fields = {
+    id: rawItem.feature.properties.id === candidate.id,
+    name: rawItem.name === candidate.name,
+    district: rawItem.district === candidate.district,
+    coordinate: coordinateDistance(rawItem.coordinate, {
+      longitude: candidate.longitude,
+      latitude: candidate.latitude,
+    }) <= 1,
+    ...(source === 'school'
+      ? {
+          schoolLevels:
+            JSON.stringify(rawItem.feature.properties.schoolLevels) ===
+            JSON.stringify(candidate.schoolLevels),
+        }
+      : { parkType: rawItem.feature.properties.parkType === candidate.parkType }),
+  }
+  const addressIndexSha256 = source === 'park' && candidate.city === 'taipei'
+    ? null
+    : candidates.addressIndexSha256[candidate.city]
+  const evidence = {
+    verificationMethod: 'official-raw-offline',
+    sourceSha256: raw.sourceSha256,
+    ...(addressIndexSha256 ? { addressIndexSha256 } : {}),
+    rawRecordCount: 1,
+    fields,
+    checkedAt: now,
+  }
+  evidence.queryOutputSha256 = sha256(JSON.stringify({
+    source,
+    id,
+    city: candidate.city,
+    district: candidate.district,
+    ...evidence,
+  }))
+  return {
+    candidate,
+    evidence,
+    blocked: false,
+    reason: null,
+    result: Object.values(fields).every(Boolean) ? 'matched' : 'mismatch',
   }
 }

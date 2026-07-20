@@ -101,8 +101,44 @@ async function main() {
         failures.push(`${id}：${error instanceof Error ? error.message : String(error)}`)
       }
     }
+    const [communityAudit, communityCandidates] = await Promise.all([
+      readFile(
+        join(root, 'scripts', 'data', 'audits', 'community-v1.json'),
+        'utf8',
+      ).then(JSON.parse),
+      readFile(
+        join(root, '.data-cache', 'community-audit-candidates.json'),
+        'utf8',
+      ).then(JSON.parse),
+    ])
+    for (const id of ['school', 'park']) {
+      try {
+        const source = manifest.sources[id]
+        await verifyCandidate(source)
+        const evaluation = evaluateFacilityAudit(communityAudit, id, {
+          adapterVersion: source.qualityGates.automated.adapterVersion,
+          sourceSha256: source.sha256,
+          addressIndexSha256:
+            id === 'park'
+              ? communityCandidates.addressIndexSha256['new-taipei']
+              : communityCandidates.addressIndexSha256,
+          requireEvidenceSourceSha: true,
+        })
+        if (id === 'school') {
+          const cityHashes = communityCandidates.addressIndexSha256
+          const samples = communityAudit.samples.filter((sample) => sample.source === id)
+          const hashesValid = samples.every((sample) =>
+            sample.evidence?.addressIndexSha256 === cityHashes[sample.city])
+          if (!hashesValid) throw new Error('school 門牌索引雜湊與候選不一致')
+        }
+        promoteSource(source, evaluation, communityAudit, now)
+        promoted += 1
+      } catch (error) {
+        failures.push(`${id}：${error instanceof Error ? error.message : String(error)}`)
+      }
+    }
     failures.forEach((message) => console.error(`[release] 未提升 ${message}`))
-    if (promoted === 0) throw new Error('停車場與醫院皆未通過發布閘門')
+    if (promoted === 0) throw new Error('四類設施皆未通過發布閘門')
   }
 
   const railPrerequisites = ['actual-price', 'flood', 'liquefaction']

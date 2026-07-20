@@ -43,7 +43,7 @@ function riskCandidates(candidateFile) {
 }
 
 function facilityCandidates(candidateFile) {
-  return ['parking', 'medical'].flatMap((source) =>
+  return Object.keys(candidateFile.samples).flatMap((source) =>
     Object.entries(candidateFile.samples[source]).flatMap(([city, samples]) =>
       samples.map((sample) => ({ ...sample, source, city }))))
 }
@@ -86,14 +86,29 @@ function readiness(audit, manifest) {
       },
     ),
   ]))
+  const community = Object.fromEntries(['school', 'park'].map((source) => [
+    source,
+    evaluateFacilityAudit(
+      { ...audit.community, status: 'passed' },
+      source,
+      {
+        adapterVersion:
+          manifest.sources[source]?.qualityGates?.automated?.adapterVersion ??
+          audit.community.adapterVersion,
+      },
+    ),
+  ]))
   return {
     price,
     flood: risks.flood,
     liquefaction: risks.liquefaction,
     parking: facilities.parking,
     medical: facilities.medical,
+    school: community.school,
+    park: community.park,
     ready: price.passed && risks.flood.passed && risks.liquefaction.passed &&
-      facilities.parking.passed && facilities.medical.passed,
+      facilities.parking.passed && facilities.medical.passed &&
+      community.school.passed && community.park.passed,
   }
 }
 
@@ -103,43 +118,53 @@ async function loadContext(root) {
     priceAudit: join(root, 'scripts', 'data', 'audits', 'price-v1.json'),
     riskAudit: join(root, 'scripts', 'data', 'audits', 'risks-v1.json'),
     facilityAudit: join(root, 'scripts', 'data', 'audits', 'facilities-v1.json'),
+    communityAudit: join(root, 'scripts', 'data', 'audits', 'community-v1.json'),
     priceCandidates: join(root, '.data-cache', 'price-audit-candidates.json'),
     riskCandidates: join(root, '.data-cache', 'risk-audit-candidates.json'),
     facilityCandidates: join(root, '.data-cache', 'facility-audit-candidates.json'),
+    communityCandidates: join(root, '.data-cache', 'community-audit-candidates.json'),
   }
   const [
     manifest,
     priceAudit,
     riskAudit,
     facilityAudit,
+    communityAudit,
     priceCandidateFile,
     riskCandidateFile,
     facilityCandidateFile,
+    communityCandidateFile,
   ] =
     await Promise.all([
       readJson(files.manifest),
       readJson(files.priceAudit),
       readJson(files.riskAudit),
       readJson(files.facilityAudit),
+      readJson(files.communityAudit),
       readJson(files.priceCandidates),
       readJson(files.riskCandidates),
       readJson(files.facilityCandidates),
+      readJson(files.communityCandidates),
     ])
   assertAdapterVersion(priceAudit, priceCandidateFile)
   assertAdapterVersion(riskAudit, riskCandidateFile)
   assertAdapterVersion(facilityAudit, facilityCandidateFile)
+  assertAdapterVersion(communityAudit, communityCandidateFile)
   assertAuditPrivacy(priceAudit)
   assertAuditPrivacy(riskAudit)
   assertAuditPrivacy(facilityAudit)
+  assertAuditPrivacy(communityAudit)
   return {
     files,
     manifest,
     priceAudit,
     riskAudit,
     facilityAudit,
+    communityAudit,
     priceCandidateFile,
     riskCandidateFile,
     facilityCandidateFile,
+    communityCandidateFile,
   }
 }
 
@@ -231,7 +256,9 @@ function facilityRecord(candidate, { result, attempts, evidence, now }) {
   }
   const fields = evidence.fields ?? {}
   const requiredFields = ['name', 'id', 'district', 'coordinate',
-    ...(candidate.source === 'parking' ? ['carCapacity'] : [])]
+    ...(candidate.source === 'parking' ? ['carCapacity'] : []),
+    ...(candidate.source === 'school' ? ['schoolLevels'] : []),
+    ...(candidate.source === 'park' ? ['parkType'] : [])]
   const allMatched = requiredFields
     .every((field) => fields[field] === true)
   if (result === 'matched' && !allMatched) {
@@ -248,6 +275,8 @@ function facilityRecord(candidate, { result, attempts, evidence, now }) {
     result,
     verificationMethod: evidence.verificationMethod,
     fields,
+    ...(candidate.schoolLevels ? { schoolLevels: candidate.schoolLevels } : {}),
+    ...(candidate.parkType ? { parkType: candidate.parkType } : {}),
     evidence,
     checkedAt: now,
     attemptCount: attempts,
@@ -269,21 +298,26 @@ export async function recordAudit(root, {
   const isPrice = source === 'price'
   const isRisk = ['flood', 'liquefaction'].includes(source)
   const isFacility = ['parking', 'medical'].includes(source)
-  if (!isPrice && !isRisk && !isFacility) {
+  const isCommunity = ['school', 'park'].includes(source)
+  if (!isPrice && !isRisk && !isFacility && !isCommunity) {
     throw new Error(`不支援的 source：${source}`)
   }
   const candidates = isPrice
     ? priceCandidates(context.priceCandidateFile)
     : isRisk
       ? riskCandidates(context.riskCandidateFile).filter((sample) => sample.source === source)
-      : facilityCandidates(context.facilityCandidateFile).filter((sample) => sample.source === source)
+      : facilityCandidates(
+        isCommunity ? context.communityCandidateFile : context.facilityCandidateFile,
+      ).filter((sample) => sample.source === source)
   const candidate = candidates.find((sample) => sample.id === id)
   if (!candidate) throw new Error(`${source} 候選清單不存在 ID ${id}`)
   const audit = isPrice
     ? context.priceAudit
     : isRisk
       ? context.riskAudit
-      : context.facilityAudit
+      : isCommunity
+        ? context.communityAudit
+        : context.facilityAudit
   const existingIndex = audit.samples.findIndex((sample) => sample.id === id)
   if (existingIndex >= 0 && !replace) {
     throw new Error(`${id} 已有稽核紀錄；確認重做時請加 --replace`)
@@ -301,20 +335,25 @@ export async function recordAudit(root, {
     price: isPrice ? audit : context.priceAudit,
     risks: isRisk ? audit : context.riskAudit,
     facilities: isFacility ? audit : context.facilityAudit,
+    community: isCommunity ? audit : context.communityAudit,
   }
   const progress = readiness(nextContext, context.manifest)
   if (isPrice) audit.status = progress.price.passed ? 'passed' : 'pending'
   else audit.status =
     isRisk
       ? progress.flood.passed && progress.liquefaction.passed ? 'passed' : 'pending'
-      : progress.parking.passed && progress.medical.passed ? 'passed' : 'pending'
+      : isCommunity
+        ? progress.school.passed && progress.park.passed ? 'passed' : 'pending'
+        : progress.parking.passed && progress.medical.passed ? 'passed' : 'pending'
   assertAuditPrivacy(audit)
   await writeJsonAtomic(
     isPrice
       ? context.files.priceAudit
       : isRisk
         ? context.files.riskAudit
-        : context.files.facilityAudit,
+        : isCommunity
+          ? context.files.communityAudit
+          : context.files.facilityAudit,
     audit,
   )
   return {
@@ -332,19 +371,22 @@ export async function auditStatus(root) {
     price: context.priceAudit,
     risks: context.riskAudit,
     facilities: context.facilityAudit,
+    community: context.communityAudit,
   }, context.manifest)
   const priceSamples = context.priceAudit.samples
   const riskSamples = context.riskAudit.samples
   const facilitySamples = context.facilityAudit.samples
+  const communitySamples = context.communityAudit.samples
   return {
     ...progress,
     adapterVersions: {
       price: context.priceAudit.adapterVersion,
       risks: context.riskAudit.adapterVersion,
       facilities: context.facilityAudit.adapterVersion,
+      community: context.communityAudit.adapterVersion,
     },
     inconclusive: priceSamples.filter((sample) => sample.result === 'inconclusive').length,
-    mismatches: [...priceSamples, ...riskSamples, ...facilitySamples]
+    mismatches: [...priceSamples, ...riskSamples, ...facilitySamples, ...communitySamples]
       .filter((sample) => sample.result === 'mismatch').length,
     verificationMethods: Object.fromEntries(['flood', 'liquefaction'].map((source) => [
       source,
@@ -353,13 +395,15 @@ export async function auditStatus(root) {
         .map((sample) => sample.verificationMethod)
         .filter(Boolean))],
     ])),
-    facilityVerificationMethods: Object.fromEntries(['parking', 'medical'].map((source) => [
+    facilityVerificationMethods: Object.fromEntries(
+      ['parking', 'medical', 'school', 'park'].map((source) => [
       source,
-      [...new Set(facilitySamples
+      [...new Set([...facilitySamples, ...communitySamples]
         .filter((sample) => sample.source === source && sample.result === 'matched')
         .map((sample) => sample.verificationMethod)
         .filter(Boolean))],
-    ])),
+      ]),
+    ),
   }
 }
 

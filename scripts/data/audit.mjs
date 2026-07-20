@@ -162,21 +162,36 @@ export function evaluateFacilityAudit(audit, source, {
       sample.city === city &&
       sample.verificationMethod === 'official-raw-offline' &&
       ['name', 'id', 'district', 'coordinate',
-        ...(source === 'parking' ? ['carCapacity'] : [])]
+        ...(source === 'parking' ? ['carCapacity'] : []),
+        ...(source === 'school' ? ['schoolLevels'] : []),
+        ...(source === 'park' ? ['parkType'] : [])]
         .every((field) => sample.fields?.[field] === true))].length,
   ]))
   const evidenceValid = !requireEvidenceSourceSha || sourceSamples.every((sample) =>
     sample.evidence?.sourceSha256 === sourceSha256 &&
     /^[a-f0-9]{64}$/.test(sample.evidence?.queryOutputSha256 ?? '') &&
-    (source !== 'medical' ||
-      sample.city !== 'new-taipei' ||
-      sample.evidence?.addressIndexSha256 === addressIndexSha256))
+    (!['medical', 'school', 'park'].includes(source) ||
+      (source === 'medical' && sample.city === 'taipei') ||
+      (source === 'park' && sample.city === 'taipei') ||
+      sample.evidence?.addressIndexSha256 === (
+        typeof addressIndexSha256 === 'object'
+          ? addressIndexSha256[sample.city]
+          : addressIndexSha256
+      )))
+  const schoolCoverage = source !== 'school' || ['taipei', 'new-taipei'].every((city) => {
+    const levels = new Set(sourceSamples
+      .filter((sample) => sample.city === city && sample.result === 'matched')
+      .flatMap((sample) => sample.schoolLevels ?? []))
+    return ['elementary', 'junior', 'senior', 'special']
+      .every((level) => levels.has(level))
+  })
   const passed = audit?.status === 'passed' &&
     audit?.adapterVersion === adapterVersion &&
     counts.taipei >= 5 &&
     counts['new-taipei'] >= 5 &&
     mismatches === 0 &&
-    evidenceValid
+    evidenceValid &&
+    schoolCoverage
   return {
     passed,
     sampleCount: counts.taipei + counts['new-taipei'],

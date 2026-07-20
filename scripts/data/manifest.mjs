@@ -53,9 +53,18 @@ export async function validateData(directory) {
           if (['address', 'tel', 'phone'].some((key) => key in properties)) {
             throw new Error(`${file} 不得發布地址或電話`)
           }
-          if (['parking', 'medical'].includes(properties.category) &&
+          if (['parking', 'medical', 'school', 'park'].includes(properties.category) &&
               (!properties.id || !properties.name || !properties.facilityType)) {
             throw new Error(`${file} 含無效生活機能欄位`)
+          }
+          if (properties.category === 'school' &&
+              (!Array.isArray(properties.schoolLevels) ||
+                !Array.isArray(properties.officialCodes))) {
+            throw new Error(`${file} 含無效學校級別或代碼`)
+          }
+          if (properties.category === 'park' &&
+              !['park', 'green-space', 'plaza'].includes(properties.parkType)) {
+            throw new Error(`${file} 含無效公園類型`)
           }
         }
       }
@@ -90,6 +99,8 @@ export async function validateData(directory) {
     rail: 41,
     parking: 41,
     medical: 41,
+    school: 41,
+    park: 41,
   }
   for (const [id, expected] of Object.entries(expectedFiles)) {
     const source = manifest.sources[id]

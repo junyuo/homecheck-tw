@@ -34,6 +34,13 @@ const makeResult = (id: string): AnalysisResult => ({
   lifeFacilities: {
     medical: { count: 0, nearestDistance: null, nearestName: null },
     parking: { count: 0, nearestDistance: null, nearestName: null },
+    school: {
+      count: 0,
+      nearestDistance: null,
+      nearestName: null,
+      byLevel: { elementary: 0, junior: 0, senior: 0, special: 0 },
+    },
+    park: { count: 0, nearestDistance: null, nearestName: null, nearestType: null },
   },
   accidentCount: 0,
   completeness: 0,
@@ -117,5 +124,21 @@ describe('比較清單 Local Storage', () => {
     expect(migrated.riskSnapshotLegacy).toBe(false)
     expect(migrated.result.facilityCount).toBe(0)
     expect(migrated.result.lifeFacilities.medical.count).toBe(0)
+  })
+
+  it('v4 保留醫院與停車場，只有學校與公園標示舊快照', () => {
+    const result = makeResult('v4')
+    const legacy = structuredClone(result)
+    delete (legacy.lifeFacilities as Partial<typeof legacy.lifeFacilities>).school
+    delete (legacy.lifeFacilities as Partial<typeof legacy.lifeFacilities>).park
+    storage.setItem('homecheck-tw:properties', JSON.stringify({
+      schemaVersion: 4,
+      properties: [{ id: 'v4', savedAt: '2026-07-19', label: '舊快照', result: legacy }],
+    }))
+    const [migrated] = loadSavedProperties(storage)
+    expect(migrated.lifeSnapshotLegacy).toBe(false)
+    expect(migrated.communitySnapshotLegacy).toBe(true)
+    expect(migrated.result.lifeFacilities.school.count).toBe(0)
+    expect(migrated.result.lifeFacilities.park.count).toBe(0)
   })
 })

@@ -154,7 +154,7 @@ const categoryLabel: Record<FacilityProperties['category'], string> = {
   bus: '公車',
   school: '學校',
   medical: '醫院',
-  park: '公園',
+  park: '公園綠地',
   market: '市場',
   parking: '停車場',
   library: '圖書館',

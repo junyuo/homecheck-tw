@@ -222,12 +222,13 @@ export function buildAnalysis(
       longitude: feature.geometry.coordinates[0],
     })))
     : null
-  const summarizeLifeFacility = (category: 'medical' | 'parking') => {
+  const summarizeLifeFacility = (category: 'medical' | 'parking' | 'school' | 'park') => {
     const all = dataset.facilities.features.filter((feature) => feature.properties.category === category)
     const nearby = nearbyFacilities.filter((feature) => feature.properties.category === category)
     const closest = all
       .map((feature) => ({
         name: feature.properties.name,
+        parkType: feature.properties.parkType,
         distance: distanceMeters(input, {
           latitude: feature.geometry.coordinates[1],
           longitude: feature.geometry.coordinates[0],
@@ -239,6 +240,37 @@ export function buildAnalysis(
       nearestDistance: closest?.distance ?? null,
       nearestName: closest?.name ?? null,
     }
+  }
+  const schoolSummary = {
+    ...summarizeLifeFacility('school'),
+    byLevel: {
+      elementary: nearbyFacilities.filter((feature) =>
+        feature.properties.category === 'school' &&
+        feature.properties.schoolLevels?.includes('elementary')).length,
+      junior: nearbyFacilities.filter((feature) =>
+        feature.properties.category === 'school' &&
+        feature.properties.schoolLevels?.includes('junior')).length,
+      senior: nearbyFacilities.filter((feature) =>
+        feature.properties.category === 'school' &&
+        feature.properties.schoolLevels?.includes('senior')).length,
+      special: nearbyFacilities.filter((feature) =>
+        feature.properties.category === 'school' &&
+        feature.properties.schoolLevels?.includes('special')).length,
+    },
+  }
+  const closestPark = dataset.facilities.features
+    .filter((feature) => feature.properties.category === 'park')
+    .map((feature) => ({
+      parkType: feature.properties.parkType ?? null,
+      distance: distanceMeters(input, {
+        latitude: feature.geometry.coordinates[1],
+        longitude: feature.geometry.coordinates[0],
+      }),
+    }))
+    .sort((a, b) => a.distance - b.distance)[0]
+  const parkSummary = {
+    ...summarizeLifeFacility('park'),
+    nearestType: closestPark?.parkType ?? null,
   }
   const floodDetail = riskFindingAtPoint(input, flood)
   const liquefactionDetail = riskFindingAtPoint(input, liquefaction)
@@ -281,6 +313,8 @@ export function buildAnalysis(
     lifeFacilities: {
       medical: summarizeLifeFacility('medical'),
       parking: summarizeLifeFacility('parking'),
+      school: schoolSummary,
+      park: parkSummary,
     },
     accidentCount: nearbyAccidents.length,
     completeness: Math.round(completenessSignals.filter(Boolean).length / completenessSignals.length * 100),

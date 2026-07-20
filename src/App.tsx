@@ -476,9 +476,13 @@ function ResultsPage({
   const hasLifeData = lifeSourceIds.some((id) => available(result.sources[id]?.status))
   const medicalAvailable = available(result.sources.medical?.status)
   const parkingAvailable = available(result.sources.parking?.status)
-  const lifeStatus = medicalAvailable && parkingAvailable
+  const schoolAvailable = available(result.sources.school?.status)
+  const parkAvailable = available(result.sources.park?.status)
+  const availableLifeCount = [medicalAvailable, parkingAvailable, schoolAvailable, parkAvailable]
+    .filter(Boolean).length
+  const lifeStatus = availableLifeCount === 4
     ? 'official'
-    : medicalAvailable || parkingAvailable
+    : availableLifeCount > 0
       ? 'stale'
       : 'unavailable'
   const transitSourceIds: DataSourceId[] = ['metro', 'rail', busSource]
@@ -606,17 +610,22 @@ function ResultsPage({
           index="04"
           title="生活機能"
           level="unknown"
-          status={<span className={`source-status ${lifeStatus}`}>{medicalAvailable && parkingAvailable ? '2 類正式資料' : hasLifeData ? '部分正式資料' : '資料不足'}</span>}
+          status={<span className={`source-status ${lifeStatus}`}>{availableLifeCount === 4 ? '4 類正式資料' : hasLifeData ? `${availableLifeCount} 類正式資料` : '資料不足'}</span>}
         >
           <dl className="metrics">
             <div><dt>{result.input.radius >= 1000 ? '1 公里' : `${result.input.radius} 公尺`}內醫院</dt><dd>{medicalAvailable ? `${result.lifeFacilities.medical.count.toLocaleString('zh-TW')} 間` : '資料不足'}</dd></div>
             <div><dt>最近醫院</dt><dd>{medicalAvailable ? <>{result.lifeFacilities.medical.nearestName ?? '資料不足'}<br />{formatDistance(result.lifeFacilities.medical.nearestDistance)}</> : '資料不足'}</dd></div>
             <div><dt>{result.input.radius >= 1000 ? '1 公里' : `${result.input.radius} 公尺`}內路外停車場</dt><dd>{parkingAvailable ? `${result.lifeFacilities.parking.count.toLocaleString('zh-TW')} 處` : '資料不足'}</dd></div>
             <div><dt>最近路外停車場</dt><dd>{parkingAvailable ? <>{result.lifeFacilities.parking.nearestName ?? '資料不足'}<br />{formatDistance(result.lifeFacilities.parking.nearestDistance)}</> : '資料不足'}</dd></div>
+            <div><dt>{result.input.radius >= 1000 ? '1 公里' : `${result.input.radius} 公尺`}內學校</dt><dd>{schoolAvailable ? `${result.lifeFacilities.school.count.toLocaleString('zh-TW')} 處校園` : '資料不足'}</dd></div>
+            <div><dt>最近學校</dt><dd>{schoolAvailable ? <>{result.lifeFacilities.school.nearestName ?? '資料不足'}<br />{formatDistance(result.lifeFacilities.school.nearestDistance)}</> : '資料不足'}</dd></div>
+            <div><dt>學校級別</dt><dd>{schoolAvailable ? `國小 ${result.lifeFacilities.school.byLevel.elementary}、國中 ${result.lifeFacilities.school.byLevel.junior}、高中 ${result.lifeFacilities.school.byLevel.senior}、特教 ${result.lifeFacilities.school.byLevel.special}` : '資料不足'}</dd></div>
+            <div><dt>{result.input.radius >= 1000 ? '1 公里' : `${result.input.radius} 公尺`}內公園綠地</dt><dd>{parkAvailable ? `${result.lifeFacilities.park.count.toLocaleString('zh-TW')} 處` : '資料不足'}</dd></div>
+            <div><dt>最近公園綠地</dt><dd>{parkAvailable ? <>{result.lifeFacilities.park.nearestName ?? '資料不足'}<br />{formatDistance(result.lifeFacilities.park.nearestDistance)}</> : '資料不足'}</dd></div>
           </dl>
           <div className="evidence">
-            <p><strong>涵蓋類型</strong>首版醫療只納入醫院；停車場只呈現官方登記位置與靜態汽車格位，不提供即時剩餘車位。</p>
-            <p><strong>資料信心</strong>醫院與停車場各自獨立驗證；數量多寡不轉換為安全或品質分數，沒有資料也不代表附近沒有設施。</p>
+            <p><strong>涵蓋類型</strong>醫療只納入醫院；停車場只呈現靜態汽車格位；學校限國小、國中、一般高中與特殊教育學校；公園資料保留公園、綠地與廣場官方分類。</p>
+            <p><strong>資料信心</strong>四類來源各自獨立驗證；學校距離不代表學區、入學資格或招生結果。公園數量不代表面積、品質、開放狀態或實際入口距離。</p>
             <p><strong>建議確認</strong>實際走訪日常採買、垃圾處理、醫療與停車動線，並留意營業時間。</p>
           </div>
         </ResultCard>
@@ -706,6 +715,8 @@ function ComparePage({ saved, setSaved }: { saved: SavedProperty[]; setSaved: (i
               ['捷運距離', (x: SavedProperty) => formatDistance(x.result.nearestMetro)],
               ['醫院', (x: SavedProperty) => x.lifeSnapshotLegacy ? '舊快照，請重新查詢' : `${x.result.lifeFacilities.medical.count.toLocaleString('zh-TW')} 間；最近 ${x.result.lifeFacilities.medical.nearestName ?? '資料不足'}（${formatDistance(x.result.lifeFacilities.medical.nearestDistance)}）`],
               ['路外停車場', (x: SavedProperty) => x.lifeSnapshotLegacy ? '舊快照，請重新查詢' : `${x.result.lifeFacilities.parking.count.toLocaleString('zh-TW')} 處；最近 ${x.result.lifeFacilities.parking.nearestName ?? '資料不足'}（${formatDistance(x.result.lifeFacilities.parking.nearestDistance)}）`],
+              ['學校', (x: SavedProperty) => x.communitySnapshotLegacy ? '舊快照，請重新查詢' : `${x.result.lifeFacilities.school.count.toLocaleString('zh-TW')} 處校園；最近 ${x.result.lifeFacilities.school.nearestName ?? '資料不足'}（${formatDistance(x.result.lifeFacilities.school.nearestDistance)}）`],
+              ['公園綠地', (x: SavedProperty) => x.communitySnapshotLegacy ? '舊快照，請重新查詢' : `${x.result.lifeFacilities.park.count.toLocaleString('zh-TW')} 處；最近 ${x.result.lifeFacilities.park.nearestName ?? '資料不足'}（${formatDistance(x.result.lifeFacilities.park.nearestDistance)}）`],
               ['交通事故狀況', (x: SavedProperty) => x.result.sources.accidents?.status === 'official' ? `${x.result.accidentCount.toLocaleString('zh-TW')} 件` : '資料不足'],
               ['資料品質', (x: SavedProperty) => x.historicDemo ? '歷史 Demo（不與正式結果混用）' : x.result.dataQuality === 'official' ? '全部正式' : x.result.dataQuality === 'mixed' ? '混合來源' : '資料不足'],
               ['待確認事項', (x: SavedProperty) => `${x.result.checklist.filter((item) => !item.checked).length} 項`],

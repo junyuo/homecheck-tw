@@ -73,7 +73,7 @@ describe('空間分析', () => {
     expect(pointsWithinRadius(facilities, input, 500).map((x) => x.properties.name)).toEqual(['近點'])
   })
 
-  it('分別計算醫院與停車場生活圈數量及最近點位', () => {
+  it('分別計算四類生活機能數量及最近點位', () => {
     const dataset: DistrictDataset = {
       transactions: [],
       facilities: {
@@ -82,6 +82,8 @@ describe('空間分析', () => {
           { type: 'Feature', properties: { name: '近醫院', category: 'medical' }, geometry: { type: 'Point', coordinates: [121.5431, 25.0331] } },
           { type: 'Feature', properties: { name: '遠醫院', category: 'medical' }, geometry: { type: 'Point', coordinates: [121.56, 25.05] } },
           { type: 'Feature', properties: { name: '近停車場', category: 'parking' }, geometry: { type: 'Point', coordinates: [121.5432, 25.0332] } },
+          { type: 'Feature', properties: { name: '測試校園', category: 'school', schoolLevels: ['elementary', 'junior'] }, geometry: { type: 'Point', coordinates: [121.5433, 25.0333] } },
+          { type: 'Feature', properties: { name: '測試綠地', category: 'park', parkType: 'green-space' }, geometry: { type: 'Point', coordinates: [121.5434, 25.0334] } },
         ],
       },
       accidents: { type: 'FeatureCollection', features: [] },
@@ -97,6 +99,9 @@ describe('空間分析', () => {
     expect(result.lifeFacilities.medical.nearestName).toBe('近醫院')
     expect(result.lifeFacilities.parking.count).toBe(1)
     expect(result.lifeFacilities.parking.nearestName).toBe('近停車場')
+    expect(result.lifeFacilities.school.byLevel.elementary).toBe(1)
+    expect(result.lifeFacilities.school.byLevel.junior).toBe(1)
+    expect(result.lifeFacilities.park.nearestType).toBe('green-space')
   })
 
   it('判斷點是否落在風險多邊形內', () => {

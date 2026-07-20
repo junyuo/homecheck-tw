@@ -84,6 +84,24 @@ export const dataSources: DataSource[] = [
     notes: '依 stoplocationid 去重，同一實體站位只計一次。',
   },
   {
+    id: 'school',
+    name: '國小、國中、高中與特殊教育學校',
+    agency: '教育部統計處／教育部國民及學前教育署',
+    sourceUrl: 'https://data.gov.tw/dataset/6087',
+    license: '政府資料開放授權條款第 1 版',
+    refreshFrequency: '每月 5 日檢查最新學年度',
+    notes: '只納入最新學年度四類學校名錄，並以官方門牌索引精確定位；距離不代表學區、入學資格或招生結果。',
+  },
+  {
+    id: 'park',
+    name: '公園綠地與廣場',
+    agency: '臺北市政府工務局／新北市政府農業局',
+    sourceUrl: 'https://data.taipei/dataset/detail?id=ea732fb5-4bec-4be7-93f2-8ab91e74a6c6',
+    license: '政府資料開放授權條款第 1 版',
+    refreshFrequency: '每月 5 日建立靜態快照',
+    notes: '透明保留官方公園、綠地與廣場分類；點位距離不代表面積、品質、開放狀態或實際入口距離。',
+  },
+  {
     id: 'medical',
     name: '公私立醫院',
     agency: '臺北市政府衛生局／新北市政府衛生局',
@@ -102,8 +120,6 @@ export const dataSources: DataSource[] = [
     notes: '只呈現有汽車格位的官方登記位置與靜態格位數，不提供即時剩餘車位。',
   },
   ...([
-    ['school', '學校', '雙北市政府'],
-    ['park', '公園', '雙北市政府'],
     ['market', '市場', '雙北市政府'],
     ['library', '圖書館', '雙北市政府'],
   ] as const).map(([id, name, agency]) => ({
