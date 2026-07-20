@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "generatedAt": "2026-07-20T01:54:44.890Z",
+  "generatedAt": "2026-07-20T06:04:45.337Z",
   "sources": {
     "actual-price": {
       "status": "official",
@@ -91,15 +91,15 @@
       "matchingRate": null
     },
     "medical": {
-      "status": "unavailable",
-      "updatedAt": null,
-      "attemptedAt": null,
+      "status": "official",
+      "updatedAt": "2026-07-20T06:01:00.530Z",
+      "attemptedAt": "2026-07-20T06:04:44.996Z",
       "lastAttempt": {
-        "status": "not-run",
-        "message": "尚未接入"
+        "status": "success",
+        "message": "人工驗收 10/10 通過，候選資料正式發布"
       },
-      "recordCount": 0,
-      "matchingRate": null
+      "recordCount": 64,
+      "matchingRate": 0.967741935483871
     },
     "park": {
       "status": "unavailable",
@@ -124,14 +124,14 @@
       "matchingRate": null
     },
     "parking": {
-      "status": "unavailable",
-      "updatedAt": null,
-      "attemptedAt": null,
+      "status": "official",
+      "updatedAt": "2026-07-20T06:01:00.530Z",
+      "attemptedAt": "2026-07-20T06:04:44.996Z",
       "lastAttempt": {
-        "status": "not-run",
-        "message": "尚未接入"
+        "status": "success",
+        "message": "人工驗收 10/10 通過，候選資料正式發布"
       },
-      "recordCount": 0,
+      "recordCount": 2607,
       "matchingRate": null
     },
     "library": {

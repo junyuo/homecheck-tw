@@ -1,10 +1,17 @@
 #!/usr/bin/env node
 import { access, cp, mkdir, readFile, rename, rm, writeFile } from 'node:fs/promises'
 import { join, resolve } from 'node:path'
-import { evaluatePriceAudit, evaluateRailAudit, evaluateRiskAudit, manualGate } from './data/audit.mjs'
+import {
+  evaluateFacilityAudit,
+  evaluatePriceAudit,
+  evaluateRailAudit,
+  evaluateRiskAudit,
+  manualGate,
+} from './data/audit.mjs'
 import { ALL_DISTRICTS } from './data/constants.mjs'
 import { sourceFilesSha256, validateData, writeHealth } from './data/manifest.mjs'
 import { updateOfficialPrice } from './data/price.mjs'
+import { updateOfficialFacilities } from './data/facilities.mjs'
 import { updateOfficialRisks } from './data/risks.mjs'
 import { updateOfficialTransport } from './data/transport.mjs'
 
@@ -348,7 +355,95 @@ async function main() {
       }
     }
   }
-  if (shouldRun('facilities')) log('facilities', '各類設施來源維持獨立 unavailable，避免以單一類別代表全部')
+  if (shouldRun('facilities')) {
+    log('facilities', '更新雙北路外停車場與醫院')
+    const update = await updateOfficialFacilities({
+      output: staging,
+      cache,
+      now: new Date(),
+      dryRun,
+      reuseCache: process.env.REUSE_DATA_CACHE === 'true',
+      previous: {
+        parking: manifest.sources.parking,
+        medical: manifest.sources.medical,
+      },
+    })
+    if (!dryRun) {
+      const audit = JSON.parse(await readFile(
+        join(root, 'scripts', 'data', 'audits', 'facilities-v1.json'),
+        'utf8',
+      ))
+      for (const result of update.results) {
+        const id = result.id
+        if (result.status === 'failed') {
+          failed = true
+          manifest.sources[id] = sourceFailure(
+            manifest.sources[id],
+            id,
+            now,
+            result.error,
+          )
+          log('facilities', `${id} 失敗：${result.error}`)
+          continue
+        }
+        const datasetSha256 = await sourceFilesSha256(staging, result.files)
+        const evaluation = evaluateFacilityAudit(audit, id, {
+          adapterVersion: result.adapterVersion,
+        })
+        const nextSource = officialSource(
+          manifest.sources[id],
+          {
+            ...result,
+            ...(id === 'medical' ? { matchingRate: update.matchingRate } : {}),
+            qualityGates: {
+              automated: {
+                status: 'passed',
+                adapterVersion: result.adapterVersion,
+                checkedAt: now,
+                datasetSha256,
+              },
+              manualAudit: manualGate(
+                evaluation,
+                result.adapterVersion,
+                audit.checkedAt,
+              ),
+            },
+          },
+          now,
+          id === 'parking'
+            ? 'https://data.taipei/dataset/detail?id=d5c0656b-5250-4179-a491-c94daa56ef2c'
+            : 'https://data.taipei/dataset/detail?id=b02cd6b2-79be-4d7f-ae78-305b2af668f5',
+          {
+            cities: ['taipei', 'new-taipei'],
+            districts: ALL_DISTRICTS.map(({ city, slug }) => `${city}/${slug}`),
+          },
+        )
+        if (!evaluation.passed) {
+          nextSource.status = 'unavailable'
+          nextSource.lastAttempt = {
+            status: 'success',
+            message: '自動 QA 通過；等待臺北／新北各 5 筆官方原始檔離線驗收',
+          }
+        }
+        manifest.sources[id] = nextSource
+        log(
+          'facilities',
+          `${id}：${result.recordCount.toLocaleString('zh-TW')} 筆` +
+          `${evaluation.passed ? '，正式' : '，候選'}`,
+        )
+      }
+    } else {
+      for (const result of update.results) {
+        if (result.status === 'failed') failed = true
+        log(
+          'facilities',
+          result.status === 'failed'
+            ? `${result.id} dry run 失敗：${result.error}`
+            : `${result.id} dry run：${result.recordCount.toLocaleString('zh-TW')} 筆`,
+        )
+      }
+    }
+  }
   if (shouldRun('accidents')) log('accidents', '事故來源尚未產生通過去識別與三年度門檻的快照')
 
   if (dryRun) {

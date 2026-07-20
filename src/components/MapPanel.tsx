@@ -153,7 +153,7 @@ const categoryLabel: Record<FacilityProperties['category'], string> = {
   rail: '火車',
   bus: '公車',
   school: '學校',
-  medical: '醫療',
+  medical: '醫院',
   park: '公園',
   market: '市場',
   parking: '停車場',

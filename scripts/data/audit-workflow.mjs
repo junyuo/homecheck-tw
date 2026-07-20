@@ -1,6 +1,7 @@
 import { readFile, rename, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import {
+  evaluateFacilityAudit,
   evaluatePriceAudit,
   evaluateRiskAudit,
   PRICE_AUDIT_FIELDS,
@@ -41,6 +42,12 @@ function riskCandidates(candidateFile) {
       samples.map((sample) => ({ ...sample, source, city }))))
 }
 
+function facilityCandidates(candidateFile) {
+  return ['parking', 'medical'].flatMap((source) =>
+    Object.entries(candidateFile.samples[source]).flatMap(([city, samples]) =>
+      samples.map((sample) => ({ ...sample, source, city }))))
+}
+
 function assertAdapterVersion(audit, candidates) {
   if (audit.adapterVersion !== candidates.adapterVersion) {
     throw new Error(
@@ -68,11 +75,25 @@ function readiness(audit, manifest) {
       },
     ),
   ]))
+  const facilities = Object.fromEntries(['parking', 'medical'].map((source) => [
+    source,
+    evaluateFacilityAudit(
+      { ...audit.facilities, status: 'passed' },
+      source,
+      {
+        adapterVersion:
+          manifest.sources[source].qualityGates.automated.adapterVersion,
+      },
+    ),
+  ]))
   return {
     price,
     flood: risks.flood,
     liquefaction: risks.liquefaction,
-    ready: price.passed && risks.flood.passed && risks.liquefaction.passed,
+    parking: facilities.parking,
+    medical: facilities.medical,
+    ready: price.passed && risks.flood.passed && risks.liquefaction.passed &&
+      facilities.parking.passed && facilities.medical.passed,
   }
 }
 
@@ -81,28 +102,44 @@ async function loadContext(root) {
     manifest: join(root, 'public', 'data', 'manifest.json'),
     priceAudit: join(root, 'scripts', 'data', 'audits', 'price-v1.json'),
     riskAudit: join(root, 'scripts', 'data', 'audits', 'risks-v1.json'),
+    facilityAudit: join(root, 'scripts', 'data', 'audits', 'facilities-v1.json'),
     priceCandidates: join(root, '.data-cache', 'price-audit-candidates.json'),
     riskCandidates: join(root, '.data-cache', 'risk-audit-candidates.json'),
+    facilityCandidates: join(root, '.data-cache', 'facility-audit-candidates.json'),
   }
-  const [manifest, priceAudit, riskAudit, priceCandidateFile, riskCandidateFile] =
+  const [
+    manifest,
+    priceAudit,
+    riskAudit,
+    facilityAudit,
+    priceCandidateFile,
+    riskCandidateFile,
+    facilityCandidateFile,
+  ] =
     await Promise.all([
       readJson(files.manifest),
       readJson(files.priceAudit),
       readJson(files.riskAudit),
+      readJson(files.facilityAudit),
       readJson(files.priceCandidates),
       readJson(files.riskCandidates),
+      readJson(files.facilityCandidates),
     ])
   assertAdapterVersion(priceAudit, priceCandidateFile)
   assertAdapterVersion(riskAudit, riskCandidateFile)
+  assertAdapterVersion(facilityAudit, facilityCandidateFile)
   assertAuditPrivacy(priceAudit)
   assertAuditPrivacy(riskAudit)
+  assertAuditPrivacy(facilityAudit)
   return {
     files,
     manifest,
     priceAudit,
     riskAudit,
+    facilityAudit,
     priceCandidateFile,
     riskCandidateFile,
+    facilityCandidateFile,
   }
 }
 
@@ -185,6 +222,38 @@ function riskRecord(candidate, { result, observed, attempts, evidence, now }) {
   }
 }
 
+function facilityRecord(candidate, { result, attempts, evidence, now }) {
+  if (!['matched', 'mismatch'].includes(result)) {
+    throw new Error('設施 result 只接受 matched 或 mismatch')
+  }
+  if (evidence?.verificationMethod !== 'official-raw-offline') {
+    throw new Error('設施稽核必須使用官方原始檔離線證據')
+  }
+  const fields = evidence.fields ?? {}
+  const requiredFields = ['name', 'id', 'district', 'coordinate',
+    ...(candidate.source === 'parking' ? ['carCapacity'] : [])]
+  const allMatched = requiredFields
+    .every((field) => fields[field] === true)
+  if (result === 'matched' && !allMatched) {
+    throw new Error('設施欄位不一致時必須記為 mismatch')
+  }
+  if (result === 'mismatch' && allMatched) {
+    throw new Error('設施欄位全數一致時不得記為 mismatch')
+  }
+  return {
+    id: candidate.id,
+    source: candidate.source,
+    city: candidate.city,
+    district: candidate.district,
+    result,
+    verificationMethod: evidence.verificationMethod,
+    fields,
+    evidence,
+    checkedAt: now,
+    attemptCount: attempts,
+  }
+}
+
 export async function recordAudit(root, {
   source,
   id,
@@ -198,37 +267,54 @@ export async function recordAudit(root, {
 }) {
   const context = await loadContext(root)
   const isPrice = source === 'price'
-  if (!isPrice && !['flood', 'liquefaction'].includes(source)) {
+  const isRisk = ['flood', 'liquefaction'].includes(source)
+  const isFacility = ['parking', 'medical'].includes(source)
+  if (!isPrice && !isRisk && !isFacility) {
     throw new Error(`不支援的 source：${source}`)
   }
   const candidates = isPrice
     ? priceCandidates(context.priceCandidateFile)
-    : riskCandidates(context.riskCandidateFile).filter((sample) => sample.source === source)
+    : isRisk
+      ? riskCandidates(context.riskCandidateFile).filter((sample) => sample.source === source)
+      : facilityCandidates(context.facilityCandidateFile).filter((sample) => sample.source === source)
   const candidate = candidates.find((sample) => sample.id === id)
   if (!candidate) throw new Error(`${source} 候選清單不存在 ID ${id}`)
-  const audit = isPrice ? context.priceAudit : context.riskAudit
+  const audit = isPrice
+    ? context.priceAudit
+    : isRisk
+      ? context.riskAudit
+      : context.facilityAudit
   const existingIndex = audit.samples.findIndex((sample) => sample.id === id)
   if (existingIndex >= 0 && !replace) {
     throw new Error(`${id} 已有稽核紀錄；確認重做時請加 --replace`)
   }
   const record = isPrice
     ? priceRecord(candidate, { result, attempts, mismatchFields, now })
-    : riskRecord(candidate, { result, observed, attempts, evidence, now })
+    : isRisk
+      ? riskRecord(candidate, { result, observed, attempts, evidence, now })
+      : facilityRecord(candidate, { result, attempts, evidence, now })
   if (existingIndex >= 0) audit.samples[existingIndex] = record
   else audit.samples.push(record)
   audit.checkedAt = now
 
   const nextContext = {
     price: isPrice ? audit : context.priceAudit,
-    risks: isPrice ? context.riskAudit : audit,
+    risks: isRisk ? audit : context.riskAudit,
+    facilities: isFacility ? audit : context.facilityAudit,
   }
   const progress = readiness(nextContext, context.manifest)
   if (isPrice) audit.status = progress.price.passed ? 'passed' : 'pending'
   else audit.status =
-    progress.flood.passed && progress.liquefaction.passed ? 'passed' : 'pending'
+    isRisk
+      ? progress.flood.passed && progress.liquefaction.passed ? 'passed' : 'pending'
+      : progress.parking.passed && progress.medical.passed ? 'passed' : 'pending'
   assertAuditPrivacy(audit)
   await writeJsonAtomic(
-    isPrice ? context.files.priceAudit : context.files.riskAudit,
+    isPrice
+      ? context.files.priceAudit
+      : isRisk
+        ? context.files.riskAudit
+        : context.files.facilityAudit,
     audit,
   )
   return {
@@ -245,21 +331,31 @@ export async function auditStatus(root) {
   const progress = readiness({
     price: context.priceAudit,
     risks: context.riskAudit,
+    facilities: context.facilityAudit,
   }, context.manifest)
   const priceSamples = context.priceAudit.samples
   const riskSamples = context.riskAudit.samples
+  const facilitySamples = context.facilityAudit.samples
   return {
     ...progress,
     adapterVersions: {
       price: context.priceAudit.adapterVersion,
       risks: context.riskAudit.adapterVersion,
+      facilities: context.facilityAudit.adapterVersion,
     },
     inconclusive: priceSamples.filter((sample) => sample.result === 'inconclusive').length,
-    mismatches: [...priceSamples, ...riskSamples]
+    mismatches: [...priceSamples, ...riskSamples, ...facilitySamples]
       .filter((sample) => sample.result === 'mismatch').length,
     verificationMethods: Object.fromEntries(['flood', 'liquefaction'].map((source) => [
       source,
       [...new Set(riskSamples
+        .filter((sample) => sample.source === source && sample.result === 'matched')
+        .map((sample) => sample.verificationMethod)
+        .filter(Boolean))],
+    ])),
+    facilityVerificationMethods: Object.fromEntries(['parking', 'medical'].map((source) => [
+      source,
+      [...new Set(facilitySamples
         .filter((sample) => sample.source === source && sample.result === 'matched')
         .map((sample) => sample.verificationMethod)
         .filter(Boolean))],

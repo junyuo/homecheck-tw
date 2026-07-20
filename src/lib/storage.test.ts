@@ -31,6 +31,10 @@ const makeResult = (id: string): AnalysisResult => ({
   nearestRail: null,
   busCount: 0,
   facilityCount: 0,
+  lifeFacilities: {
+    medical: { count: 0, nearestDistance: null, nearestName: null },
+    parking: { count: 0, nearestDistance: null, nearestName: null },
+  },
   accidentCount: 0,
   completeness: 0,
   checklist: [],
@@ -98,5 +102,20 @@ describe('比較清單 Local Storage', () => {
     expect(migrated.riskSnapshotLegacy).toBe(true)
     expect(migrated.result.input.floodScenario).toBe('24h-500')
     expect(migrated.result.floodDetail.level).toBe('unknown')
+  })
+
+  it('v3 比較紀錄保留總數並標示生活機能明細需重新查詢', () => {
+    const result = makeResult('v3')
+    const legacyResult = { ...result } as Partial<AnalysisResult>
+    delete legacyResult.lifeFacilities
+    storage.setItem('homecheck-tw:properties', JSON.stringify({
+      schemaVersion: 3,
+      properties: [{ id: 'v3', savedAt: '2026-07-19', label: '舊快照', result: legacyResult }],
+    }))
+    const [migrated] = loadSavedProperties(storage)
+    expect(migrated.lifeSnapshotLegacy).toBe(true)
+    expect(migrated.riskSnapshotLegacy).toBe(false)
+    expect(migrated.result.facilityCount).toBe(0)
+    expect(migrated.result.lifeFacilities.medical.count).toBe(0)
   })
 })

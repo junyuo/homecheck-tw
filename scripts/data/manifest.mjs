@@ -48,6 +48,15 @@ export async function validateData(directory) {
               !properties.officialCategory) {
             throw new Error(`${file} 含無效災害分類`)
           }
+        } else if (file.includes('/facilities/')) {
+          const properties = feature.properties ?? {}
+          if (['address', 'tel', 'phone'].some((key) => key in properties)) {
+            throw new Error(`${file} 不得發布地址或電話`)
+          }
+          if (['parking', 'medical'].includes(properties.category) &&
+              (!properties.id || !properties.name || !properties.facilityType)) {
+            throw new Error(`${file} 含無效生活機能欄位`)
+          }
         }
       }
     }
@@ -79,6 +88,8 @@ export async function validateData(directory) {
     flood: 410,
     liquefaction: 41,
     rail: 41,
+    parking: 41,
+    medical: 41,
   }
   for (const [id, expected] of Object.entries(expectedFiles)) {
     const source = manifest.sources[id]

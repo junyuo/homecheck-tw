@@ -3,7 +3,7 @@ import { DEFAULT_FLOOD_SCENARIO } from '../config/risks'
 
 export const STORAGE_KEY = 'homecheck-tw:properties'
 export const MAX_PROPERTIES = 3
-export const STORAGE_SCHEMA_VERSION = 3
+export const STORAGE_SCHEMA_VERSION = 4
 
 interface StorageEnvelope {
   schemaVersion: typeof STORAGE_SCHEMA_VERSION
@@ -31,6 +31,7 @@ function migrateLegacy(items: SavedProperty[], riskSnapshotLegacy = true): Saved
       ...item,
       historicDemo: legacy.demo === true || legacy.dataQuality === 'historic-demo',
       riskSnapshotLegacy: item.riskSnapshotLegacy ?? riskSnapshotLegacy,
+      lifeSnapshotLegacy: item.lifeSnapshotLegacy ?? true,
       result: {
         ...legacy,
         input: {
@@ -44,6 +45,10 @@ function migrateLegacy(items: SavedProperty[], riskSnapshotLegacy = true): Saved
           rainfallMm: 500,
         },
         liquefactionDetail: legacy.liquefactionDetail ?? emptyRiskFinding,
+        lifeFacilities: legacy.lifeFacilities ?? {
+          medical: { count: 0, nearestDistance: null, nearestName: null },
+          parking: { count: 0, nearestDistance: null, nearestName: null },
+        },
         dataQuality: legacy.demo === true ? 'historic-demo' : (legacy.dataQuality ?? 'unavailable'),
         sources: legacy.sources ?? {},
       },
@@ -63,6 +68,9 @@ export function loadSavedProperties(storage: Pick<Storage, 'getItem'> = localSto
     if (Array.isArray(parsed)) return migrateLegacy(parsed).slice(0, MAX_PROPERTIES)
     if (parsed?.schemaVersion === STORAGE_SCHEMA_VERSION && Array.isArray(parsed.properties)) {
       return parsed.properties.slice(0, MAX_PROPERTIES)
+    }
+    if (parsed?.schemaVersion === 3 && Array.isArray(parsed.properties)) {
+      return migrateLegacy(parsed.properties, false).slice(0, MAX_PROPERTIES)
     }
     if (parsed?.schemaVersion === 2 && Array.isArray(parsed.properties)) {
       return migrateLegacy(parsed.properties).slice(0, MAX_PROPERTIES)

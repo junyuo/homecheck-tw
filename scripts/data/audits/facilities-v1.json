@@ -1,0 +1,612 @@
+{
+  "adapterVersion": "facilities-v1",
+  "status": "passed",
+  "checkedAt": "2026-07-20T06:04:30.875Z",
+  "samples": [
+    {
+      "id": "001e5822a32339cc6388dde5",
+      "source": "parking",
+      "city": "taipei",
+      "district": "datong",
+      "result": "matched",
+      "verificationMethod": "official-raw-offline",
+      "fields": {
+        "id": true,
+        "name": true,
+        "district": true,
+        "coordinate": true,
+        "carCapacity": true
+      },
+      "evidence": {
+        "verificationMethod": "official-raw-offline",
+        "sourceSha256": "db07dc074c7296505a65b778a850147c9b3c0aad453d92057d9974ca2f6c063c",
+        "rawRecordCount": 1,
+        "fields": {
+          "id": true,
+          "name": true,
+          "district": true,
+          "coordinate": true,
+          "carCapacity": true
+        },
+        "checkedAt": "2026-07-20T06:03:20.302Z",
+        "queryOutputSha256": "e4a90f876add950182c509c34697ea2ffba062280169728b29ccae8dd29eea23"
+      },
+      "checkedAt": "2026-07-20T06:03:20.334Z",
+      "attemptCount": 1
+    },
+    {
+      "id": "004439fef19a2395e5b808eb",
+      "source": "parking",
+      "city": "taipei",
+      "district": "zhongzheng",
+      "result": "matched",
+      "verificationMethod": "official-raw-offline",
+      "fields": {
+        "id": true,
+        "name": true,
+        "district": true,
+        "coordinate": true,
+        "carCapacity": true
+      },
+      "evidence": {
+        "verificationMethod": "official-raw-offline",
+        "sourceSha256": "db07dc074c7296505a65b778a850147c9b3c0aad453d92057d9974ca2f6c063c",
+        "rawRecordCount": 1,
+        "fields": {
+          "id": true,
+          "name": true,
+          "district": true,
+          "coordinate": true,
+          "carCapacity": true
+        },
+        "checkedAt": "2026-07-20T06:03:20.398Z",
+        "queryOutputSha256": "ca2f66404091ae70db610fb1334f149c2fdc3905c5850c689d86c6ba382ad85c"
+      },
+      "checkedAt": "2026-07-20T06:03:20.429Z",
+      "attemptCount": 1
+    },
+    {
+      "id": "008360f0bece18e11ae1924c",
+      "source": "parking",
+      "city": "taipei",
+      "district": "songshan",
+      "result": "matched",
+      "verificationMethod": "official-raw-offline",
+      "fields": {
+        "id": true,
+        "name": true,
+        "district": true,
+        "coordinate": true,
+        "carCapacity": true
+      },
+      "evidence": {
+        "verificationMethod": "official-raw-offline",
+        "sourceSha256": "db07dc074c7296505a65b778a850147c9b3c0aad453d92057d9974ca2f6c063c",
+        "rawRecordCount": 1,
+        "fields": {
+          "id": true,
+          "name": true,
+          "district": true,
+          "coordinate": true,
+          "carCapacity": true
+        },
+        "checkedAt": "2026-07-20T06:03:20.493Z",
+        "queryOutputSha256": "2f989229f21ee4a1b81ecc4f7a402df8218a61246b59338e9e9104104a8415a9"
+      },
+      "checkedAt": "2026-07-20T06:03:20.524Z",
+      "attemptCount": 1
+    },
+    {
+      "id": "00a6b8accdb3dd921642f299",
+      "source": "parking",
+      "city": "taipei",
+      "district": "zhongzheng",
+      "result": "matched",
+      "verificationMethod": "official-raw-offline",
+      "fields": {
+        "id": true,
+        "name": true,
+        "district": true,
+        "coordinate": true,
+        "carCapacity": true
+      },
+      "evidence": {
+        "verificationMethod": "official-raw-offline",
+        "sourceSha256": "db07dc074c7296505a65b778a850147c9b3c0aad453d92057d9974ca2f6c063c",
+        "rawRecordCount": 1,
+        "fields": {
+          "id": true,
+          "name": true,
+          "district": true,
+          "coordinate": true,
+          "carCapacity": true
+        },
+        "checkedAt": "2026-07-20T06:03:20.586Z",
+        "queryOutputSha256": "e5c8387d5fee73388d6c175f650efaddc1854ffb59b090bd281b28fa50d0522b"
+      },
+      "checkedAt": "2026-07-20T06:03:20.615Z",
+      "attemptCount": 1
+    },
+    {
+      "id": "00b97536a4600bd19aabb068",
+      "source": "parking",
+      "city": "taipei",
+      "district": "zhongshan",
+      "result": "matched",
+      "verificationMethod": "official-raw-offline",
+      "fields": {
+        "id": true,
+        "name": true,
+        "district": true,
+        "coordinate": true,
+        "carCapacity": true
+      },
+      "evidence": {
+        "verificationMethod": "official-raw-offline",
+        "sourceSha256": "db07dc074c7296505a65b778a850147c9b3c0aad453d92057d9974ca2f6c063c",
+        "rawRecordCount": 1,
+        "fields": {
+          "id": true,
+          "name": true,
+          "district": true,
+          "coordinate": true,
+          "carCapacity": true
+        },
+        "checkedAt": "2026-07-20T06:03:20.676Z",
+        "queryOutputSha256": "46416b5c87c9852bfb38c112ffe8cb8de00849b43a21c8bc2d8c6d348e156bed"
+      },
+      "checkedAt": "2026-07-20T06:03:20.707Z",
+      "attemptCount": 1
+    },
+    {
+      "id": "0032b49d9ceed0e40eb26672",
+      "source": "parking",
+      "city": "new-taipei",
+      "district": "xizhi",
+      "result": "matched",
+      "verificationMethod": "official-raw-offline",
+      "fields": {
+        "id": true,
+        "name": true,
+        "district": true,
+        "coordinate": true,
+        "carCapacity": true
+      },
+      "evidence": {
+        "verificationMethod": "official-raw-offline",
+        "sourceSha256": "db07dc074c7296505a65b778a850147c9b3c0aad453d92057d9974ca2f6c063c",
+        "rawRecordCount": 1,
+        "fields": {
+          "id": true,
+          "name": true,
+          "district": true,
+          "coordinate": true,
+          "carCapacity": true
+        },
+        "checkedAt": "2026-07-20T06:03:20.769Z",
+        "queryOutputSha256": "24be76399e8c14e5f5406a8d9af5021e26b1b15b767e5a9e4dbf842d5f002164"
+      },
+      "checkedAt": "2026-07-20T06:03:20.789Z",
+      "attemptCount": 1
+    },
+    {
+      "id": "004ad407613290bdb5effd9f",
+      "source": "parking",
+      "city": "new-taipei",
+      "district": "xinzhuang",
+      "result": "matched",
+      "verificationMethod": "official-raw-offline",
+      "fields": {
+        "id": true,
+        "name": true,
+        "district": true,
+        "coordinate": true,
+        "carCapacity": true
+      },
+      "evidence": {
+        "verificationMethod": "official-raw-offline",
+        "sourceSha256": "db07dc074c7296505a65b778a850147c9b3c0aad453d92057d9974ca2f6c063c",
+        "rawRecordCount": 1,
+        "fields": {
+          "id": true,
+          "name": true,
+          "district": true,
+          "coordinate": true,
+          "carCapacity": true
+        },
+        "checkedAt": "2026-07-20T06:03:20.852Z",
+        "queryOutputSha256": "c001927675e5430364c73c89ebb915b6f261e2948b3ee431d4e07e26e4b8ea94"
+      },
+      "checkedAt": "2026-07-20T06:03:20.873Z",
+      "attemptCount": 1
+    },
+    {
+      "id": "007a4a2e1923424b24574c42",
+      "source": "parking",
+      "city": "new-taipei",
+      "district": "sanchong",
+      "result": "matched",
+      "verificationMethod": "official-raw-offline",
+      "fields": {
+        "id": true,
+        "name": true,
+        "district": true,
+        "coordinate": true,
+        "carCapacity": true
+      },
+      "evidence": {
+        "verificationMethod": "official-raw-offline",
+        "sourceSha256": "db07dc074c7296505a65b778a850147c9b3c0aad453d92057d9974ca2f6c063c",
+        "rawRecordCount": 1,
+        "fields": {
+          "id": true,
+          "name": true,
+          "district": true,
+          "coordinate": true,
+          "carCapacity": true
+        },
+        "checkedAt": "2026-07-20T06:03:20.933Z",
+        "queryOutputSha256": "680369cf42eee32a9275a8b39b8cf74275fd712161d0db437efa749e05e584a0"
+      },
+      "checkedAt": "2026-07-20T06:03:20.955Z",
+      "attemptCount": 1
+    },
+    {
+      "id": "007af05609838b7c2d582d60",
+      "source": "parking",
+      "city": "new-taipei",
+      "district": "sanchong",
+      "result": "matched",
+      "verificationMethod": "official-raw-offline",
+      "fields": {
+        "id": true,
+        "name": true,
+        "district": true,
+        "coordinate": true,
+        "carCapacity": true
+      },
+      "evidence": {
+        "verificationMethod": "official-raw-offline",
+        "sourceSha256": "db07dc074c7296505a65b778a850147c9b3c0aad453d92057d9974ca2f6c063c",
+        "rawRecordCount": 1,
+        "fields": {
+          "id": true,
+          "name": true,
+          "district": true,
+          "coordinate": true,
+          "carCapacity": true
+        },
+        "checkedAt": "2026-07-20T06:03:21.019Z",
+        "queryOutputSha256": "7c8a0b693cb222a9cd1e8b08767ad4b896eabf16c5f058c11cd3b154ba464987"
+      },
+      "checkedAt": "2026-07-20T06:03:21.041Z",
+      "attemptCount": 1
+    },
+    {
+      "id": "008fce6c8e4ac9e72c35ce9f",
+      "source": "parking",
+      "city": "new-taipei",
+      "district": "xinzhuang",
+      "result": "matched",
+      "verificationMethod": "official-raw-offline",
+      "fields": {
+        "id": true,
+        "name": true,
+        "district": true,
+        "coordinate": true,
+        "carCapacity": true
+      },
+      "evidence": {
+        "verificationMethod": "official-raw-offline",
+        "sourceSha256": "db07dc074c7296505a65b778a850147c9b3c0aad453d92057d9974ca2f6c063c",
+        "rawRecordCount": 1,
+        "fields": {
+          "id": true,
+          "name": true,
+          "district": true,
+          "coordinate": true,
+          "carCapacity": true
+        },
+        "checkedAt": "2026-07-20T06:03:21.102Z",
+        "queryOutputSha256": "4293545cfb8a4338e14aa9e9313fc0894bb0f203bd76908596718dd8faedc551"
+      },
+      "checkedAt": "2026-07-20T06:03:21.124Z",
+      "attemptCount": 1
+    },
+    {
+      "id": "201c4c2c8184e8b7185cad4c",
+      "source": "medical",
+      "city": "taipei",
+      "district": "zhongzheng",
+      "result": "matched",
+      "verificationMethod": "official-raw-offline",
+      "fields": {
+        "id": true,
+        "name": true,
+        "district": true,
+        "coordinate": true
+      },
+      "evidence": {
+        "verificationMethod": "official-raw-offline",
+        "sourceSha256": "d4a26a70de0c3753f00756e40ad636ee0626c6593c4fca0c2ec41b74f9d0aae7",
+        "rawRecordCount": 1,
+        "fields": {
+          "id": true,
+          "name": true,
+          "district": true,
+          "coordinate": true
+        },
+        "checkedAt": "2026-07-20T06:03:27.710Z",
+        "queryOutputSha256": "fe07b366a3a7b34e36e634e0d25d1d4f9d620cd4dd29632985875b63b761e11a"
+      },
+      "checkedAt": "2026-07-20T06:03:27.715Z",
+      "attemptCount": 1
+    },
+    {
+      "id": "20906504f2ec7c0ace473afd",
+      "source": "medical",
+      "city": "taipei",
+      "district": "wenshan",
+      "result": "matched",
+      "verificationMethod": "official-raw-offline",
+      "fields": {
+        "id": true,
+        "name": true,
+        "district": true,
+        "coordinate": true
+      },
+      "evidence": {
+        "verificationMethod": "official-raw-offline",
+        "sourceSha256": "d4a26a70de0c3753f00756e40ad636ee0626c6593c4fca0c2ec41b74f9d0aae7",
+        "rawRecordCount": 1,
+        "fields": {
+          "id": true,
+          "name": true,
+          "district": true,
+          "coordinate": true
+        },
+        "checkedAt": "2026-07-20T06:03:27.780Z",
+        "queryOutputSha256": "262e3e64488f5bf3ca03ee827ed76a05c71227613468d681474e215ae47580db"
+      },
+      "checkedAt": "2026-07-20T06:03:27.784Z",
+      "attemptCount": 1
+    },
+    {
+      "id": "27eef5d22bd117f3cfcca9a9",
+      "source": "medical",
+      "city": "taipei",
+      "district": "beitou",
+      "result": "matched",
+      "verificationMethod": "official-raw-offline",
+      "fields": {
+        "id": true,
+        "name": true,
+        "district": true,
+        "coordinate": true
+      },
+      "evidence": {
+        "verificationMethod": "official-raw-offline",
+        "sourceSha256": "d4a26a70de0c3753f00756e40ad636ee0626c6593c4fca0c2ec41b74f9d0aae7",
+        "rawRecordCount": 1,
+        "fields": {
+          "id": true,
+          "name": true,
+          "district": true,
+          "coordinate": true
+        },
+        "checkedAt": "2026-07-20T06:03:27.849Z",
+        "queryOutputSha256": "e01e81c8069a7c415065f5ed0a99de0034c635f08998c1ca36a3eb12e5040613"
+      },
+      "checkedAt": "2026-07-20T06:03:27.853Z",
+      "attemptCount": 1
+    },
+    {
+      "id": "2d9be6ba82b7e0a02180af8c",
+      "source": "medical",
+      "city": "taipei",
+      "district": "songshan",
+      "result": "matched",
+      "verificationMethod": "official-raw-offline",
+      "fields": {
+        "id": true,
+        "name": true,
+        "district": true,
+        "coordinate": true
+      },
+      "evidence": {
+        "verificationMethod": "official-raw-offline",
+        "sourceSha256": "d4a26a70de0c3753f00756e40ad636ee0626c6593c4fca0c2ec41b74f9d0aae7",
+        "rawRecordCount": 1,
+        "fields": {
+          "id": true,
+          "name": true,
+          "district": true,
+          "coordinate": true
+        },
+        "checkedAt": "2026-07-20T06:03:27.913Z",
+        "queryOutputSha256": "1ed1700db37706503f12fb235bf3cf8593ad28831dcec051d46f488cdf2b8fee"
+      },
+      "checkedAt": "2026-07-20T06:03:27.918Z",
+      "attemptCount": 1
+    },
+    {
+      "id": "420d4c3841c4f9ba5e8365ca",
+      "source": "medical",
+      "city": "taipei",
+      "district": "wanhua",
+      "result": "matched",
+      "verificationMethod": "official-raw-offline",
+      "fields": {
+        "id": true,
+        "name": true,
+        "district": true,
+        "coordinate": true
+      },
+      "evidence": {
+        "verificationMethod": "official-raw-offline",
+        "sourceSha256": "d4a26a70de0c3753f00756e40ad636ee0626c6593c4fca0c2ec41b74f9d0aae7",
+        "rawRecordCount": 1,
+        "fields": {
+          "id": true,
+          "name": true,
+          "district": true,
+          "coordinate": true
+        },
+        "checkedAt": "2026-07-20T06:03:27.979Z",
+        "queryOutputSha256": "58792115c0c0bd5c400e6e12c95452e8a3022e6cc2fed9582db0d914b8b031ca"
+      },
+      "checkedAt": "2026-07-20T06:03:27.984Z",
+      "attemptCount": 1
+    },
+    {
+      "id": "0e34ba77c4b2eb65a204bd2e",
+      "source": "medical",
+      "city": "new-taipei",
+      "district": "sanxia",
+      "result": "matched",
+      "verificationMethod": "official-raw-offline",
+      "fields": {
+        "id": true,
+        "name": true,
+        "district": true,
+        "coordinate": true
+      },
+      "evidence": {
+        "verificationMethod": "official-raw-offline",
+        "sourceSha256": "d4a26a70de0c3753f00756e40ad636ee0626c6593c4fca0c2ec41b74f9d0aae7",
+        "addressIndexSha256": "779e771bbde2f11130d00912281b74541a87c402dff9e9c4c9fa58a5d7f26302",
+        "rawRecordCount": 1,
+        "fields": {
+          "id": true,
+          "name": true,
+          "district": true,
+          "coordinate": true
+        },
+        "checkedAt": "2026-07-20T06:03:34.016Z",
+        "queryOutputSha256": "cab52a889fdf83c4f24bb697774cbfc400cc13bf5ef6a14555f1161a2f342209"
+      },
+      "checkedAt": "2026-07-20T06:03:45.001Z",
+      "attemptCount": 1
+    },
+    {
+      "id": "140555f70b3bfadbec5d508e",
+      "source": "medical",
+      "city": "new-taipei",
+      "district": "xindian",
+      "result": "matched",
+      "verificationMethod": "official-raw-offline",
+      "fields": {
+        "id": true,
+        "name": true,
+        "district": true,
+        "coordinate": true
+      },
+      "evidence": {
+        "verificationMethod": "official-raw-offline",
+        "sourceSha256": "d4a26a70de0c3753f00756e40ad636ee0626c6593c4fca0c2ec41b74f9d0aae7",
+        "addressIndexSha256": "779e771bbde2f11130d00912281b74541a87c402dff9e9c4c9fa58a5d7f26302",
+        "rawRecordCount": 1,
+        "fields": {
+          "id": true,
+          "name": true,
+          "district": true,
+          "coordinate": true
+        },
+        "checkedAt": "2026-07-20T06:03:45.099Z",
+        "queryOutputSha256": "59ae117843d697524582b837b77b8dc94c2fe97265d962f67a98595ea210e202"
+      },
+      "checkedAt": "2026-07-20T06:03:56.065Z",
+      "attemptCount": 1
+    },
+    {
+      "id": "1bd19cd6dae595f9e47fd303",
+      "source": "medical",
+      "city": "new-taipei",
+      "district": "xinzhuang",
+      "result": "matched",
+      "verificationMethod": "official-raw-offline",
+      "fields": {
+        "id": true,
+        "name": true,
+        "district": true,
+        "coordinate": true
+      },
+      "evidence": {
+        "verificationMethod": "official-raw-offline",
+        "sourceSha256": "d4a26a70de0c3753f00756e40ad636ee0626c6593c4fca0c2ec41b74f9d0aae7",
+        "addressIndexSha256": "779e771bbde2f11130d00912281b74541a87c402dff9e9c4c9fa58a5d7f26302",
+        "rawRecordCount": 1,
+        "fields": {
+          "id": true,
+          "name": true,
+          "district": true,
+          "coordinate": true
+        },
+        "checkedAt": "2026-07-20T06:03:56.171Z",
+        "queryOutputSha256": "6e2168681e5da767f649a22aeb675d301bdf80003f89add4774c01963c7cc455"
+      },
+      "checkedAt": "2026-07-20T06:04:07.303Z",
+      "attemptCount": 1
+    },
+    {
+      "id": "254f2f8aa72b0176f59be5df",
+      "source": "medical",
+      "city": "new-taipei",
+      "district": "xizhi",
+      "result": "matched",
+      "verificationMethod": "official-raw-offline",
+      "fields": {
+        "id": true,
+        "name": true,
+        "district": true,
+        "coordinate": true
+      },
+      "evidence": {
+        "verificationMethod": "official-raw-offline",
+        "sourceSha256": "d4a26a70de0c3753f00756e40ad636ee0626c6593c4fca0c2ec41b74f9d0aae7",
+        "addressIndexSha256": "779e771bbde2f11130d00912281b74541a87c402dff9e9c4c9fa58a5d7f26302",
+        "rawRecordCount": 1,
+        "fields": {
+          "id": true,
+          "name": true,
+          "district": true,
+          "coordinate": true
+        },
+        "checkedAt": "2026-07-20T06:04:07.456Z",
+        "queryOutputSha256": "9cb317263dc00598fc8d20bd4f564d73a586b2868a8cdfcc10ccc0cc29967655"
+      },
+      "checkedAt": "2026-07-20T06:04:18.712Z",
+      "attemptCount": 1
+    },
+    {
+      "id": "31daf77cd4f7cb0033be18c4",
+      "source": "medical",
+      "city": "new-taipei",
+      "district": "ruifang",
+      "result": "matched",
+      "verificationMethod": "official-raw-offline",
+      "fields": {
+        "id": true,
+        "name": true,
+        "district": true,
+        "coordinate": true
+      },
+      "evidence": {
+        "verificationMethod": "official-raw-offline",
+        "sourceSha256": "d4a26a70de0c3753f00756e40ad636ee0626c6593c4fca0c2ec41b74f9d0aae7",
+        "addressIndexSha256": "779e771bbde2f11130d00912281b74541a87c402dff9e9c4c9fa58a5d7f26302",
+        "rawRecordCount": 1,
+        "fields": {
+          "id": true,
+          "name": true,
+          "district": true,
+          "coordinate": true
+        },
+        "checkedAt": "2026-07-20T06:04:18.808Z",
+        "queryOutputSha256": "3b3896eee1354e08f01d74de8a1534d60d0c1e2762b3cd9489af555b4bc09b10"
+      },
+      "checkedAt": "2026-07-20T06:04:30.875Z",
+      "attemptCount": 1
+    }
+  ]
+}

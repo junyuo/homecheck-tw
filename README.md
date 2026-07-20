@@ -17,7 +17,9 @@
 | 臺鐵車站 | official | 官方免金鑰 JSON 產生 29 個實體站、41 區檔案；9／9 人工抽查通過 |
 | 臺北公車 | unavailable | 官方現有站位檔停留在 2021 年，不拿舊資料冒充現況 |
 | 淹水、土壤液化 | official | 自動 QA 已通過；410 個淹水情境檔與 41 個液化檔，各完成臺北／新北 5 點官方 raw 原始分類複核 |
-| 學校、醫療、公園、市場、停車場、圖書館 | unavailable | 每類來源獨立接入，不以單一成功類別代表全部 |
+| 雙北路外公共停車場 | official | 2,607 個有汽車格位的靜態官方點位；20 筆設施稽核中的停車場 10／10 通過，不提供即時剩餘車位 |
+| 雙北公私立醫院 | official | 64 個醫院點位；新北門牌精確匹配率 96.77%，設施稽核中的醫院 10／10 通過，不混入診所 |
+| 學校、公園、市場、圖書館 | unavailable | 每類來源獨立接入，不以單一成功類別代表全部 |
 | A1／A2 事故 | unavailable | 尚未完成最近三個完整年度的去識別快照 |
 
 最新機器可讀狀態以 [`public/data/manifest.json`](public/data/manifest.json) 和 [`public/data/health.json`](public/data/health.json) 為準。實價筆數與匹配率會隨官方更新而變動；上表是 2026-07-20 本機正式發布的快照。
@@ -32,8 +34,9 @@
 - 淹水：預設為 24 小時 500 mm，可切換官方 10 種情境；0.3–0.5 m 為黃色、0.5 m 以上為紅色。
 - 液化：官方低／中／高潛勢分別為綠／黃／紅；未確認模式或調查覆蓋的位置維持灰色。
 - 災害圖資：只供區域性判讀，不代表個別建物安全。
+- 生活機能：分別顯示生活圈內醫院、路外停車場數量與最近點位直線距離；數量多寡不轉換為安全或品質分數。
 - 來源：每個來源獨立為 `official`、`stale`、`failed` 或 `unavailable`；一個來源載入失敗不會拖垮其他結果。
-- Local Storage：schema v3；既有 v2 紀錄會保留，但災害欄標示為舊快照並要求重新查詢；舊 Demo 不與正式品質混用。
+- Local Storage：schema v4；既有 v3 紀錄保留生活設施總數，但分類明細標示為舊快照並要求重新查詢；既有 v2 災害快照與舊 Demo 仍依原規則遷移。
 
 ## 技術架構
 
@@ -101,9 +104,11 @@ npm run audit:record -- --source=flood --id=<id> --result=matched --observed=0.5
 npm run audit:record -- --source=liquefaction --id=<id> --result=matched --observed=高潛勢
 npm run audit:evidence -- --source=flood --id=<id>
 npm run audit:evidence -- --source=flood --id=<id> --confirm
+npm run audit:evidence -- --source=parking --id=<id>
+npm run audit:evidence -- --source=medical --id=<id> --confirm
 ```
 
-價格 `matched` 表示七個必要欄位已逐一一致；重做既有 ID 必須明確加上 `--replace`。`inconclusive` 至少需兩次查詢，CLI 會提示同城市、同建物型態的備援樣本。災害可人工填入官方圖台分類，或以 `audit:evidence` 直接查詢官方 raw SHP／GeoJSON；未加 `--confirm` 只預覽且不寫檔，多重匹配、分類衝突、未知 CRS 或來源雜湊不符均會阻擋。
+價格 `matched` 表示七個必要欄位已逐一一致；重做既有 ID 必須明確加上 `--replace`。`inconclusive` 至少需兩次查詢，CLI 會提示同城市、同建物型態的備援樣本。災害可人工填入官方圖台分類，或以 `audit:evidence` 直接查詢官方 raw SHP／GeoJSON；設施證據則比對名稱、ID、行政區、原始座標或門牌匹配結果，停車場另比對汽車格位。未加 `--confirm` 只預覽且不寫檔，來源雜湊或欄位不符均會阻擋。
 
 ## 更新資料
 
@@ -113,6 +118,7 @@ npm run audit:evidence -- --source=flood --id=<id> --confirm
 npm run update-data -- --source=price --dry-run
 npm run update-data -- --source=risks --dry-run
 npm run update-data -- --source=transport --dry-run
+npm run update-data -- --source=facilities --dry-run
 ```
 
 正式更新：
@@ -121,6 +127,7 @@ npm run update-data -- --source=transport --dry-run
 npm run update-data -- --source=price
 npm run update-data -- --source=risks
 npm run update-data -- --source=transport
+npm run update-data -- --source=facilities
 ```
 
 支援的 scope 為 `all|price|risks|transport|facilities|accidents`。未完成的 adapter 只會保留 `unavailable`，不會產生替代資料。
@@ -140,6 +147,8 @@ npm run update-data -- --source=transport
 
 災害 adapter 會驗證 10 種情境、CRS、雙北座標、面 geometry、未知深度比率、41 區檔案數及 5 MB 上限；淹水與液化各完成臺北／新北至少 5 個位置的官方 raw 原始分類複核後才切換為 `official`。證據保存 CRS、原始欄位、匹配數、來源與查詢摘要雜湊，不保存地址或完整 geometry；官方圖台恢復後再依來源、城市各抽一點交叉核對。
 
+設施 adapter 會分別產生停車場與醫院各 41 個行政區 GeoJSON，驗證名稱、官方 ID、座標、行政區、重複點、來源筆數對帳與公開檔隱私欄位。新北醫院只接受官方門牌索引的單一精確匹配；每類完成臺北／新北各 5 筆官方原始檔離線證據且零 mismatch 後獨立提升為 `official`。
+
 完成稽核後，以發布工具只檢查並提升既有候選；它不下載或重建大型圖資，失敗不修改 last-good：
 
 ```bash
@@ -147,12 +156,13 @@ npm run audit:candidates
 npm run audit:status
 npm run release-data -- --source=price --dry-run
 npm run release-data -- --source=risks --dry-run
+npm run release-data -- --source=facilities --dry-run
 npm run release-data -- --source=all
 ```
 
 發布前會重新確認 adapter 版本、來源雜湊格式、manifest 內的當前候選檔雜湊、人工樣本數、零 mismatch、檔案清單及完整資料 QA。人工驗收只綁定 adapter 版本；只有解析、映射或座標邏輯變更才需要升版並重設稽核，日常來源更新仍由自動 QA 驗證，不要求重做全部人工抽查。
 
-`.github/workflows/update-data.yml` 可選 source 及 `dryRun`。價格於每月 2、12、22 日 08:17、災害 metadata／雜湊於每月 3 日 09:17、交通於每月 4 日 09:17（臺灣時間）執行；雜湊未變時不重建圖層。Workflow 只提交 `public/data`。
+`.github/workflows/update-data.yml` 可選 source 及 `dryRun`。價格於每月 2、12、22 日 08:17、災害 metadata／雜湊於每月 3 日 09:17、交通於每月 4 日 09:17、設施於每月 5 日 09:17（臺灣時間）執行；雜湊未變時不重建圖層。Workflow 只提交 `public/data`。
 
 ## GitHub Pages
 
@@ -170,6 +180,10 @@ Repository 若不叫 `homecheck-tw`，需同步修改 `vite.config.ts` 的 Pages
 - [臺北捷運車站資料](https://data.taipei/dataset/detail?id=1eefa68d-7c8d-491b-8e75-66a161947426)
 - [新北市公車站位](https://data.ntpc.gov.tw/datasets/34b402a8-53d9-483d-9406-24a682c2d6dc)
 - [國營臺鐵車站基本資料](https://data.gov.tw/dataset/33425)
+- [臺北市停車場資訊](https://data.taipei/dataset/detail?id=d5c0656b-5250-4179-a491-c94daa56ef2c)
+- [新北市路外公共停車場資訊](https://data.ntpc.gov.tw/datasets/b1464ef0-9c7c-4a6f-abf7-6bdf32847e68)
+- [臺北市公私立醫院](https://data.taipei/dataset/detail?id=b02cd6b2-79be-4d7f-ae78-305b2af668f5)
+- [新北市醫院地址清單](https://data.gov.tw/dataset/125639)
 - [臺北市公車站位舊資料](https://data.taipei/dataset/detail?id=48aa5bca-2a4f-4fb7-a658-43cba51d5d56)
 - [水利署淹水潛勢圖](https://data.gov.tw/dataset/25766)
 - [臺北市土壤液化潛勢圖](https://data.taipei/dataset/detail?id=ec40e067-930f-4058-b7dc-71399d5f3147)

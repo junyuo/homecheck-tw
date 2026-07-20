@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { evaluatePriceAudit, evaluateRailAudit, evaluateRiskAudit } from './audit.mjs'
+import { evaluateFacilityAudit, evaluatePriceAudit, evaluateRailAudit, evaluateRiskAudit } from './audit.mjs'
 import { selectAuditCandidates } from './price.mjs'
 
 const matchedFields = {
@@ -143,4 +143,38 @@ test('臺鐵驗收要求臺北四站、新北五站與四個欄位一致', () =>
     sourceSha256: 'source',
     datasetSha256: 'dataset',
   }).passed, true)
+})
+
+test('設施驗收要求每市五筆、官方原始檔證據與停車格位一致', () => {
+  const samples = ['taipei', 'new-taipei'].flatMap((city) =>
+    Array.from({ length: 5 }, (_, index) => ({
+      id: `${city}-${index}`,
+      source: 'parking',
+      city,
+      result: 'matched',
+      verificationMethod: 'official-raw-offline',
+      fields: {
+        name: true,
+        id: true,
+        district: true,
+        coordinate: true,
+        carCapacity: true,
+      },
+    })))
+  const result = evaluateFacilityAudit({
+    status: 'passed',
+    adapterVersion: 'facilities-v1',
+    samples,
+  }, 'parking', {
+    adapterVersion: 'facilities-v1',
+  })
+  assert.equal(result.passed, true)
+  samples[0].fields.carCapacity = false
+  assert.equal(evaluateFacilityAudit({
+    status: 'passed',
+    adapterVersion: 'facilities-v1',
+    samples,
+  }, 'parking', {
+    adapterVersion: 'facilities-v1',
+  }).passed, false)
 })

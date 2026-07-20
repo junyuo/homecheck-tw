@@ -63,6 +63,14 @@ export const SOURCE_URLS = {
     'https://data.ntpc.gov.tw/api/datasets/34b402a8-53d9-483d-9406-24a682c2d6dc/csv',
   rail:
     'https://ods.railway.gov.tw/tra-ods-web/ods/download/dataResource/0518b833e8964d53bfea3f7691aea0ee',
+  taipeiParking:
+    'https://tcgbusfs.blob.core.windows.net/blobtcmsv/TCMSV_alldesc.json',
+  newTaipeiParking:
+    'https://data.ntpc.gov.tw/api/datasets/b1464ef0-9c7c-4a6f-abf7-6bdf32847e68/csv',
+  taipeiHospital:
+    'https://data.taipei/api/frontstage/tpeod/dataset/resource.download?rid=eab7fdff-574d-427b-9324-c00833d695c8',
+  newTaipeiHospital:
+    'https://data.ntpc.gov.tw/api/datasets/85bfcaa8-9932-4d06-a2ec-731171191883/csv/file',
   districtBoundary:
     'https://www.tgos.tw/tgos/VirtualDir/Product/3fe61d4a-ca23-4f45-8aca-4a536f40f290/%E9%84%89%28%E9%8E%AE%E3%80%81%E5%B8%82%E3%80%81%E5%8D%80%29%E7%95%8C%E7%B7%9A1140318.zip',
   taipeiLiquefaction:

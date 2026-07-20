@@ -147,4 +147,47 @@ export function evaluateRailAudit(audit, {
   }
 }
 
+export function evaluateFacilityAudit(audit, source, {
+  adapterVersion,
+  sourceSha256,
+  addressIndexSha256,
+  requireEvidenceSourceSha = false,
+} = {}) {
+  const samples = Array.isArray(audit?.samples) ? audit.samples : []
+  const sourceSamples = samples.filter((sample) => sample.source === source)
+  const mismatches = sourceSamples.filter((sample) => sample.result === 'mismatch').length
+  const counts = Object.fromEntries(['taipei', 'new-taipei'].map((city) => [
+    city,
+    [...uniqueMatchedSamples(sourceSamples, (sample) =>
+      sample.city === city &&
+      sample.verificationMethod === 'official-raw-offline' &&
+      ['name', 'id', 'district', 'coordinate',
+        ...(source === 'parking' ? ['carCapacity'] : [])]
+        .every((field) => sample.fields?.[field] === true))].length,
+  ]))
+  const evidenceValid = !requireEvidenceSourceSha || sourceSamples.every((sample) =>
+    sample.evidence?.sourceSha256 === sourceSha256 &&
+    /^[a-f0-9]{64}$/.test(sample.evidence?.queryOutputSha256 ?? '') &&
+    (source !== 'medical' ||
+      sample.city !== 'new-taipei' ||
+      sample.evidence?.addressIndexSha256 === addressIndexSha256))
+  const passed = audit?.status === 'passed' &&
+    audit?.adapterVersion === adapterVersion &&
+    counts.taipei >= 5 &&
+    counts['new-taipei'] >= 5 &&
+    mismatches === 0 &&
+    evidenceValid
+  return {
+    passed,
+    sampleCount: counts.taipei + counts['new-taipei'],
+    requiredSampleCount: 10,
+    counts,
+    mismatches,
+    verificationMethods: [...new Set(sourceSamples
+      .filter((sample) => sample.result === 'matched')
+      .map((sample) => sample.verificationMethod)
+      .filter(Boolean))],
+  }
+}
+
 export const PRICE_AUDIT_FIELDS = PRICE_FIELDS

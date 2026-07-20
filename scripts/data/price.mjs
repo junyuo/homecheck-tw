@@ -5,22 +5,23 @@ import { join } from 'node:path'
 import { Readable } from 'node:stream'
 import {
   calculateNormalizedUnitPrice,
-  csvFileRows,
   csvRows,
   downloadFile,
   inTaipeiMetroArea,
   isSpecialTransaction,
   normalizeAddress,
   normalizeBuildingType,
-  parseCsvLine,
   parseFloor,
   parseRocDate,
   sha256,
   sqmToPing,
   stableId,
-  twd97ToWgs84,
-  withRetry,
 } from './core.mjs'
+import {
+  addressKey,
+  buildNewTaipeiAddressIndex,
+  buildTaipeiAddressIndex,
+} from './address-index.mjs'
 import { ALL_DISTRICTS, DISTRICTS, SOURCE_URLS } from './constants.mjs'
 
 const FIVE_YEARS_MS = 5 * 365.25 * 24 * 60 * 60 * 1000
@@ -75,108 +76,6 @@ async function downloadArchives(cache, now, reuseCache) {
   }
   archives.push({ name: 'current', file: current })
   return { archives, cutoff }
-}
-
-function addressKey(district, address) {
-  return `${district}|${address}`
-}
-
-function addAddressCoordinate(index, key, coordinate) {
-  if (!index.has(key)) {
-    index.set(key, coordinate)
-    return
-  }
-  const existing = index.get(key)
-  if (existing === null) return
-  const distanceMeters = Math.hypot(
-    (existing.latitude - coordinate.latitude) * 111000,
-    (existing.longitude - coordinate.longitude) * 101000,
-  )
-  // The official address files may give different entrances/floors of the same
-  // house number slightly different points. Keep them only when the entire
-  // difference is within one building-sized 100 m cluster.
-  const sameLocation = distanceMeters <= 100
-  if (!sameLocation) index.set(key, null)
-}
-
-async function buildTaipeiAddressIndex(cache, reuseCache) {
-  const file = join(cache, 'taipei-address.csv')
-  if (reuseCache) {
-    await access(file).catch(() => downloadFile(SOURCE_URLS.taipeiAddress, file))
-  } else {
-    await downloadFile(SOURCE_URLS.taipeiAddress, file)
-  }
-  const index = new Map()
-  let total = 0
-  for await (const row of csvFileRows(file)) {
-    const districtCode = String(row['鄉鎮市區代碼'] ?? '')
-    const district = Object.keys(DISTRICTS.taipei).find((name) => districtCode.endsWith({
-      中正區: '050', 大同區: '060', 中山區: '040', 松山區: '010', 大安區: '030', 萬華區: '070',
-      信義區: '020', 士林區: '110', 北投區: '120', 內湖區: '100', 南港區: '090', 文山區: '080',
-    }[name]))
-    if (!district) continue
-    const rawAddress = [
-      row['街路段'], row['地區'], row['巷'], row['弄'], row['號'],
-    ].filter(Boolean).join('')
-    const normalized = normalizeAddress(rawAddress, '臺北市', district)
-    const coordinate = twd97ToWgs84(row['橫座標'], row['縱座標'])
-    if (!normalized || !coordinate || !inTaipeiMetroArea(coordinate)) continue
-    const key = addressKey(district, normalized)
-    addAddressCoordinate(index, key, coordinate)
-    total += 1
-  }
-  return { index, total, sha256: sha256(await readFile(file)) }
-}
-
-async function buildNewTaipeiAddressIndex(cache, reuseCache) {
-  const index = new Map()
-  const pageSize = 100000
-  let page = 0
-  let total = 0
-  const hashes = []
-  while (true) {
-    const url = `${SOURCE_URLS.newTaipeiAddress}?page=${page}&size=${pageSize}`
-    const pageFile = join(cache, `new-taipei-address-${page}.csv`)
-    const text = (reuseCache ? await readFile(pageFile, 'utf8').catch(() => null) : null)
-      ?? await withRetry('new-taipei-address', async () => {
-      const response = await fetch(url, { headers: { 'user-agent': 'homecheck-tw-data-pipeline/1.0' } })
-      if (!response.ok) throw new Error(`HTTP ${response.status}`)
-      const value = await response.text()
-      if (/^\s*</.test(value)) throw new Error('HTML response')
-      await writeFile(pageFile, value)
-      return value
-    })
-    hashes.push(text)
-    const lines = text.split(/\r?\n/).filter(Boolean)
-    const headers = parseCsvLine(lines.shift() ?? '').map((value) => value.replace(/^\uFEFF/, ''))
-    for (const line of lines) {
-      const values = parseCsvLine(line)
-      const row = Object.fromEntries(headers.map((header, column) => [header, values[column] ?? '']))
-      const areaCode = String(row.areacode ?? '')
-      const district = Object.keys(DISTRICTS['new-taipei']).find((name) =>
-        areaCode.endsWith({
-          板橋區: '010', 三重區: '020', 中和區: '030', 永和區: '040', 新莊區: '050', 新店區: '060',
-          樹林區: '070', 鶯歌區: '080', 三峽區: '090', 淡水區: '100', 汐止區: '110', 瑞芳區: '120',
-          土城區: '130', 蘆洲區: '140', 五股區: '150', 泰山區: '160', 林口區: '170', 深坑區: '180',
-          石碇區: '190', 坪林區: '200', 三芝區: '210', 石門區: '220', 八里區: '230', 平溪區: '240',
-          雙溪區: '250', 貢寮區: '260', 金山區: '270', 萬里區: '280', 烏來區: '290',
-        }[name]))
-      if (!district) continue
-      const rawAddress = [
-        row['street、road、section'], row.area, row.lane, row.alley, row.number,
-      ].filter(Boolean).join('')
-      const normalized = normalizeAddress(rawAddress, '新北市', district)
-      const coordinate = twd97ToWgs84(row.x_3826, row.y_3826)
-      if (!normalized || !coordinate || !inTaipeiMetroArea(coordinate)) continue
-      const key = addressKey(district, normalized)
-      addAddressCoordinate(index, key, coordinate)
-      total += 1
-    }
-    if (lines.length < pageSize) break
-    page += 1
-    if (page > 30) throw new Error('新北門牌 API 分頁異常')
-  }
-  return { index, total, sha256: sha256(hashes.join('')) }
 }
 
 function parseSale(row, city, cutoff, addressIndex, stats) {

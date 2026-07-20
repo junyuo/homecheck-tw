@@ -1,7 +1,12 @@
 #!/usr/bin/env node
 import { cp, readFile, rm, writeFile } from 'node:fs/promises'
 import { join, resolve } from 'node:path'
-import { evaluatePriceAudit, evaluateRailAudit, evaluateRiskAudit } from './data/audit.mjs'
+import {
+  evaluateFacilityAudit,
+  evaluatePriceAudit,
+  evaluateRailAudit,
+  evaluateRiskAudit,
+} from './data/audit.mjs'
 import { sourceFilesSha256, validateData, writeHealth } from './data/manifest.mjs'
 import { atomicReplace, promoteSource } from './data/release.mjs'
 
@@ -9,7 +14,7 @@ const root = resolve(import.meta.dirname, '..')
 const publicData = join(root, 'public', 'data')
 const staging = join(root, '.data-release-staging')
 const backup = join(root, '.data-release-last-good')
-const validSources = new Set(['all', 'price', 'risks'])
+const validSources = new Set(['all', 'price', 'risks', 'facilities'])
 
 function option(name, fallback) {
   const inline = process.argv.find((argument) => argument.startsWith(`--${name}=`))
@@ -65,6 +70,39 @@ async function main() {
       })
       promoteSource(source, evaluation, audit, now)
     }
+  }
+
+  if (selectedSource === 'all' || selectedSource === 'facilities') {
+    const [audit, candidates] = await Promise.all([
+      readFile(
+        join(root, 'scripts', 'data', 'audits', 'facilities-v1.json'),
+        'utf8',
+      ).then(JSON.parse),
+      readFile(
+        join(root, '.data-cache', 'facility-audit-candidates.json'),
+        'utf8',
+      ).then(JSON.parse),
+    ])
+    const failures = []
+    let promoted = 0
+    for (const id of ['parking', 'medical']) {
+      try {
+        const source = manifest.sources[id]
+        await verifyCandidate(source)
+        const evaluation = evaluateFacilityAudit(audit, id, {
+          adapterVersion: source.qualityGates.automated.adapterVersion,
+          sourceSha256: source.sha256,
+          addressIndexSha256: candidates.addressIndexSha256,
+          requireEvidenceSourceSha: true,
+        })
+        promoteSource(source, evaluation, audit, now)
+        promoted += 1
+      } catch (error) {
+        failures.push(`${id}：${error instanceof Error ? error.message : String(error)}`)
+      }
+    }
+    failures.forEach((message) => console.error(`[release] 未提升 ${message}`))
+    if (promoted === 0) throw new Error('停車場與醫院皆未通過發布閘門')
   }
 
   const railPrerequisites = ['actual-price', 'flood', 'liquefaction']

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { analyzePrice, calculateUnitPrice, pointsWithinRadius, quantile, riskAtPoint } from './analysis'
-import type { PointCollection, PropertyInput, RiskCollection, Transaction } from '../types'
+import { analyzePrice, buildAnalysis, calculateUnitPrice, pointsWithinRadius, quantile, riskAtPoint } from './analysis'
+import type { DistrictDataset, PointCollection, PropertyInput, RiskCollection, Transaction } from '../types'
 
 const input: PropertyInput = {
   city: 'taipei',
@@ -71,6 +71,32 @@ describe('空間分析', () => {
       ],
     }
     expect(pointsWithinRadius(facilities, input, 500).map((x) => x.properties.name)).toEqual(['近點'])
+  })
+
+  it('分別計算醫院與停車場生活圈數量及最近點位', () => {
+    const dataset: DistrictDataset = {
+      transactions: [],
+      facilities: {
+        type: 'FeatureCollection',
+        features: [
+          { type: 'Feature', properties: { name: '近醫院', category: 'medical' }, geometry: { type: 'Point', coordinates: [121.5431, 25.0331] } },
+          { type: 'Feature', properties: { name: '遠醫院', category: 'medical' }, geometry: { type: 'Point', coordinates: [121.56, 25.05] } },
+          { type: 'Feature', properties: { name: '近停車場', category: 'parking' }, geometry: { type: 'Point', coordinates: [121.5432, 25.0332] } },
+        ],
+      },
+      accidents: { type: 'FeatureCollection', features: [] },
+      flood: null,
+      floodScenario: '24h-500',
+      availableFloodScenarios: [],
+      liquefaction: null,
+      sources: {},
+      updatedAt: '2026-07-20',
+    }
+    const result = buildAnalysis(input, dataset)
+    expect(result.lifeFacilities.medical.count).toBe(1)
+    expect(result.lifeFacilities.medical.nearestName).toBe('近醫院')
+    expect(result.lifeFacilities.parking.count).toBe(1)
+    expect(result.lifeFacilities.parking.nearestName).toBe('近停車場')
   })
 
   it('判斷點是否落在風險多邊形內', () => {

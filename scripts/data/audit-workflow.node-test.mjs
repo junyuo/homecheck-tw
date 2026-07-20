@@ -63,6 +63,8 @@ async function fixture() {
     ['actual-price', 'price-v1'],
     ['flood', 'risks-v1'],
     ['liquefaction', 'risks-v1'],
+    ['parking', 'facilities-v1'],
+    ['medical', 'facilities-v1'],
   ].map(([id, adapterVersion]) => [id, {
     qualityGates: { automated: { adapterVersion } },
   }]))
@@ -75,6 +77,12 @@ async function fixture() {
   })
   await writeJson(join(root, 'scripts', 'data', 'audits', 'risks-v1.json'), {
     adapterVersion: 'risks-v1',
+    status: 'pending',
+    checkedAt: null,
+    samples: [],
+  })
+  await writeJson(join(root, 'scripts', 'data', 'audits', 'facilities-v1.json'), {
+    adapterVersion: 'facilities-v1',
     status: 'pending',
     checkedAt: null,
     samples: [],
@@ -109,6 +117,13 @@ async function fixture() {
         taipei: riskSamples('liquefaction', 'taipei'),
         'new-taipei': riskSamples('liquefaction', 'new-taipei'),
       },
+    },
+  })
+  await writeJson(join(root, '.data-cache', 'facility-audit-candidates.json'), {
+    adapterVersion: 'facilities-v1',
+    samples: {
+      parking: { taipei: [], 'new-taipei': [] },
+      medical: { taipei: [], 'new-taipei': [] },
     },
   })
   return root

@@ -3,6 +3,13 @@ import { readFile } from 'node:fs/promises'
 import { join, resolve } from 'node:path'
 import { sha256 } from './core.mjs'
 import { FLOOD_SCENARIOS } from './constants.mjs'
+import { buildNewTaipeiAddressIndex } from './address-index.mjs'
+import {
+  parseNewTaipeiHospitals,
+  parseNewTaipeiParking,
+  parseTaipeiHospitals,
+  parseTaipeiParking,
+} from './facilities.mjs'
 import { validateShapefileEntries } from './risks.mjs'
 
 const LIQUEFACTION_CLASSES = ['低潛勢', '中潛勢', '高潛勢']
@@ -237,5 +244,131 @@ export async function buildRiskEvidence(root, {
     result: resolved.blocked
       ? 'blocked'
       : resolved.observedCategory === candidate.expectedCategory ? 'matched' : 'mismatch',
+  }
+}
+
+function allFacilityCandidates(value) {
+  return ['parking', 'medical'].flatMap((source) =>
+    Object.values(value.samples[source]).flat()
+      .map((sample) => ({ ...sample, source })))
+}
+
+function coordinateDistance(first, second) {
+  return Math.hypot(
+    (first.latitude - second.latitude) * 111000,
+    (first.longitude - second.longitude) * 101000,
+  )
+}
+
+async function facilityRawBuffers(root, source) {
+  const directory = join(root, '.data-cache', 'facilities')
+  const names = source === 'parking'
+    ? ['taipei-parking.json', 'new-taipei-parking.csv']
+    : ['taipei-hospital.csv', 'new-taipei-hospital.csv']
+  const buffers = await Promise.all(names.map((name) => readFile(join(directory, name))))
+  return {
+    buffers,
+    sourceSha256: sha256(buffers.map((buffer) => sha256(buffer)).join(':')),
+  }
+}
+
+export async function buildFacilityEvidence(root, {
+  source,
+  id,
+  now = new Date().toISOString(),
+}) {
+  if (!['parking', 'medical'].includes(source)) throw new Error(`不支援的 source：${source}`)
+  const [manifest, candidates] = await Promise.all([
+    readJson(join(root, 'public', 'data', 'manifest.json')),
+    readJson(join(root, '.data-cache', 'facility-audit-candidates.json')),
+  ])
+  const candidate = allFacilityCandidates(candidates)
+    .find((item) => item.source === source && item.id === id)
+  if (!candidate) throw new Error(`${source} 候選清單不存在 ID ${id}`)
+  const manifestSource = manifest.sources[source]
+  if (candidates.adapterVersion !== manifestSource.qualityGates.automated.adapterVersion) {
+    throw new Error(`${source} candidate adapter 版本與 manifest 不一致`)
+  }
+  const fingerprint = candidates.fingerprints[source]
+  if (fingerprint.sourceSha256 !== manifestSource.sha256 ||
+      fingerprint.datasetSha256 !== manifestSource.qualityGates.automated.datasetSha256) {
+    throw new Error(`${source} 候選 fingerprints 與 manifest 不一致`)
+  }
+  const raw = await facilityRawBuffers(root, source)
+  if (raw.sourceSha256 !== fingerprint.sourceSha256) {
+    throw new Error(`${source} raw cache 雜湊與候選來源不一致`)
+  }
+  let parsed
+  let addressIndexSha256 = null
+  if (source === 'parking') {
+    parsed = candidate.city === 'taipei'
+      ? parseTaipeiParking(JSON.parse(raw.buffers[0].toString('utf8')), now)
+      : parseNewTaipeiParking(raw.buffers[1].toString('utf8'), now)
+  } else if (candidate.city === 'taipei') {
+    parsed = parseTaipeiHospitals(raw.buffers[0], now)
+  } else {
+    const addressIndex = await buildNewTaipeiAddressIndex(
+      join(root, '.data-cache'),
+      true,
+    )
+    addressIndexSha256 = addressIndex.sha256
+    if (addressIndexSha256 !== candidates.addressIndexSha256) {
+      throw new Error('medical 門牌索引雜湊與候選不一致')
+    }
+    parsed = parseNewTaipeiHospitals(
+      raw.buffers[1].toString('utf8'),
+      addressIndex.index,
+      now,
+    )
+    addressIndex.index.clear()
+  }
+  const rawItem = parsed.find((item) => item.feature?.properties?.id === id)
+  if (!rawItem) {
+    return {
+      candidate,
+      blocked: true,
+      reason: '官方原始檔找不到候選 ID',
+      result: 'blocked',
+      evidence: null,
+    }
+  }
+  const fields = {
+    id: rawItem.feature.properties.id === candidate.id,
+    name: rawItem.name === candidate.name,
+    district: rawItem.district === candidate.district,
+    coordinate: coordinateDistance(rawItem.coordinate, {
+      longitude: candidate.longitude,
+      latitude: candidate.latitude,
+    }) <= 1,
+    ...(source === 'parking'
+      ? {
+          carCapacity:
+            rawItem.feature.properties.carCapacity ===
+            candidate.carCapacity,
+        }
+      : {}),
+  }
+  const evidence = {
+    verificationMethod: 'official-raw-offline',
+    sourceSha256: raw.sourceSha256,
+    ...(addressIndexSha256 ? { addressIndexSha256 } : {}),
+    rawRecordCount: 1,
+    fields,
+    checkedAt: now,
+  }
+  evidence.queryOutputSha256 = sha256(JSON.stringify({
+    source,
+    id,
+    city: candidate.city,
+    district: candidate.district,
+    ...evidence,
+  }))
+  const matched = Object.values(fields).every((value) => value === true)
+  return {
+    candidate,
+    evidence,
+    blocked: false,
+    reason: null,
+    result: matched ? 'matched' : 'mismatch',
   }
 }

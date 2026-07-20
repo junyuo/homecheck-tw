@@ -419,16 +419,17 @@ interface ResultCardProps {
   index: string
   title: string
   level: RiskLevel
+  status?: React.ReactNode
   children: React.ReactNode
 }
 
-function ResultCard({ icon: Icon, index, title, level, children }: ResultCardProps) {
+function ResultCard({ icon: Icon, index, title, level, status, children }: ResultCardProps) {
   return (
     <article className="result-card">
       <div className="result-card-head">
         <span className="result-icon"><Icon /></span>
         <div><small>{index}</small><h2>{title}</h2></div>
-        <Badge level={level} />
+        {status ?? <Badge level={level} />}
       </div>
       {children}
     </article>
@@ -473,6 +474,13 @@ function ResultsPage({
   const hasAccidentData = available(result.sources.accidents?.status)
   const lifeSourceIds = ['school', 'medical', 'park', 'market', 'parking', 'library'] as const
   const hasLifeData = lifeSourceIds.some((id) => available(result.sources[id]?.status))
+  const medicalAvailable = available(result.sources.medical?.status)
+  const parkingAvailable = available(result.sources.parking?.status)
+  const lifeStatus = medicalAvailable && parkingAvailable
+    ? 'official'
+    : medicalAvailable || parkingAvailable
+      ? 'stale'
+      : 'unavailable'
   const transitSourceIds: DataSourceId[] = ['metro', 'rail', busSource]
   const hasTransitData = transitSourceIds.some((id) => available(result.sources[id]?.status))
   const priceBlocked = result.sources['actual-price']?.status === 'unavailable'
@@ -593,14 +601,22 @@ function ResultsPage({
           </div>
         </ResultCard>
 
-        <ResultCard icon={Building2} index="04" title="生活機能" level={hasLifeData && result.facilityCount ? 'low' : 'unknown'}>
-          <div className="big-fact">
-            <small>{result.input.radius >= 1000 ? '1 公里' : `${result.input.radius} 公尺`}生活圈內公共設施</small>
-            <strong>{hasLifeData ? result.facilityCount.toLocaleString('zh-TW') : '資料不足'}{hasLifeData && <em> 個官方點位</em>}</strong>
-          </div>
+        <ResultCard
+          icon={Building2}
+          index="04"
+          title="生活機能"
+          level="unknown"
+          status={<span className={`source-status ${lifeStatus}`}>{medicalAvailable && parkingAvailable ? '2 類正式資料' : hasLifeData ? '部分正式資料' : '資料不足'}</span>}
+        >
+          <dl className="metrics">
+            <div><dt>{result.input.radius >= 1000 ? '1 公里' : `${result.input.radius} 公尺`}內醫院</dt><dd>{medicalAvailable ? `${result.lifeFacilities.medical.count.toLocaleString('zh-TW')} 間` : '資料不足'}</dd></div>
+            <div><dt>最近醫院</dt><dd>{medicalAvailable ? <>{result.lifeFacilities.medical.nearestName ?? '資料不足'}<br />{formatDistance(result.lifeFacilities.medical.nearestDistance)}</> : '資料不足'}</dd></div>
+            <div><dt>{result.input.radius >= 1000 ? '1 公里' : `${result.input.radius} 公尺`}內路外停車場</dt><dd>{parkingAvailable ? `${result.lifeFacilities.parking.count.toLocaleString('zh-TW')} 處` : '資料不足'}</dd></div>
+            <div><dt>最近路外停車場</dt><dd>{parkingAvailable ? <>{result.lifeFacilities.parking.nearestName ?? '資料不足'}<br />{formatDistance(result.lifeFacilities.parking.nearestDistance)}</> : '資料不足'}</dd></div>
+          </dl>
           <div className="evidence">
-            <p><strong>涵蓋類型</strong>學校、醫療、公園、市場、停車場與圖書館；超商不在第一版政府開放資料範圍。</p>
-            <p><strong>資料信心</strong>各設施類別獨立驗證；沒有資料不代表附近沒有設施。</p>
+            <p><strong>涵蓋類型</strong>首版醫療只納入醫院；停車場只呈現官方登記位置與靜態汽車格位，不提供即時剩餘車位。</p>
+            <p><strong>資料信心</strong>醫院與停車場各自獨立驗證；數量多寡不轉換為安全或品質分數，沒有資料也不代表附近沒有設施。</p>
             <p><strong>建議確認</strong>實際走訪日常採買、垃圾處理、醫療與停車動線，並留意營業時間。</p>
           </div>
         </ResultCard>
@@ -688,7 +704,8 @@ function ComparePage({ saved, setSaved }: { saved: SavedProperty[]; setSaved: (i
               ['淹水潛勢', (x: SavedProperty) => x.riskSnapshotLegacy ? '舊快照，請重新查詢' : `${levelMeta[x.result.flood].label}（${x.result.floodDetail.durationHours}h/${x.result.floodDetail.rainfallMm}mm）`],
               ['土壤液化潛勢', (x: SavedProperty) => x.riskSnapshotLegacy ? '舊快照，請重新查詢' : levelMeta[x.result.liquefaction].label],
               ['捷運距離', (x: SavedProperty) => formatDistance(x.result.nearestMetro)],
-              ['生活設施數量', (x: SavedProperty) => `${x.result.facilityCount.toLocaleString('zh-TW')} 個官方點位`],
+              ['醫院', (x: SavedProperty) => x.lifeSnapshotLegacy ? '舊快照，請重新查詢' : `${x.result.lifeFacilities.medical.count.toLocaleString('zh-TW')} 間；最近 ${x.result.lifeFacilities.medical.nearestName ?? '資料不足'}（${formatDistance(x.result.lifeFacilities.medical.nearestDistance)}）`],
+              ['路外停車場', (x: SavedProperty) => x.lifeSnapshotLegacy ? '舊快照，請重新查詢' : `${x.result.lifeFacilities.parking.count.toLocaleString('zh-TW')} 處；最近 ${x.result.lifeFacilities.parking.nearestName ?? '資料不足'}（${formatDistance(x.result.lifeFacilities.parking.nearestDistance)}）`],
               ['交通事故狀況', (x: SavedProperty) => x.result.sources.accidents?.status === 'official' ? `${x.result.accidentCount.toLocaleString('zh-TW')} 件` : '資料不足'],
               ['資料品質', (x: SavedProperty) => x.historicDemo ? '歷史 Demo（不與正式結果混用）' : x.result.dataQuality === 'official' ? '全部正式' : x.result.dataQuality === 'mixed' ? '混合來源' : '資料不足'],
               ['待確認事項', (x: SavedProperty) => `${x.result.checklist.filter((item) => !item.checked).length} 項`],

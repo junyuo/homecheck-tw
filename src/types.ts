@@ -68,8 +68,12 @@ export interface Transaction {
 }
 
 export interface FacilityProperties {
+  id?: string
   name: string
   category: 'metro' | 'rail' | 'bus' | 'school' | 'medical' | 'park' | 'market' | 'parking' | 'library'
+  facilityType?: 'offstreet-parking' | 'hospital'
+  sourceUpdatedAt?: string
+  carCapacity?: number
   demo?: boolean
 }
 
@@ -185,6 +189,12 @@ export interface PriceAnalysis {
   trend: Array<{ year: number; median: number }>
 }
 
+export interface LifeFacilitySummary {
+  count: number
+  nearestDistance: number | null
+  nearestName: string | null
+}
+
 export interface AnalysisResult {
   input: PropertyInput
   price: PriceAnalysis
@@ -196,6 +206,10 @@ export interface AnalysisResult {
   nearestRail: number | null
   busCount: number
   facilityCount: number
+  lifeFacilities: {
+    medical: LifeFacilitySummary
+    parking: LifeFacilitySummary
+  }
   accidentCount: number
   completeness: number
   checklist: ChecklistItem[]
@@ -218,5 +232,6 @@ export interface SavedProperty {
   label: string
   historicDemo?: boolean
   riskSnapshotLegacy?: boolean
+  lifeSnapshotLegacy?: boolean
   result: AnalysisResult
 }

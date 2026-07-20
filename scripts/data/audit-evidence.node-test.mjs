@@ -4,7 +4,8 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import test from 'node:test'
 import { assertAuditPrivacy } from './audit-workflow.mjs'
-import { buildRiskEvidence, resolveEvidenceMatches } from './audit-evidence.mjs'
+import { buildFacilityEvidence, buildRiskEvidence, resolveEvidenceMatches } from './audit-evidence.mjs'
+import { sha256, stableId, twd97ToWgs84 } from './core.mjs'
 
 const sourceSha256 = 'a'.repeat(64)
 const datasetSha256 = 'b'.repeat(64)
@@ -149,5 +150,78 @@ test('預覽證據不寫檔且不包含地址或 geometry', async () => {
   assert.equal(
     await readFile(join(root, '.data-cache', 'risk-audit-candidates.json'), 'utf8'),
     before,
+  )
+})
+
+test('停車場證據從官方 raw 重建並比對格位，來源雜湊不符時阻擋', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'homecheck-facility-evidence-'))
+  await mkdir(join(root, 'public', 'data'), { recursive: true })
+  await mkdir(join(root, '.data-cache', 'facilities'), { recursive: true })
+  const taipei = Buffer.from(JSON.stringify({
+    data: {
+      park: [{
+        id: 'tp-1',
+        name: '測試停車場',
+        area: '大安區',
+        totalcar: '10',
+        tw97x: '306948',
+        tw97y: '2770968',
+      }],
+    },
+  }))
+  const newTaipei = Buffer.from('ID,AREA,NAME,TOTALCAR,TW97X,TW97Y\n')
+  await writeFile(join(root, '.data-cache', 'facilities', 'taipei-parking.json'), taipei)
+  await writeFile(join(root, '.data-cache', 'facilities', 'new-taipei-parking.csv'), newTaipei)
+  const sourceHash = sha256([sha256(taipei), sha256(newTaipei)].join(':'))
+  const id = stableId(['parking', 'taipei', 'tp-1'])
+  const coordinate = twd97ToWgs84(306948, 2770968)
+  await writeJson(join(root, 'public', 'data', 'manifest.json'), {
+    sources: {
+      parking: {
+        sha256: sourceHash,
+        qualityGates: {
+          automated: { adapterVersion: 'facilities-v1', datasetSha256 },
+        },
+      },
+    },
+  })
+  await writeJson(join(root, '.data-cache', 'facility-audit-candidates.json'), {
+    adapterVersion: 'facilities-v1',
+    addressIndexSha256: null,
+    fingerprints: {
+      parking: { sourceSha256: sourceHash, datasetSha256 },
+    },
+    samples: {
+      parking: {
+        taipei: [{
+          id,
+          city: 'taipei',
+          district: 'daan',
+          name: '測試停車場',
+          longitude: coordinate.longitude,
+          latitude: coordinate.latitude,
+          carCapacity: 10,
+        }],
+        'new-taipei': [],
+      },
+      medical: { taipei: [], 'new-taipei': [] },
+    },
+  })
+  const result = await buildFacilityEvidence(root, { source: 'parking', id })
+  assert.equal(result.result, 'matched')
+  assert.deepEqual(result.evidence.fields, {
+    id: true,
+    name: true,
+    district: true,
+    coordinate: true,
+    carCapacity: true,
+  })
+  const candidatesFile = join(root, '.data-cache', 'facility-audit-candidates.json')
+  const candidates = JSON.parse(await readFile(candidatesFile, 'utf8'))
+  candidates.fingerprints.parking.sourceSha256 = 'c'.repeat(64)
+  await writeJson(candidatesFile, candidates)
+  await assert.rejects(
+    buildFacilityEvidence(root, { source: 'parking', id }),
+    /fingerprints/,
   )
 })

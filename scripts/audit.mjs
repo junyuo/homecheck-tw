@@ -12,13 +12,17 @@ function option(name, fallback = '') {
 }
 
 function printProgress(status) {
-  for (const source of ['price', 'flood', 'liquefaction']) {
+  for (const source of ['price', 'flood', 'liquefaction', 'parking', 'medical']) {
     const item = status[source]
     console.log(
       `[audit] ${source}: ${item.passed ? 'passed' : 'pending'} ` +
       `${item.sampleCount}/${item.requiredSampleCount}，mismatch ${item.mismatches}` +
       (source === 'price' ? '' :
-        `，方式 ${(status.verificationMethods[source] ?? []).join(', ') || '尚無'}`),
+        `，方式 ${(
+          status.verificationMethods[source] ??
+          status.facilityVerificationMethods[source] ??
+          []
+        ).join(', ') || '尚無'}`),
     )
   }
   console.log(

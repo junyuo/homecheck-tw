@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { resolve } from 'node:path'
-import { buildRiskEvidence } from './data/audit-evidence.mjs'
+import { buildFacilityEvidence, buildRiskEvidence } from './data/audit-evidence.mjs'
 import { recordAudit } from './data/audit-workflow.mjs'
 
 const root = resolve(import.meta.dirname, '..')
@@ -15,7 +15,10 @@ async function main() {
   const source = option('source')
   const id = option('id')
   const confirmed = option('confirm') === 'true'
-  const result = await buildRiskEvidence(root, { source, id })
+  const isFacility = ['parking', 'medical'].includes(source)
+  const result = isFacility
+    ? await buildFacilityEvidence(root, { source, id })
+    : await buildRiskEvidence(root, { source, id })
   console.log(JSON.stringify({
     id: result.candidate.id,
     source: result.candidate.source,

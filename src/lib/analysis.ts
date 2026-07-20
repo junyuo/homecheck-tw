@@ -222,6 +222,24 @@ export function buildAnalysis(
       longitude: feature.geometry.coordinates[0],
     })))
     : null
+  const summarizeLifeFacility = (category: 'medical' | 'parking') => {
+    const all = dataset.facilities.features.filter((feature) => feature.properties.category === category)
+    const nearby = nearbyFacilities.filter((feature) => feature.properties.category === category)
+    const closest = all
+      .map((feature) => ({
+        name: feature.properties.name,
+        distance: distanceMeters(input, {
+          latitude: feature.geometry.coordinates[1],
+          longitude: feature.geometry.coordinates[0],
+        }),
+      }))
+      .sort((a, b) => a.distance - b.distance)[0]
+    return {
+      count: nearby.length,
+      nearestDistance: closest?.distance ?? null,
+      nearestName: closest?.name ?? null,
+    }
+  }
   const floodDetail = riskFindingAtPoint(input, flood)
   const liquefactionDetail = riskFindingAtPoint(input, liquefaction)
   const floodLevel = floodDetail.level
@@ -260,6 +278,10 @@ export function buildAnalysis(
     nearestRail: nearest(rail),
     busCount: nearbyFacilities.filter((item) => item.properties.category === 'bus').length,
     facilityCount: nearbyFacilities.filter((item) => !['metro', 'rail', 'bus'].includes(item.properties.category)).length,
+    lifeFacilities: {
+      medical: summarizeLifeFacility('medical'),
+      parking: summarizeLifeFacility('parking'),
+    },
     accidentCount: nearbyAccidents.length,
     completeness: Math.round(completenessSignals.filter(Boolean).length / completenessSignals.length * 100),
     checklist: makeChecklist(price, floodLevel, liquefactionLevel, nearbyAccidents.length),
