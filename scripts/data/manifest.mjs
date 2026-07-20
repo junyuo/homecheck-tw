@@ -58,6 +58,16 @@ export async function validateData(directory) {
       const fileSize = (await stat(join(directory, file))).size
       if (fileSize > 5 * 1024 * 1024) throw new Error(`${file} 超過 5 MB，必須再切割`)
     }
+    const automated = source.qualityGates?.automated
+    if (source.qualityGates?.manualAudit && !automated?.datasetSha256) {
+      throw new Error(`${source.id} 缺少候選檔 datasetSha256`)
+    }
+    if (automated?.datasetSha256) {
+      const actual = await sourceFilesSha256(directory, source.files)
+      if (actual !== automated.datasetSha256) {
+        throw new Error(`${source.id} 候選檔雜湊與 manifest 不一致`)
+      }
+    }
   }
   const expectedDistricts = new Set(ALL_DISTRICTS.map(({ city, slug }) => `${city}/${slug}`))
   if (manifest.coverage.districts.length !== expectedDistricts.size ||

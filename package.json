@@ -12,6 +12,8 @@
     "update-data": "node scripts/update-data.mjs",
     "release-data": "node scripts/release-data.mjs",
     "audit:candidates": "node scripts/generate-audit-candidates.mjs",
+    "audit:status": "node scripts/audit.mjs status",
+    "audit:record": "node scripts/audit.mjs record",
     "validate:data": "node scripts/update-data.mjs --validate-only",
     "test:data": "node --test scripts/data/*.node-test.mjs"
   },

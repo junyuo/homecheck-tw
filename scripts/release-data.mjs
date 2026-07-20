@@ -21,6 +21,17 @@ const selectedSource = option('source', 'all')
 const dryRun = option('dry-run', 'false') === 'true'
 if (!validSources.has(selectedSource)) throw new Error(`不支援的 source：${selectedSource}`)
 
+async function verifyCandidate(source) {
+  if (!/^[a-f0-9]{64}$/.test(source.sha256 ?? '')) {
+    throw new Error(`${source.id} 缺少有效來源雜湊`)
+  }
+  const expected = source.qualityGates?.automated?.datasetSha256
+  const actual = await sourceFilesSha256(publicData, source.files)
+  if (!expected || expected !== actual) {
+    throw new Error(`${source.id} 候選檔雜湊與 manifest 不一致`)
+  }
+}
+
 async function main() {
   await validateData(publicData)
   const manifest = JSON.parse(await readFile(join(publicData, 'manifest.json'), 'utf8'))
@@ -32,10 +43,9 @@ async function main() {
       join(root, 'scripts', 'data', 'audits', 'price-v1.json'),
       'utf8',
     ))
+    await verifyCandidate(source)
     const evaluation = evaluatePriceAudit(audit, {
       adapterVersion: source.qualityGates.automated.adapterVersion,
-      sourceSha256: source.sha256,
-      datasetSha256: await sourceFilesSha256(publicData, source.files),
     })
     promoteSource(source, evaluation, audit, now)
   }
@@ -47,10 +57,9 @@ async function main() {
     ))
     for (const id of ['flood', 'liquefaction']) {
       const source = manifest.sources[id]
+      await verifyCandidate(source)
       const evaluation = evaluateRiskAudit(audit, id, {
         adapterVersion: source.qualityGates.automated.adapterVersion,
-        sourceSha256: source.sha256,
-        datasetSha256: await sourceFilesSha256(publicData, source.files),
       })
       promoteSource(source, evaluation, audit, now)
     }
@@ -64,10 +73,9 @@ async function main() {
       join(root, 'scripts', 'data', 'audits', 'rail-v1.json'),
       'utf8',
     ))
+    await verifyCandidate(rail)
     const evaluation = evaluateRailAudit(audit, {
       adapterVersion: rail.qualityGates.automated.adapterVersion,
-      sourceSha256: rail.sha256,
-      datasetSha256: await sourceFilesSha256(publicData, rail.files),
     })
     if (evaluation.passed) promoteSource(rail, evaluation, audit, now)
   }

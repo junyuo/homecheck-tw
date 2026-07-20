@@ -125,6 +125,7 @@ export interface SourceState {
     status: 'passed' | 'pending' | 'failed'
     adapterVersion: string
     checkedAt: string | null
+    datasetSha256?: string
     sampleCount?: number
     requiredSampleCount?: number
     gdalVersion?: string

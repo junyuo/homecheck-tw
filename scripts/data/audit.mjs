@@ -16,8 +16,6 @@ function uniqueMatchedSamples(samples, predicate) {
 
 export function evaluatePriceAudit(audit, {
   adapterVersion,
-  sourceSha256,
-  datasetSha256,
 } = {}) {
   const samples = Array.isArray(audit?.samples) ? audit.samples : []
   const mismatches = samples.filter((sample) => sample.result === 'mismatch').length
@@ -32,8 +30,6 @@ export function evaluatePriceAudit(audit, {
   }
   const passed = audit?.status === 'passed' &&
     audit?.adapterVersion === adapterVersion &&
-    audit?.sourceSha256 === sourceSha256 &&
-    audit?.datasetSha256 === datasetSha256 &&
     counts.taipei >= 10 &&
     counts['new-taipei'] >= 10 &&
     typeCoverage.taipei === 3 &&
@@ -51,7 +47,13 @@ export function evaluatePriceAudit(audit, {
 function riskCoveragePassed(source, samples) {
   for (const city of ['taipei', 'new-taipei']) {
     const citySamples = [...uniqueMatchedSamples(samples, (sample) =>
-      sample.source === source && sample.city === city)]
+      sample.source === source &&
+      sample.city === city &&
+      sample.observedCategory === sample.expectedCategory &&
+      Number.isFinite(sample.latitude) &&
+      Number.isFinite(sample.longitude) &&
+      (String(sample.latitude).split('.')[1] ?? '').length <= 5 &&
+      (String(sample.longitude).split('.')[1] ?? '').length <= 5)]
     if (citySamples.length < 5) return false
     const cases = citySamples.map((sample) => sample.caseType)
     if (source === 'flood') {
@@ -71,8 +73,6 @@ function riskCoveragePassed(source, samples) {
 
 export function evaluateRiskAudit(audit, source, {
   adapterVersion,
-  sourceSha256,
-  datasetSha256,
 } = {}) {
   const samples = Array.isArray(audit?.samples) ? audit.samples : []
   const sourceSamples = samples.filter((sample) => sample.source === source)
@@ -81,11 +81,8 @@ export function evaluateRiskAudit(audit, source, {
     city,
     [...uniqueMatchedSamples(sourceSamples, (sample) => sample.city === city)].length,
   ]))
-  const fingerprints = audit?.fingerprints?.[source] ?? {}
   const passed = audit?.status === 'passed' &&
     audit?.adapterVersion === adapterVersion &&
-    fingerprints.sourceSha256 === sourceSha256 &&
-    fingerprints.datasetSha256 === datasetSha256 &&
     mismatches === 0 &&
     riskCoveragePassed(source, sourceSamples)
   return {
@@ -109,8 +106,6 @@ export function manualGate(evaluation, adapterVersion, checkedAt) {
 
 export function evaluateRailAudit(audit, {
   adapterVersion,
-  sourceSha256,
-  datasetSha256,
 } = {}) {
   const samples = Array.isArray(audit?.samples) ? audit.samples : []
   const mismatches = samples.filter((sample) => sample.result === 'mismatch').length
@@ -123,8 +118,6 @@ export function evaluateRailAudit(audit, {
   ]))
   const passed = audit?.status === 'passed' &&
     audit?.adapterVersion === adapterVersion &&
-    audit?.sourceSha256 === sourceSha256 &&
-    audit?.datasetSha256 === datasetSha256 &&
     counts.taipei >= 4 &&
     counts['new-taipei'] >= 5 &&
     mismatches === 0

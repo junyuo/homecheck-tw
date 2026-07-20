@@ -380,7 +380,8 @@
         "automated": {
           "status": "passed",
           "adapterVersion": "price-v1",
-          "checkedAt": "2026-07-19T06:10:33.052Z"
+          "checkedAt": "2026-07-19T06:10:33.052Z",
+          "datasetSha256": "626c3635d395ca543875067b6e6ea8f1b37c9ed73dbb81af7f3d111274f54c76"
         },
         "manualAudit": {
           "status": "pending",
@@ -876,7 +877,8 @@
           "status": "passed",
           "adapterVersion": "risks-v1",
           "checkedAt": "2026-07-19T07:35:15.501Z",
-          "gdalVersion": "GDAL 3.13.1 \"Iowa City\", released 2026/06/01"
+          "gdalVersion": "GDAL 3.13.1 \"Iowa City\", released 2026/06/01",
+          "datasetSha256": "06d5d7162581f7583ac1efb08d673a96d69df054390f9ad8070b49f1e4cd4c52"
         },
         "manualAudit": {
           "status": "pending",
@@ -1003,7 +1005,8 @@
           "status": "passed",
           "adapterVersion": "risks-v1",
           "checkedAt": "2026-07-19T07:35:15.501Z",
-          "gdalVersion": "GDAL 3.13.1 \"Iowa City\", released 2026/06/01"
+          "gdalVersion": "GDAL 3.13.1 \"Iowa City\", released 2026/06/01",
+          "datasetSha256": "2f4bca737bc99a42f74345497b03e77623ba1519df7e7d66aef7efbbb535932f"
         },
         "manualAudit": {
           "status": "pending",
@@ -1243,7 +1246,8 @@
         "automated": {
           "status": "passed",
           "adapterVersion": "rail-v1",
-          "checkedAt": "2026-07-19T08:15:35.488Z"
+          "checkedAt": "2026-07-19T08:15:35.488Z",
+          "datasetSha256": "eb8d2f728f62d52b33b6b22c1664461b73f58ec30a22a55b6de87ac3274f677f"
         },
         "manualAudit": {
           "status": "passed",
@@ -1577,7 +1581,8 @@
           "status": "passed",
           "adapterVersion": "risks-v1",
           "checkedAt": "2026-07-19T07:35:15.501Z",
-          "gdalVersion": "GDAL 3.13.1 \"Iowa City\", released 2026/06/01"
+          "gdalVersion": "GDAL 3.13.1 \"Iowa City\", released 2026/06/01",
+          "datasetSha256": "85dc9ba59c06c46bc0198aeaaed3756ee3cec687f1b0001444070a04cd8554cb"
         }
       },
       "excluded": {},

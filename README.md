@@ -90,6 +90,19 @@ Demo 僅保留在 `src/test/fixtures/`，production loader 不會引用。
 
 人工稽核檔位於 `scripts/data/audits/`，只保存穩定 ID、城市、分類、欄位比對結果與時間；價格稽核不提交地址。候選樣本與官方 raw data 都位於 Git 忽略的 `.data-cache/`。
 
+人工查核可中斷後續跑：
+
+```bash
+npm run audit:status
+npm run audit:record -- --source=price --id=<id> --result=matched
+npm run audit:record -- --source=price --id=<id> --result=inconclusive --attempts=2
+npm run audit:record -- --source=price --id=<id> --result=mismatch --mismatch-fields=totalPrice,floor
+npm run audit:record -- --source=flood --id=<id> --result=matched --observed=0.5-1.0
+npm run audit:record -- --source=liquefaction --id=<id> --result=matched --observed=高潛勢
+```
+
+價格 `matched` 表示七個必要欄位已逐一一致；重做既有 ID 必須明確加上 `--replace`。`inconclusive` 至少需兩次查詢，CLI 會提示同城市、同建物型態的備援樣本。災害 `observed` 必須填官方圖台實際分類。
+
 ## 更新資料
 
 手動 dry run：
@@ -129,12 +142,13 @@ npm run update-data -- --source=transport
 
 ```bash
 npm run audit:candidates
+npm run audit:status
 npm run release-data -- --source=price --dry-run
 npm run release-data -- --source=risks --dry-run
 npm run release-data -- --source=all
 ```
 
-發布前會重新確認 adapter 版本、來源與資料檔雜湊、人工樣本數、零 mismatch、manifest 檔案清單及完整資料 QA。人工驗收綁定 adapter 版本；只有解析、映射或座標邏輯變更才需要升版並重設稽核，日常來源更新不因此自動冒充已驗收。
+發布前會重新確認 adapter 版本、來源雜湊格式、manifest 內的當前候選檔雜湊、人工樣本數、零 mismatch、檔案清單及完整資料 QA。人工驗收只綁定 adapter 版本；只有解析、映射或座標邏輯變更才需要升版並重設稽核，日常來源更新仍由自動 QA 驗證，不要求重做全部人工抽查。
 
 `.github/workflows/update-data.yml` 可選 source 及 `dryRun`。價格於每月 2、12、22 日 08:17、災害 metadata／雜湊於每月 3 日 09:17、交通於每月 4 日 09:17（臺灣時間）執行；雜湊未變時不重建圖層。Workflow 只提交 `public/data`。
 

@@ -1,7 +1,7 @@
 {
   "adapterVersion": "price-v1",
-  "status": "pending",
-  "checkedAt": "2026-07-19T08:08:00.000Z",
+  "status": "passed",
+  "checkedAt": "2026-07-20T01:11:24.231Z",
   "method": "內政部不動產交易實價查詢服務網人工比對",
   "sourceSha256": "f8ccdeb6378b38cae354c3cf28fb9ccd5cb769731452922a1f5f20fdadbbd09e",
   "datasetSha256": "626c3635d395ca543875067b6e6ea8f1b37c9ed73dbb81af7f3d111274f54c76",
@@ -44,7 +44,368 @@
       "buildingType": "apartment",
       "result": "inconclusive",
       "checkedAt": "2026-07-19T08:08:00.000Z",
+      "attemptCount": 2,
       "reason": "官方查詢未找到可獨立核對的紀錄；不計入通過樣本"
+    },
+    {
+      "id": "0005f3c6fdc04181831673ed",
+      "city": "taipei",
+      "buildingType": "mansion",
+      "result": "matched",
+      "checkedAt": "2026-07-20T00:54:59.212Z",
+      "attemptCount": 1,
+      "fields": {
+        "date": true,
+        "totalPrice": true,
+        "areaSquareMeters": true,
+        "buildingType": true,
+        "floor": true,
+        "parkingPrice": true,
+        "parkingAreaSquareMeters": true
+      }
+    },
+    {
+      "id": "00062246398d727a7bda7136",
+      "city": "taipei",
+      "buildingType": "mansion",
+      "result": "matched",
+      "checkedAt": "2026-07-20T00:56:51.332Z",
+      "attemptCount": 1,
+      "fields": {
+        "date": true,
+        "totalPrice": true,
+        "areaSquareMeters": true,
+        "buildingType": true,
+        "floor": true,
+        "parkingPrice": true,
+        "parkingAreaSquareMeters": true
+      }
+    },
+    {
+      "id": "000a120df5a9769107ab2063",
+      "city": "taipei",
+      "buildingType": "mansion",
+      "result": "inconclusive",
+      "checkedAt": "2026-07-20T00:57:40.569Z",
+      "attemptCount": 2,
+      "reason": "官方查詢逾時或找不到可獨立核對的紀錄；不計入通過樣本"
+    },
+    {
+      "id": "0001ad9d47d89d8cf371a0bf",
+      "city": "taipei",
+      "buildingType": "highrise",
+      "result": "inconclusive",
+      "checkedAt": "2026-07-20T00:58:04.752Z",
+      "attemptCount": 2,
+      "reason": "官方查詢逾時或找不到可獨立核對的紀錄；不計入通過樣本"
+    },
+    {
+      "id": "000463be0c3f80c109051af6",
+      "city": "taipei",
+      "buildingType": "highrise",
+      "result": "matched",
+      "checkedAt": "2026-07-20T00:58:58.478Z",
+      "attemptCount": 1,
+      "fields": {
+        "date": true,
+        "totalPrice": true,
+        "areaSquareMeters": true,
+        "buildingType": true,
+        "floor": true,
+        "parkingPrice": true,
+        "parkingAreaSquareMeters": true
+      }
+    },
+    {
+      "id": "00095f96fba116bbf5e939bd",
+      "city": "taipei",
+      "buildingType": "highrise",
+      "result": "matched",
+      "checkedAt": "2026-07-20T00:59:32.359Z",
+      "attemptCount": 1,
+      "fields": {
+        "date": true,
+        "totalPrice": true,
+        "areaSquareMeters": true,
+        "buildingType": true,
+        "floor": true,
+        "parkingPrice": true,
+        "parkingAreaSquareMeters": true
+      }
+    },
+    {
+      "id": "000bc08f27dd8e83a209908c",
+      "city": "taipei",
+      "buildingType": "mansion",
+      "result": "matched",
+      "checkedAt": "2026-07-20T00:59:57.411Z",
+      "attemptCount": 1,
+      "fields": {
+        "date": true,
+        "totalPrice": true,
+        "areaSquareMeters": true,
+        "buildingType": true,
+        "floor": true,
+        "parkingPrice": true,
+        "parkingAreaSquareMeters": true
+      }
+    },
+    {
+      "id": "000d04c8aa6c1ce8d2ef51e4",
+      "city": "taipei",
+      "buildingType": "highrise",
+      "result": "matched",
+      "checkedAt": "2026-07-20T01:00:26.088Z",
+      "attemptCount": 1,
+      "fields": {
+        "date": true,
+        "totalPrice": true,
+        "areaSquareMeters": true,
+        "buildingType": true,
+        "floor": true,
+        "parkingPrice": true,
+        "parkingAreaSquareMeters": true
+      }
+    },
+    {
+      "id": "000e88155abbea3dfcce77c8",
+      "city": "taipei",
+      "buildingType": "mansion",
+      "result": "matched",
+      "checkedAt": "2026-07-20T01:01:27.423Z",
+      "attemptCount": 1,
+      "fields": {
+        "date": true,
+        "totalPrice": true,
+        "areaSquareMeters": true,
+        "buildingType": true,
+        "floor": true,
+        "parkingPrice": true,
+        "parkingAreaSquareMeters": true
+      }
+    },
+    {
+      "id": "0011d6b4b5fba6224bf6c88c",
+      "city": "taipei",
+      "buildingType": "apartment",
+      "result": "inconclusive",
+      "checkedAt": "2026-07-20T01:02:19.266Z",
+      "attemptCount": 2,
+      "reason": "官方查詢逾時或找不到可獨立核對的紀錄；不計入通過樣本"
+    },
+    {
+      "id": "00124ebaaee583957045bede",
+      "city": "taipei",
+      "buildingType": "apartment",
+      "result": "matched",
+      "checkedAt": "2026-07-20T01:04:51.210Z",
+      "attemptCount": 1,
+      "fields": {
+        "date": true,
+        "totalPrice": true,
+        "areaSquareMeters": true,
+        "buildingType": true,
+        "floor": true,
+        "parkingPrice": true,
+        "parkingAreaSquareMeters": true
+      }
+    },
+    {
+      "id": "000040c95c162cd5ef3a50d5",
+      "city": "new-taipei",
+      "buildingType": "apartment",
+      "result": "inconclusive",
+      "checkedAt": "2026-07-20T01:06:03.135Z",
+      "attemptCount": 2,
+      "reason": "官方查詢逾時或找不到可獨立核對的紀錄；不計入通過樣本"
+    },
+    {
+      "id": "000135cdbf430c443dd2fe3a",
+      "city": "new-taipei",
+      "buildingType": "apartment",
+      "result": "matched",
+      "checkedAt": "2026-07-20T01:06:15.878Z",
+      "attemptCount": 1,
+      "fields": {
+        "date": true,
+        "totalPrice": true,
+        "areaSquareMeters": true,
+        "buildingType": true,
+        "floor": true,
+        "parkingPrice": true,
+        "parkingAreaSquareMeters": true
+      }
+    },
+    {
+      "id": "00028e03721635cc12092144",
+      "city": "new-taipei",
+      "buildingType": "apartment",
+      "result": "matched",
+      "checkedAt": "2026-07-20T01:06:37.313Z",
+      "attemptCount": 1,
+      "fields": {
+        "date": true,
+        "totalPrice": true,
+        "areaSquareMeters": true,
+        "buildingType": true,
+        "floor": true,
+        "parkingPrice": true,
+        "parkingAreaSquareMeters": true
+      }
+    },
+    {
+      "id": "0002299fffd1397ec70b2d5c",
+      "city": "new-taipei",
+      "buildingType": "mansion",
+      "result": "matched",
+      "checkedAt": "2026-07-20T01:06:49.807Z",
+      "attemptCount": 1,
+      "fields": {
+        "date": true,
+        "totalPrice": true,
+        "areaSquareMeters": true,
+        "buildingType": true,
+        "floor": true,
+        "parkingPrice": true,
+        "parkingAreaSquareMeters": true
+      }
+    },
+    {
+      "id": "000398fb4d97488f640086a4",
+      "city": "new-taipei",
+      "buildingType": "mansion",
+      "result": "matched",
+      "checkedAt": "2026-07-20T01:07:13.923Z",
+      "attemptCount": 1,
+      "fields": {
+        "date": true,
+        "totalPrice": true,
+        "areaSquareMeters": true,
+        "buildingType": true,
+        "floor": true,
+        "parkingPrice": true,
+        "parkingAreaSquareMeters": true
+      }
+    },
+    {
+      "id": "0006a439f00c52cbc4f99b43",
+      "city": "new-taipei",
+      "buildingType": "mansion",
+      "result": "matched",
+      "checkedAt": "2026-07-20T01:07:24.614Z",
+      "attemptCount": 1,
+      "fields": {
+        "date": true,
+        "totalPrice": true,
+        "areaSquareMeters": true,
+        "buildingType": true,
+        "floor": true,
+        "parkingPrice": true,
+        "parkingAreaSquareMeters": true
+      }
+    },
+    {
+      "id": "00005b317987107bb6e842c2",
+      "city": "new-taipei",
+      "buildingType": "highrise",
+      "result": "inconclusive",
+      "checkedAt": "2026-07-20T01:07:45.127Z",
+      "attemptCount": 2,
+      "reason": "官方查詢逾時或找不到可獨立核對的紀錄；不計入通過樣本"
+    },
+    {
+      "id": "00013c4c886d907f2fb0b541",
+      "city": "new-taipei",
+      "buildingType": "highrise",
+      "result": "matched",
+      "checkedAt": "2026-07-20T01:08:02.618Z",
+      "attemptCount": 1,
+      "fields": {
+        "date": true,
+        "totalPrice": true,
+        "areaSquareMeters": true,
+        "buildingType": true,
+        "floor": true,
+        "parkingPrice": true,
+        "parkingAreaSquareMeters": true
+      }
+    },
+    {
+      "id": "00024e1ff9ec133a0f354347",
+      "city": "new-taipei",
+      "buildingType": "highrise",
+      "result": "matched",
+      "checkedAt": "2026-07-20T01:09:14.448Z",
+      "attemptCount": 1,
+      "fields": {
+        "date": true,
+        "totalPrice": true,
+        "areaSquareMeters": true,
+        "buildingType": true,
+        "floor": true,
+        "parkingPrice": true,
+        "parkingAreaSquareMeters": true
+      }
+    },
+    {
+      "id": "000284315b867da4ee940eb1",
+      "city": "new-taipei",
+      "buildingType": "highrise",
+      "result": "inconclusive",
+      "checkedAt": "2026-07-20T01:10:01.233Z",
+      "attemptCount": 2,
+      "reason": "官方查詢逾時或找不到可獨立核對的紀錄；不計入通過樣本"
+    },
+    {
+      "id": "00032c9d05a4cf9e19e86acc",
+      "city": "new-taipei",
+      "buildingType": "highrise",
+      "result": "matched",
+      "checkedAt": "2026-07-20T01:10:30.872Z",
+      "attemptCount": 1,
+      "fields": {
+        "date": true,
+        "totalPrice": true,
+        "areaSquareMeters": true,
+        "buildingType": true,
+        "floor": true,
+        "parkingPrice": true,
+        "parkingAreaSquareMeters": true
+      }
+    },
+    {
+      "id": "0003d6c6cdf844089b481647",
+      "city": "new-taipei",
+      "buildingType": "apartment",
+      "result": "matched",
+      "checkedAt": "2026-07-20T01:10:57.286Z",
+      "attemptCount": 1,
+      "fields": {
+        "date": true,
+        "totalPrice": true,
+        "areaSquareMeters": true,
+        "buildingType": true,
+        "floor": true,
+        "parkingPrice": true,
+        "parkingAreaSquareMeters": true
+      }
+    },
+    {
+      "id": "0005c5c97b3492b727b6bbcb",
+      "city": "new-taipei",
+      "buildingType": "highrise",
+      "result": "matched",
+      "checkedAt": "2026-07-20T01:11:24.231Z",
+      "attemptCount": 1,
+      "fields": {
+        "date": true,
+        "totalPrice": true,
+        "areaSquareMeters": true,
+        "buildingType": true,
+        "floor": true,
+        "parkingPrice": true,
+        "parkingAreaSquareMeters": true
+      }
     }
   ],
   "notes": "稽核紀錄不保存地址。官方查詢逾時或找不到紀錄時標為 inconclusive 並改用同型態備援樣本。"

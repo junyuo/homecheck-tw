@@ -54,7 +54,7 @@ test('價格驗收排除 inconclusive 並要求每市十筆與三種型態', () 
   assert.equal(result.requiredSampleCount, 20)
 })
 
-test('價格 mismatch 或資料指紋改變時阻擋發布', () => {
+test('價格 mismatch 或 adapter 版本改變時阻擋發布', () => {
   const samples = ['taipei', 'new-taipei'].flatMap((city) =>
     Array.from({ length: 10 }, (_, index) => ({
       id: `${city}-${index}`,
@@ -66,14 +66,32 @@ test('價格 mismatch 或資料指紋改變時阻擋發布', () => {
   assert.equal(evaluatePriceAudit({
     status: 'passed',
     adapterVersion: 'price-v1',
-    sourceSha256: 'source',
-    datasetSha256: 'old',
+    samples,
+  }, {
+    adapterVersion: 'price-v2',
+  }).passed, false)
+})
+
+test('日常來源與資料雜湊更新不會讓人工驗收失效', () => {
+  const samples = ['taipei', 'new-taipei'].flatMap((city) =>
+    Array.from({ length: 10 }, (_, index) => ({
+      id: `${city}-${index}`,
+      city,
+      buildingType: ['apartment', 'mansion', 'highrise'][index % 3],
+      result: 'matched',
+      fields: matchedFields,
+    })))
+  assert.equal(evaluatePriceAudit({
+    status: 'passed',
+    adapterVersion: 'price-v1',
+    sourceSha256: 'old-source',
+    datasetSha256: 'old-dataset',
     samples,
   }, {
     adapterVersion: 'price-v1',
-    sourceSha256: 'source',
-    datasetSha256: 'dataset',
-  }).passed, false)
+    sourceSha256: 'new-source',
+    datasetSha256: 'new-dataset',
+  }).passed, true)
 })
 
 test('災害驗收要求每市五點與指定案例覆蓋', () => {
@@ -84,6 +102,11 @@ test('災害驗收要求每市五點與指定案例覆蓋', () => {
     { id: `${city}-y2`, source: 'flood', city, caseType: 'yellow', expectedCategory: '0.3-0.5', result: 'matched' },
     { id: `${city}-u`, source: 'flood', city, caseType: 'unknown', expectedCategory: '未確認覆蓋', result: 'matched' },
   ])
+  samples.forEach((sample, index) => Object.assign(sample, {
+    observedCategory: sample.expectedCategory,
+    longitude: Number((121.5 + index / 10000).toFixed(5)),
+    latitude: Number((25 + index / 10000).toFixed(5)),
+  }))
   const result = evaluateRiskAudit({
     status: 'passed',
     adapterVersion: 'risks-v1',

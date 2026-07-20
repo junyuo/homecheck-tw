@@ -99,10 +99,9 @@ async function main() {
           join(root, 'scripts', 'data', 'audits', 'price-v1.json'),
           'utf8',
         ))
+        const datasetSha256 = await sourceFilesSha256(staging, result.files)
         const auditEvaluation = evaluatePriceAudit(audit, {
           adapterVersion: result.adapterVersion,
-          sourceSha256: result.sha256,
-          datasetSha256: await sourceFilesSha256(staging, result.files),
         })
         const auditPassed = auditEvaluation.passed
         const nextPrice = officialSource(
@@ -115,6 +114,7 @@ async function main() {
                 status: 'passed',
                 adapterVersion: result.adapterVersion,
                 checkedAt: now,
+                datasetSha256,
               },
               manualAudit: manualGate(auditEvaluation, result.adapterVersion, audit.checkedAt),
             },
@@ -179,16 +179,16 @@ async function main() {
             join(root, 'scripts', 'data', 'audits', 'rail-v1.json'),
             'utf8',
           ))
+          const datasetSha256 = await sourceFilesSha256(staging, result.files)
           railEvaluation = evaluateRailAudit(railAudit, {
             adapterVersion: result.adapterVersion,
-            sourceSha256: result.sha256,
-            datasetSha256: await sourceFilesSha256(staging, result.files),
           })
           qualityGates = {
             automated: {
               status: 'passed',
               adapterVersion: result.adapterVersion,
               checkedAt: now,
+              datasetSha256,
             },
             manualAudit: manualGate(railEvaluation, result.adapterVersion, railAudit.checkedAt),
           }
@@ -250,14 +250,18 @@ async function main() {
           join(root, 'scripts', 'data', 'audits', 'risks-v1.json'),
           'utf8',
         ))
+        const datasetHashes = Object.fromEntries(await Promise.all(
+          ['district-boundary', 'flood', 'liquefaction'].map(async (source) => {
+            const resultKey = source === 'district-boundary' ? 'boundary' : source
+            return [source, await sourceFilesSha256(staging, result[resultKey].files)]
+          }),
+        ))
         const evaluations = Object.fromEntries(await Promise.all(
           ['flood', 'liquefaction'].map(async (source) => [source, evaluateRiskAudit(
             audit,
             source,
             {
               adapterVersion: result.adapterVersion,
-              sourceSha256: result[source].sha256,
-              datasetSha256: await sourceFilesSha256(staging, result[source].files),
             },
           )]),
         ))
@@ -268,6 +272,7 @@ async function main() {
             adapterVersion: result.adapterVersion,
             checkedAt: now,
             gdalVersion: result.gdalVersion,
+            datasetSha256: datasetHashes[source],
           },
           manualAudit: manualGate(evaluations[source], result.adapterVersion, audit.checkedAt),
         })
@@ -281,6 +286,7 @@ async function main() {
                 adapterVersion: result.adapterVersion,
                 checkedAt: now,
                 gdalVersion: result.gdalVersion,
+                datasetSha256: datasetHashes['district-boundary'],
               },
             },
           },
