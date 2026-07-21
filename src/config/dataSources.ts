@@ -90,7 +90,7 @@ export const dataSources: DataSource[] = [
     sourceUrl: 'https://data.gov.tw/dataset/6087',
     license: '政府資料開放授權條款第 1 版',
     refreshFrequency: '每月 5 日檢查最新學年度',
-    notes: '只納入最新學年度四類學校名錄，並以官方門牌索引精確定位；距離不代表學區、入學資格或招生結果。',
+    notes: '只納入最新學年度四類學校名錄，以官方門牌或新北重要地標精確定位；距離不代表學區、入學資格或招生結果。',
   },
   {
     id: 'park',
@@ -121,7 +121,6 @@ export const dataSources: DataSource[] = [
   },
   ...([
     ['market', '市場', '雙北市政府'],
-    ['library', '圖書館', '雙北市政府'],
   ] as const).map(([id, name, agency]) => ({
     id,
     name,
@@ -131,6 +130,15 @@ export const dataSources: DataSource[] = [
     refreshFrequency: '尚未接入',
     notes: '此類別獨立標示來源狀態；無法可靠定位的紀錄會排除。',
   })),
+  {
+    id: 'library',
+    name: '公立公共圖書館',
+    agency: '國立公共資訊圖書館',
+    sourceUrl: 'https://data.gov.tw/dataset/99567',
+    license: '政府資料開放授權條款第 1 版',
+    refreshFrequency: '每月 5 日建立靜態快照',
+    notes: '只納入地址與官方經緯度行政區一致的公立公共圖書館；距離不代表藏書、開放時間或服務品質。',
+  },
   {
     id: 'accidents',
     name: 'A1／A2 傷亡道路交通事故',

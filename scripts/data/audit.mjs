@@ -151,6 +151,7 @@ export function evaluateFacilityAudit(audit, source, {
   adapterVersion,
   sourceSha256,
   addressIndexSha256,
+  landmarkSha256,
   requireEvidenceSourceSha = false,
 } = {}) {
   const samples = Array.isArray(audit?.samples) ? audit.samples : []
@@ -177,7 +178,9 @@ export function evaluateFacilityAudit(audit, source, {
         typeof addressIndexSha256 === 'object'
           ? addressIndexSha256[sample.city]
           : addressIndexSha256
-      )))
+      )) &&
+    (source !== 'school' || sample.evidence?.locationMethod !== 'ntpc-landmark-exact' ||
+      sample.evidence?.landmarkSha256 === landmarkSha256))
   const schoolCoverage = source !== 'school' || ['taipei', 'new-taipei'].every((city) => {
     const levels = new Set(sourceSamples
       .filter((sample) => sample.city === city && sample.result === 'matched')
@@ -185,13 +188,18 @@ export function evaluateFacilityAudit(audit, source, {
     return ['elementary', 'junior', 'senior', 'special']
       .every((level) => levels.has(level))
   })
+  const libraryCoverage = source !== 'library' || ['taipei', 'new-taipei'].every((city) =>
+    new Set(sourceSamples
+      .filter((sample) => sample.city === city && sample.result === 'matched')
+      .map((sample) => sample.district)).size >= 3)
   const passed = audit?.status === 'passed' &&
     audit?.adapterVersion === adapterVersion &&
     counts.taipei >= 5 &&
     counts['new-taipei'] >= 5 &&
     mismatches === 0 &&
     evidenceValid &&
-    schoolCoverage
+    schoolCoverage &&
+    libraryCoverage
   return {
     passed,
     sampleCount: counts.taipei + counts['new-taipei'],

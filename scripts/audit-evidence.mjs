@@ -4,6 +4,7 @@ import {
   buildAccidentEvidence,
   buildCommunityEvidence,
   buildFacilityEvidence,
+  buildLibraryEvidence,
   buildRiskEvidence,
 } from './data/audit-evidence.mjs'
 import { recordAudit } from './data/audit-workflow.mjs'
@@ -24,6 +25,8 @@ async function main() {
   const isCommunity = ['school', 'park'].includes(source)
   const result = source === 'accidents'
     ? await buildAccidentEvidence(root, { id })
+    : source === 'library'
+      ? await buildLibraryEvidence(root, { id })
     : isFacility
     ? await buildFacilityEvidence(root, { source, id })
     : isCommunity

@@ -73,7 +73,7 @@ describe('空間分析', () => {
     expect(pointsWithinRadius(facilities, input, 500).map((x) => x.properties.name)).toEqual(['近點'])
   })
 
-  it('分別計算四類生活機能數量及最近點位', () => {
+  it('分別計算五類生活機能數量及最近點位', () => {
     const dataset: DistrictDataset = {
       transactions: [],
       facilities: {
@@ -84,6 +84,7 @@ describe('空間分析', () => {
           { type: 'Feature', properties: { name: '近停車場', category: 'parking' }, geometry: { type: 'Point', coordinates: [121.5432, 25.0332] } },
           { type: 'Feature', properties: { name: '測試校園', category: 'school', schoolLevels: ['elementary', 'junior'] }, geometry: { type: 'Point', coordinates: [121.5433, 25.0333] } },
           { type: 'Feature', properties: { name: '測試綠地', category: 'park', parkType: 'green-space' }, geometry: { type: 'Point', coordinates: [121.5434, 25.0334] } },
+          { type: 'Feature', properties: { name: '測試圖書館', category: 'library' }, geometry: { type: 'Point', coordinates: [121.5435, 25.0335] } },
         ],
       },
       accidents: { type: 'FeatureCollection', features: [] },
@@ -102,6 +103,8 @@ describe('空間分析', () => {
     expect(result.lifeFacilities.school.byLevel.elementary).toBe(1)
     expect(result.lifeFacilities.school.byLevel.junior).toBe(1)
     expect(result.lifeFacilities.park.nearestType).toBe('green-space')
+    expect(result.lifeFacilities.library.count).toBe(1)
+    expect(result.lifeFacilities.library.nearestName).toBe('測試圖書館')
   })
 
   it('事故來源官方且行政區為零件時仍視為完整資料', () => {

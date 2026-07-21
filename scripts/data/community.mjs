@@ -11,12 +11,13 @@ import {
   parseCsvLine,
   sha256,
   stableId,
+  twd97ToWgs84,
 } from './core.mjs'
 import { ALL_DISTRICTS, DISTRICTS, EMPTY_GEOJSON, SOURCE_URLS } from './constants.mjs'
 import { sourceFilesSha256 } from './manifest.mjs'
 import { pointMatchesDistrict } from './transport.mjs'
 
-export const COMMUNITY_ADAPTER_VERSION = 'community-v1'
+export const COMMUNITY_ADAPTER_VERSION = 'community-v2'
 export const SCHOOL_YEAR = 114
 export const SCHOOL_LEVELS = ['elementary', 'junior', 'senior', 'special']
 
@@ -45,6 +46,64 @@ function cityFromRecord(value) {
   if (text.includes('臺北市') || text.includes('台北市')) return 'taipei'
   if (text.includes('新北市')) return 'new-taipei'
   return null
+}
+
+function normalizeSchoolName(value) {
+  return String(value ?? '').normalize('NFKC')
+    .replaceAll('台', '臺')
+    .replace(/[()（）\[\]【】\s]/g, '')
+}
+
+export function parseNewTaipeiSchoolLandmarks(value) {
+  if (!Array.isArray(value)) throw new Error('新北重要地標來源不是陣列')
+  const schoolTypes = new Set(['國民小學', '國民中學', '高中職', '完全中學', '教育研究機構'])
+  const index = new Map()
+  for (const row of value) {
+    if (!schoolTypes.has(String(row['地標類型'] ?? '').trim())) continue
+    const districtLabel = String(row['行政區'] ?? '').trim()
+    const district = DISTRICTS['new-taipei'][districtLabel]
+    const name = normalizeSchoolName(row['地標名稱'])
+    const coordinate = twd97ToWgs84(row.twd97_x, row.twd97_y)
+    if (!district || !name || !coordinate || !inTaipeiMetroArea(coordinate)) continue
+    const key = `${districtLabel}|${name}`
+    const item = {
+      coordinate,
+      district,
+      districtLabel,
+      objectId: String(row.objectid ?? ''),
+      rawCoordinate: {
+        crs: 'EPSG:3826',
+        x: Number(row.twd97_x),
+        y: Number(row.twd97_y),
+      },
+    }
+    if (!index.has(key)) index.set(key, item)
+    else {
+      const previous = index.get(key)
+      const distance = Math.hypot(
+        (previous.coordinate.latitude - coordinate.latitude) * 111000,
+        (previous.coordinate.longitude - coordinate.longitude) * 101000,
+      )
+      if (distance > 1) index.set(key, null)
+    }
+  }
+  return index
+}
+
+function matchSchoolAddress(index, rawAddress, simplifiedAddress, city, districtLabel) {
+  const results = [rawAddress, simplifiedAddress]
+    .map((address) => matchAddress(index, address, city, districtLabel))
+  if (results.some((result) => result.status === 'ambiguous')) {
+    return { status: 'ambiguous', coordinate: null }
+  }
+  const coordinates = results.filter((result) => result.status === 'matched')
+    .map((result) => result.coordinate)
+  if (!coordinates.length) return { status: 'unmatched', coordinate: null }
+  const distinct = new Set(coordinates.map((coordinate) =>
+    `${coordinate.longitude.toFixed(7)}:${coordinate.latitude.toFixed(7)}`))
+  return distinct.size === 1
+    ? { status: 'matched', coordinate: coordinates[0] }
+    : { status: 'ambiguous', coordinate: null }
 }
 
 function pointFeature({
@@ -94,7 +153,7 @@ function schoolRows(value, level) {
   return value.filter((row) => Number(row['學年度'] ?? SCHOOL_YEAR) === latestYear)
 }
 
-export function parseSchools(rawSources, indexes, sourceUpdatedAt) {
+export function parseSchools(rawSources, indexes, sourceUpdatedAt, landmarkIndex = new Map()) {
   const definitions = [
     ['elementary', schoolRows(rawSources.elementary, 'elementary')],
     ['junior', schoolRows(rawSources.junior, 'junior')],
@@ -122,9 +181,24 @@ export function parseSchools(rawSources, indexes, sourceUpdatedAt) {
         )
         .replace(/\d+鄰/g, '')
         .replaceAll('褔', '福')
-      const matched = matchAddress(indexes[city].index, address, city, location.districtLabel)
-      if (matched.status !== 'matched') {
-        parsed.push({ excluded: `${matched.status}Address`, city })
+      const matched = matchSchoolAddress(
+        indexes[city].index,
+        rawAddress,
+        address,
+        city,
+        location.districtLabel,
+      )
+      const landmark = city === 'new-taipei'
+        ? landmarkIndex.get(`${location.districtLabel}|${normalizeSchoolName(name)}`)
+        : undefined
+      const coordinate = matched.status === 'matched' ? matched.coordinate : landmark?.coordinate
+      const locationMethod = matched.status === 'matched'
+        ? 'address-index-exact'
+        : landmark
+          ? 'ntpc-landmark-exact'
+          : null
+      if (!coordinate || !locationMethod) {
+        parsed.push({ excluded: landmark === null ? 'ambiguousLandmark' : `${matched.status}Address`, city })
         continue
       }
       const addressSha256 = sha256(address)
@@ -133,14 +207,22 @@ export function parseSchools(rawSources, indexes, sourceUpdatedAt) {
         rawId: officialCode || stableId(['special-school', city, name]),
         ...location,
         name,
-        coordinate: matched.coordinate,
+        coordinate,
         sourceUpdatedAt,
         properties: {
           facilityType: 'school-campus',
           schoolLevels: [level],
           officialCodes: officialCode ? [officialCode] : [],
         },
-        evidence: { addressSha256, level, officialCode },
+        evidence: {
+          addressSha256,
+          level,
+          officialCode,
+          locationMethod,
+          ...(locationMethod === 'ntpc-landmark-exact'
+            ? { landmarkObjectId: landmark.objectId, rawCoordinate: landmark.rawCoordinate }
+            : {}),
+        },
       }))
     }
   }
@@ -426,7 +508,9 @@ export async function updateOfficialCommunity({
     adapterVersion: COMMUNITY_ADAPTER_VERSION,
     generatedAt: now.toISOString(),
     addressIndexSha256: {},
+    landmarkSha256: null,
     fingerprints: {},
+    matchingRates: {},
     samples: {
       school: { taipei: [], 'new-taipei': [] },
       park: { taipei: [], 'new-taipei': [] },
@@ -434,11 +518,12 @@ export async function updateOfficialCommunity({
   }
   let indexes
   try {
-    const [elementary, junior, senior, special] = await Promise.all([
+    const [elementary, junior, senior, special, landmarks] = await Promise.all([
       rawFile(cache, 'elementary.json', SOURCE_URLS.elementarySchool, reuseCache),
       rawFile(cache, 'junior.json', SOURCE_URLS.juniorSchool, reuseCache),
       rawFile(cache, 'senior.json', SOURCE_URLS.seniorSchool, reuseCache),
       rawFile(cache, 'special.csv', SOURCE_URLS.specialSchool, reuseCache),
+      rawFile(cache, 'new-taipei-landmarks.json', SOURCE_URLS.newTaipeiLandmarks, reuseCache),
     ])
     indexes = {
       taipei: await buildTaipeiAddressIndex(cache, reuseCache),
@@ -448,13 +533,16 @@ export async function updateOfficialCommunity({
       taipei: indexes.taipei.sha256,
       'new-taipei': indexes['new-taipei'].sha256,
     }
+    const landmarkIndex = parseNewTaipeiSchoolLandmarks(jsonBuffer(landmarks))
+    candidates.landmarkSha256 = sha256(landmarks)
     const parsed = parseSchools({
       elementary: jsonBuffer(elementary),
       junior: jsonBuffer(junior),
       senior: jsonBuffer(senior),
       special: special.toString('utf8'),
-    }, indexes, now.toISOString())
+    }, indexes, now.toISOString(), landmarkIndex)
     const rates = addressMatchingRates(parsed)
+    candidates.matchingRates.school = rates
     assertMatchingRates('school', rates)
     const merged = mergeSchoolCampuses(parsed)
     const quality = qualityFilter(merged, boundaries)
@@ -465,12 +553,13 @@ export async function updateOfficialCommunity({
       'school',
       quality.accepted,
       now,
-      sha256([elementary, junior, senior, special].map(sha256).join(':')),
+      sha256([elementary, junior, senior, special, landmarks].map(sha256).join(':')),
       quality.excluded,
       previous.school,
     )
     result.matchingRate = rates.overall
     result.matchingRates = rates
+    result.landmarkSha256 = sha256(landmarks)
     results.push(result)
     candidates.samples.school = selectSamples('school', quality.accepted)
   } catch (error) {
@@ -502,6 +591,11 @@ export async function updateOfficialCommunity({
       now.toISOString(),
     )
     const rates = addressMatchingRates(parsedNewTaipei)
+    candidates.matchingRates.park = {
+      taipei: 1,
+      'new-taipei': rates['new-taipei'],
+      overall: rates.overall,
+    }
     assertMatchingRates('park', {
       'new-taipei': rates['new-taipei'],
       overall: rates.overall,

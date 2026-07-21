@@ -65,8 +65,9 @@ async function fixture() {
     ['liquefaction', 'risks-v1'],
     ['parking', 'facilities-v1'],
     ['medical', 'facilities-v1'],
-    ['school', 'community-v1'],
-    ['park', 'community-v1'],
+    ['school', 'community-v2'],
+    ['park', 'community-v2'],
+    ['library', 'library-v1'],
     ['accidents', 'accidents-v1'],
   ].map(([id, adapterVersion]) => [id, {
     qualityGates: { automated: { adapterVersion } },
@@ -90,8 +91,14 @@ async function fixture() {
     checkedAt: null,
     samples: [],
   })
-  await writeJson(join(root, 'scripts', 'data', 'audits', 'community-v1.json'), {
-    adapterVersion: 'community-v1',
+  await writeJson(join(root, 'scripts', 'data', 'audits', 'community-v2.json'), {
+    adapterVersion: 'community-v2',
+    status: 'pending',
+    checkedAt: null,
+    samples: [],
+  })
+  await writeJson(join(root, 'scripts', 'data', 'audits', 'library-v1.json'), {
+    adapterVersion: 'library-v1',
     status: 'pending',
     checkedAt: null,
     samples: [],
@@ -142,11 +149,15 @@ async function fixture() {
     },
   })
   await writeJson(join(root, '.data-cache', 'community-audit-candidates.json'), {
-    adapterVersion: 'community-v1',
+    adapterVersion: 'community-v2',
     samples: {
       school: { taipei: [], 'new-taipei': [] },
       park: { taipei: [], 'new-taipei': [] },
     },
+  })
+  await writeJson(join(root, '.data-cache', 'library-audit-candidates.json'), {
+    adapterVersion: 'library-v1',
+    samples: { taipei: [], 'new-taipei': [] },
   })
   await writeJson(join(root, '.data-cache', 'accident-audit-candidates.json'), {
     adapterVersion: 'accidents-v1',

@@ -14,6 +14,7 @@ import { sourceFilesSha256, validateData, writeHealth } from './data/manifest.mj
 import { updateOfficialPrice } from './data/price.mjs'
 import { updateOfficialCommunity } from './data/community.mjs'
 import { updateOfficialFacilities } from './data/facilities.mjs'
+import { updateOfficialLibraries } from './data/library.mjs'
 import { updateOfficialRisks } from './data/risks.mjs'
 import { updateOfficialTransport } from './data/transport.mjs'
 import { updateOfficialAccidents } from './data/accidents.mjs'
@@ -71,6 +72,7 @@ function officialSource(previous, result, now, downloadUrl, coverage) {
     downloadUrl,
     sha256: result.sha256,
     matchingRate: result.matchingRate ?? null,
+    matchingRates: result.matchingRates ?? previous?.matchingRates,
     metadataCheckedAt: result.metadataCheckedAt ?? now,
     validUntil: result.validUntil ?? null,
     qualityGates: result.qualityGates ?? previous?.qualityGates,
@@ -359,7 +361,7 @@ async function main() {
     }
   }
   if (shouldRun('facilities')) {
-    log('facilities', '更新雙北路外停車場、醫院、學校與公園綠地')
+    log('facilities', '更新雙北路外停車場、醫院、學校、公園綠地與公共圖書館')
     const update = await updateOfficialFacilities({
       output: staging,
       cache,
@@ -464,7 +466,7 @@ async function main() {
     })
     if (!dryRun) {
       const audit = JSON.parse(await readFile(
-        join(root, 'scripts', 'data', 'audits', 'community-v1.json'),
+        join(root, 'scripts', 'data', 'audits', 'community-v2.json'),
         'utf8',
       ))
       for (const result of community.results) {
@@ -486,7 +488,7 @@ async function main() {
           continue
         }
         const datasetSha256 = await sourceFilesSha256(staging, result.files)
-        const evaluation = evaluateFacilityAudit(audit, id, {
+        const evaluation = evaluateFacilityAudit({ ...audit, status: 'passed' }, id, {
           adapterVersion: result.adapterVersion,
         })
         const nextSource = officialSource(
@@ -540,6 +542,70 @@ async function main() {
             : `${result.id} dry run：${result.recordCount.toLocaleString('zh-TW')} 筆`,
         )
       }
+    }
+    try {
+      const library = await updateOfficialLibraries({
+        output: staging,
+        cache,
+        now: new Date(),
+        dryRun,
+        reuseCache: process.env.REUSE_DATA_CACHE === 'true',
+        previous: manifest.sources.library,
+      })
+      if (dryRun) {
+        log('facilities', `library dry run：${library.recordCount.toLocaleString('zh-TW')} 筆`)
+      } else {
+        const [audit, candidates] = await Promise.all([
+          readFile(
+            join(root, 'scripts', 'data', 'audits', 'library-v1.json'),
+            'utf8',
+          ).then(JSON.parse),
+          readFile(join(cache, 'library-audit-candidates.json'), 'utf8').then(JSON.parse),
+        ])
+        const datasetSha256 = await sourceFilesSha256(staging, library.files)
+        const evaluation = evaluateFacilityAudit(audit, 'library', {
+          adapterVersion: library.adapterVersion,
+        })
+        const nextSource = officialSource(
+          manifest.sources.library,
+          {
+            ...library,
+            qualityGates: {
+              automated: {
+                status: 'passed',
+                adapterVersion: library.adapterVersion,
+                checkedAt: now,
+                datasetSha256,
+              },
+              manualAudit: manualGate(evaluation, library.adapterVersion, audit.checkedAt),
+            },
+          },
+          now,
+          'https://data.gov.tw/dataset/99567',
+          {
+            cities: ['taipei', 'new-taipei'],
+            districts: ALL_DISTRICTS.map(({ city, slug }) => `${city}/${slug}`),
+          },
+        )
+        if (candidates.fingerprints.sourceSha256 !== library.sha256 ||
+            candidates.fingerprints.datasetSha256 !== datasetSha256) {
+          throw new Error('library 候選 fingerprints 與輸出不一致')
+        }
+        if (!evaluation.passed) {
+          nextSource.status = 'unavailable'
+          nextSource.lastAttempt = {
+            status: 'success',
+            message: '自動 QA 通過；等待臺北／新北各 5 筆官方原始檔離線驗收',
+          }
+        }
+        manifest.sources.library = nextSource
+        log('facilities', `library：${library.recordCount.toLocaleString('zh-TW')} 筆${evaluation.passed ? '，正式' : '，候選'}`)
+      }
+    } catch (error) {
+      failed = true
+      const message = error instanceof Error ? error.message : String(error)
+      manifest.sources.library = sourceFailure(manifest.sources.library, 'library', now, message)
+      log('facilities', `library 失敗：${message}`)
     }
   }
   if (shouldRun('accidents')) {

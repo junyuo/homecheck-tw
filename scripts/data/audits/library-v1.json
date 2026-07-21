@@ -1,0 +1,297 @@
+{
+  "adapterVersion": "library-v1",
+  "status": "passed",
+  "checkedAt": "2026-07-21T02:57:26.394Z",
+  "samples": [
+    {
+      "id": "03ebcd67596a8624bdfe53fe",
+      "source": "library",
+      "city": "taipei",
+      "district": "songshan",
+      "result": "matched",
+      "verificationMethod": "official-raw-offline",
+      "fields": {
+        "id": true,
+        "name": true,
+        "district": true,
+        "coordinate": true
+      },
+      "evidence": {
+        "verificationMethod": "official-raw-offline",
+        "sourceSha256": "667430147a7c600f8ed9ed57b53c005b7388ccd26d8938c5c5c089e06aefcaf7",
+        "rawRecordCount": 1,
+        "fields": {
+          "id": true,
+          "name": true,
+          "district": true,
+          "coordinate": true
+        },
+        "checkedAt": "2026-07-21T02:57:24.787Z",
+        "queryOutputSha256": "7aa680e5e0a9c46bb5d1590e442f467aa7a0902d770e6863227610a4b33996e5"
+      },
+      "checkedAt": "2026-07-21T02:57:24.795Z",
+      "attemptCount": 1
+    },
+    {
+      "id": "072839911650bf66700ac8b9",
+      "source": "library",
+      "city": "taipei",
+      "district": "xinyi",
+      "result": "matched",
+      "verificationMethod": "official-raw-offline",
+      "fields": {
+        "id": true,
+        "name": true,
+        "district": true,
+        "coordinate": true
+      },
+      "evidence": {
+        "verificationMethod": "official-raw-offline",
+        "sourceSha256": "667430147a7c600f8ed9ed57b53c005b7388ccd26d8938c5c5c089e06aefcaf7",
+        "rawRecordCount": 1,
+        "fields": {
+          "id": true,
+          "name": true,
+          "district": true,
+          "coordinate": true
+        },
+        "checkedAt": "2026-07-21T02:57:24.966Z",
+        "queryOutputSha256": "69cd148ad71d2acaa6a3d379bc03fd56b367e6be5087132664276f216d130a61"
+      },
+      "checkedAt": "2026-07-21T02:57:24.973Z",
+      "attemptCount": 1
+    },
+    {
+      "id": "0bbe5344e94d6e207096f75f",
+      "source": "library",
+      "city": "taipei",
+      "district": "wanhua",
+      "result": "matched",
+      "verificationMethod": "official-raw-offline",
+      "fields": {
+        "id": true,
+        "name": true,
+        "district": true,
+        "coordinate": true
+      },
+      "evidence": {
+        "verificationMethod": "official-raw-offline",
+        "sourceSha256": "667430147a7c600f8ed9ed57b53c005b7388ccd26d8938c5c5c089e06aefcaf7",
+        "rawRecordCount": 1,
+        "fields": {
+          "id": true,
+          "name": true,
+          "district": true,
+          "coordinate": true
+        },
+        "checkedAt": "2026-07-21T02:57:25.143Z",
+        "queryOutputSha256": "96909284a8efba8fbcca75632ff870d51270c593869f28e885b36d8e2ebc902a"
+      },
+      "checkedAt": "2026-07-21T02:57:25.150Z",
+      "attemptCount": 1
+    },
+    {
+      "id": "07f042f009b5a031f4542c54",
+      "source": "library",
+      "city": "taipei",
+      "district": "songshan",
+      "result": "matched",
+      "verificationMethod": "official-raw-offline",
+      "fields": {
+        "id": true,
+        "name": true,
+        "district": true,
+        "coordinate": true
+      },
+      "evidence": {
+        "verificationMethod": "official-raw-offline",
+        "sourceSha256": "667430147a7c600f8ed9ed57b53c005b7388ccd26d8938c5c5c089e06aefcaf7",
+        "rawRecordCount": 1,
+        "fields": {
+          "id": true,
+          "name": true,
+          "district": true,
+          "coordinate": true
+        },
+        "checkedAt": "2026-07-21T02:57:25.324Z",
+        "queryOutputSha256": "7051da8948b919dad6fd4f4dd01ed391eaf00372a6a250868e728c30db3ee4ac"
+      },
+      "checkedAt": "2026-07-21T02:57:25.332Z",
+      "attemptCount": 1
+    },
+    {
+      "id": "0da0c9e06908bde508afe03f",
+      "source": "library",
+      "city": "taipei",
+      "district": "neihu",
+      "result": "matched",
+      "verificationMethod": "official-raw-offline",
+      "fields": {
+        "id": true,
+        "name": true,
+        "district": true,
+        "coordinate": true
+      },
+      "evidence": {
+        "verificationMethod": "official-raw-offline",
+        "sourceSha256": "667430147a7c600f8ed9ed57b53c005b7388ccd26d8938c5c5c089e06aefcaf7",
+        "rawRecordCount": 1,
+        "fields": {
+          "id": true,
+          "name": true,
+          "district": true,
+          "coordinate": true
+        },
+        "checkedAt": "2026-07-21T02:57:25.509Z",
+        "queryOutputSha256": "255c899ce7fd3c04837ba083148b21d13a4507013d498c1fcb29347102bc102c"
+      },
+      "checkedAt": "2026-07-21T02:57:25.517Z",
+      "attemptCount": 1
+    },
+    {
+      "id": "010e84268ed4e2e8dc317f8a",
+      "source": "library",
+      "city": "new-taipei",
+      "district": "linkou",
+      "result": "matched",
+      "verificationMethod": "official-raw-offline",
+      "fields": {
+        "id": true,
+        "name": true,
+        "district": true,
+        "coordinate": true
+      },
+      "evidence": {
+        "verificationMethod": "official-raw-offline",
+        "sourceSha256": "667430147a7c600f8ed9ed57b53c005b7388ccd26d8938c5c5c089e06aefcaf7",
+        "rawRecordCount": 1,
+        "fields": {
+          "id": true,
+          "name": true,
+          "district": true,
+          "coordinate": true
+        },
+        "checkedAt": "2026-07-21T02:57:25.686Z",
+        "queryOutputSha256": "4c7b42324155ca963c12f806212ce4d18a862e1940eafab731bfaaf37d2f6881"
+      },
+      "checkedAt": "2026-07-21T02:57:25.694Z",
+      "attemptCount": 1
+    },
+    {
+      "id": "037a20d2eef2aa68ab47fa21",
+      "source": "library",
+      "city": "new-taipei",
+      "district": "luzhou",
+      "result": "matched",
+      "verificationMethod": "official-raw-offline",
+      "fields": {
+        "id": true,
+        "name": true,
+        "district": true,
+        "coordinate": true
+      },
+      "evidence": {
+        "verificationMethod": "official-raw-offline",
+        "sourceSha256": "667430147a7c600f8ed9ed57b53c005b7388ccd26d8938c5c5c089e06aefcaf7",
+        "rawRecordCount": 1,
+        "fields": {
+          "id": true,
+          "name": true,
+          "district": true,
+          "coordinate": true
+        },
+        "checkedAt": "2026-07-21T02:57:25.863Z",
+        "queryOutputSha256": "39b92bbe415c470e1306dfd2922a9b9738d8d050e0622562d427425bb290235d"
+      },
+      "checkedAt": "2026-07-21T02:57:25.871Z",
+      "attemptCount": 1
+    },
+    {
+      "id": "045e4b39a53b5d9b69979743",
+      "source": "library",
+      "city": "new-taipei",
+      "district": "yonghe",
+      "result": "matched",
+      "verificationMethod": "official-raw-offline",
+      "fields": {
+        "id": true,
+        "name": true,
+        "district": true,
+        "coordinate": true
+      },
+      "evidence": {
+        "verificationMethod": "official-raw-offline",
+        "sourceSha256": "667430147a7c600f8ed9ed57b53c005b7388ccd26d8938c5c5c089e06aefcaf7",
+        "rawRecordCount": 1,
+        "fields": {
+          "id": true,
+          "name": true,
+          "district": true,
+          "coordinate": true
+        },
+        "checkedAt": "2026-07-21T02:57:26.037Z",
+        "queryOutputSha256": "7737525f16651bfcf7c4d09c418d906f782d99d7a2f3cb50903b73dbd1727378"
+      },
+      "checkedAt": "2026-07-21T02:57:26.044Z",
+      "attemptCount": 1
+    },
+    {
+      "id": "05666b4493c80bccf55e6e29",
+      "source": "library",
+      "city": "new-taipei",
+      "district": "tucheng",
+      "result": "matched",
+      "verificationMethod": "official-raw-offline",
+      "fields": {
+        "id": true,
+        "name": true,
+        "district": true,
+        "coordinate": true
+      },
+      "evidence": {
+        "verificationMethod": "official-raw-offline",
+        "sourceSha256": "667430147a7c600f8ed9ed57b53c005b7388ccd26d8938c5c5c089e06aefcaf7",
+        "rawRecordCount": 1,
+        "fields": {
+          "id": true,
+          "name": true,
+          "district": true,
+          "coordinate": true
+        },
+        "checkedAt": "2026-07-21T02:57:26.209Z",
+        "queryOutputSha256": "2e5956e3dc467973fa3af8323c082891cb8b9b23759cfba6be7f7038db0cb916"
+      },
+      "checkedAt": "2026-07-21T02:57:26.216Z",
+      "attemptCount": 1
+    },
+    {
+      "id": "07cb715355528a48a33c1dfd",
+      "source": "library",
+      "city": "new-taipei",
+      "district": "banqiao",
+      "result": "matched",
+      "verificationMethod": "official-raw-offline",
+      "fields": {
+        "id": true,
+        "name": true,
+        "district": true,
+        "coordinate": true
+      },
+      "evidence": {
+        "verificationMethod": "official-raw-offline",
+        "sourceSha256": "667430147a7c600f8ed9ed57b53c005b7388ccd26d8938c5c5c089e06aefcaf7",
+        "rawRecordCount": 1,
+        "fields": {
+          "id": true,
+          "name": true,
+          "district": true,
+          "coordinate": true
+        },
+        "checkedAt": "2026-07-21T02:57:26.385Z",
+        "queryOutputSha256": "63cd69ce23a1e030008b899790dc0a5717bacf1db872fe923f9266957c3c6940"
+      },
+      "checkedAt": "2026-07-21T02:57:26.394Z",
+      "attemptCount": 1
+    }
+  ]
+}

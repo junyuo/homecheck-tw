@@ -12,7 +12,7 @@ function option(name, fallback = '') {
 }
 
 function printProgress(status) {
-  for (const source of ['price', 'flood', 'liquefaction', 'parking', 'medical', 'school', 'park', 'accidents']) {
+  for (const source of ['price', 'flood', 'liquefaction', 'parking', 'medical', 'school', 'park', 'library', 'accidents']) {
     const item = status[source]
     console.log(
       `[audit] ${source}: ${item.passed ? 'passed' : 'pending'} ` +

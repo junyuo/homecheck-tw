@@ -19,9 +19,10 @@
 | 淹水、土壤液化 | official | 自動 QA 已通過；410 個淹水情境檔與 41 個液化檔，各完成臺北／新北 5 點官方 raw 原始分類複核 |
 | 雙北路外公共停車場 | official | 2,607 個有汽車格位的靜態官方點位；20 筆設施稽核中的停車場 10／10 通過，不提供即時剩餘車位 |
 | 雙北公私立醫院 | official | 64 個醫院點位；新北門牌精確匹配率 96.77%，設施稽核中的醫院 10／10 通過，不混入診所 |
-| 雙北學校 | unavailable | `community-v1` 已接入最新 114 學年度四類名錄；臺北門牌達標，但新北精確匹配率 91.81% 未達 95%，不發布候選 |
-| 雙北公園綠地 | unavailable | `community-v1` 已接入臺北公園／綠地／廣場與新北公園；新北精確匹配率 86.08% 未達 95%，不發布候選 |
-| 市場、圖書館 | unavailable | 每類來源獨立接入，不以單一成功類別代表全部 |
+| 雙北學校 | official | `community-v2` 產生 602 個校園點；臺北 96.40%、新北 100%、整體 98.39% 精確定位，雙北各 5 筆官方 raw 稽核通過 |
+| 雙北公園綠地 | unavailable | 公園管線維持獨立；新北精確匹配率 86.08% 未達 95%，不發布候選 |
+| 公立公共圖書館 | official | `library-v1` 依國立公共資訊圖書館官方經緯度產生 161 個雙北點位，雙北各 5 筆官方 raw 稽核通過 |
+| 市場 | unavailable | 尚未完成雙北一致分類與定位驗收 |
 | A1／A2 事故 | official | 2023–2025 雙北 218,122 件去識別事故；同案當事人列已合併，臺北／新北各 5 件官方 raw 離線驗收通過 |
 
 最新機器可讀狀態以 [`public/data/manifest.json`](public/data/manifest.json) 和 [`public/data/health.json`](public/data/health.json) 為準。實價筆數與匹配率會隨官方更新而變動；上表是 2026-07-21 本機正式發布的快照。
@@ -36,9 +37,9 @@
 - 淹水：預設為 24 小時 500 mm，可切換官方 10 種情境；0.3–0.5 m 為黃色、0.5 m 以上為紅色。
 - 液化：官方低／中／高潛勢分別為綠／黃／紅；未確認模式或調查覆蓋的位置維持灰色。
 - 災害圖資：只供區域性判讀，不代表個別建物安全。
-- 生活機能：分別顯示生活圈內醫院、路外停車場、學校與公園綠地數量及最近點位直線距離；學校距離不代表學區或入學資格，公園點位不代表面積、品質、開放狀態或實際入口。
+- 生活機能：分別顯示生活圈內醫院、路外停車場、學校、公園綠地與公共圖書館數量及最近點位直線距離；學校距離不代表學區或入學資格，圖書館距離不代表藏書、開放時間或服務品質。
 - 來源：每個來源獨立為 `official`、`stale`、`failed` 或 `unavailable`；一個來源載入失敗不會拖垮其他結果。
-- Local Storage：schema v6；v5 事故總數保留，新增 A1／A2 與年度明細標示為舊快照；既有 v4–v2 與舊 Demo 仍依原規則遷移。
+- Local Storage：schema v7；v6 事故明細保持有效，新增圖書館欄標示為舊快照；既有 v5–v2 與舊 Demo 仍依原規則遷移。
 
 ## 技術架構
 
@@ -112,6 +113,8 @@ npm run audit:evidence -- --source=parking --id=<id>
 npm run audit:evidence -- --source=medical --id=<id> --confirm
 npm run audit:evidence -- --source=school --id=<id>
 npm run audit:evidence -- --source=park --id=<id> --confirm
+npm run audit:evidence -- --source=library --id=<id>
+npm run audit:evidence -- --source=library --id=<id> --confirm
 npm run audit:evidence -- --source=accidents --id=<id>
 npm run audit:evidence -- --source=accidents --id=<id> --confirm
 ```
@@ -157,7 +160,7 @@ npm run update-data -- --source=accidents
 
 災害 adapter 會驗證 10 種情境、CRS、雙北座標、面 geometry、未知深度比率、41 區檔案數及 5 MB 上限；淹水與液化各完成臺北／新北至少 5 個位置的官方 raw 原始分類複核後才切換為 `official`。證據保存 CRS、原始欄位、匹配數、來源與查詢摘要雜湊，不保存地址或完整 geometry；官方圖台恢復後再依來源、城市各抽一點交叉核對。
 
-`facilities-v1` 會分別產生停車場與醫院各 41 個行政區 GeoJSON。獨立的 `community-v1` 處理學校與公園綠地，不會讓既有設施稽核失效。學校只選最新學年度的國小、國中、一般高中與特殊教育學校，同址且 30 公尺內的部別合併；臺北公園保留公園、綠地、廣場分類，新北公園只接受完整門牌精確匹配。每類都需先達 95% 地址匹配、自動 QA 與臺北／新北各 5 筆官方原始檔離線證據，才可獨立提升為 `official`。
+`facilities-v1` 會分別產生停車場與醫院各 41 個行政區 GeoJSON。`community-v2` 處理學校與公園綠地：學校先用完整門牌及保留里鄰的地址變體精確匹配，新北未匹配資料只接受行政區與校名完全一致的官方重要地標 TWD97 座標；公園仍維持獨立門檻。`library-v1` 使用全國公立公共圖書館官方經緯度，要求地址、行政區與座標一致。每類均有獨立 QA、稽核與 last-good，不能因其他設施失敗而連帶阻擋。
 
 `accidents-v1` 以 `unzip -p` 串流解析 2023–2025 官方 A1／A2 ZIP，依案件層級欄位產生穩定 ID，合併同案多位當事人列。公開檔只保留 ID、日期、年度、A1／A2 與座標；三年共 123 個行政區／年度檔必須整體通過 QA 及雙北各 5 件離線證據才能發布。
 
@@ -201,6 +204,8 @@ Repository 若不叫 `homecheck-tw`，需同步修改 `vite.config.ts` 的 Pages
 - [教育部國民中學名錄](https://data.gov.tw/dataset/6088)
 - [教育部一般高級中等學校名錄](https://data.gov.tw/dataset/6089)
 - [教育部特殊教育學校名錄](https://data.gov.tw/dataset/6285)
+- [新北市重要地標資訊](https://data.ntpc.gov.tw/datasets/6dcff24a-838c-40fb-a9df-f1160afafe84)
+- [公共圖書館基本資料](https://data.gov.tw/dataset/99567)
 - [臺北市公園基本資料](https://data.taipei/dataset/detail?id=ea732fb5-4bec-4be7-93f2-8ab91e74a6c6)
 - [新北市公園](https://data.ntpc.gov.tw/datasets/5fe3a136-29cc-4695-a17e-6636a32c3342)
 - [臺北市公車站位舊資料](https://data.taipei/dataset/detail?id=48aa5bca-2a4f-4fb7-a658-43cba51d5d56)

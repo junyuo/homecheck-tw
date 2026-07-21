@@ -1,7 +1,7 @@
 {
   "schemaVersion": "2.0.0",
   "dataVersion": "production-2026-07-21",
-  "generatedAt": "2026-07-21T01:00:05.348Z",
+  "generatedAt": "2026-07-21T02:58:29.532Z",
   "mode": "production",
   "coverage": {
     "cities": [
@@ -1375,31 +1375,146 @@
     },
     "school": {
       "id": "school",
-      "status": "unavailable",
-      "version": null,
-      "updatedAt": null,
-      "attemptedAt": null,
-      "recordCount": 0,
+      "status": "official",
+      "version": "school-2026-07-21",
+      "updatedAt": "2026-07-21T02:58:41.233Z",
+      "attemptedAt": "2026-07-21T02:58:29.532Z",
+      "recordCount": 602,
       "coverage": {
-        "cities": [],
-        "districts": []
+        "cities": [
+          "taipei",
+          "new-taipei"
+        ],
+        "districts": [
+          "taipei/zhongzheng",
+          "taipei/datong",
+          "taipei/zhongshan",
+          "taipei/songshan",
+          "taipei/daan",
+          "taipei/wanhua",
+          "taipei/xinyi",
+          "taipei/shilin",
+          "taipei/beitou",
+          "taipei/neihu",
+          "taipei/nangang",
+          "taipei/wenshan",
+          "new-taipei/banqiao",
+          "new-taipei/sanchong",
+          "new-taipei/zhonghe",
+          "new-taipei/yonghe",
+          "new-taipei/xinzhuang",
+          "new-taipei/xindian",
+          "new-taipei/tucheng",
+          "new-taipei/luzhou",
+          "new-taipei/shulin",
+          "new-taipei/yingge",
+          "new-taipei/sanxia",
+          "new-taipei/tamsui",
+          "new-taipei/xizhi",
+          "new-taipei/ruifang",
+          "new-taipei/wugu",
+          "new-taipei/taishan",
+          "new-taipei/linkou",
+          "new-taipei/shenkeng",
+          "new-taipei/shiding",
+          "new-taipei/pinglin",
+          "new-taipei/sanzhi",
+          "new-taipei/shimen",
+          "new-taipei/bali",
+          "new-taipei/pingxi",
+          "new-taipei/shuangxi",
+          "new-taipei/gongliao",
+          "new-taipei/jinshan",
+          "new-taipei/wanli",
+          "new-taipei/wulai"
+        ]
       },
-      "downloadUrl": "",
-      "sha256": null,
-      "matchingRate": null,
-      "excluded": {},
+      "downloadUrl": "https://data.gov.tw/dataset/6087",
+      "sha256": "769c83f959005a09ac7ab16e3c772dfaaa7ccca2907536cd4909dc5bab36ec92",
+      "matchingRate": 0.9838709677419355,
+      "excluded": {
+        "unmatchedAddress": 10,
+        "mergedCampus": 8
+      },
       "lastAttempt": {
-        "status": "not-run",
-        "message": "尚未接入"
+        "status": "success",
+        "message": "下載、schema 與品質檢查通過"
       },
-      "files": []
+      "files": [
+        "taipei/zhongzheng/facilities/school.geojson",
+        "taipei/datong/facilities/school.geojson",
+        "taipei/zhongshan/facilities/school.geojson",
+        "taipei/songshan/facilities/school.geojson",
+        "taipei/daan/facilities/school.geojson",
+        "taipei/wanhua/facilities/school.geojson",
+        "taipei/xinyi/facilities/school.geojson",
+        "taipei/shilin/facilities/school.geojson",
+        "taipei/beitou/facilities/school.geojson",
+        "taipei/neihu/facilities/school.geojson",
+        "taipei/nangang/facilities/school.geojson",
+        "taipei/wenshan/facilities/school.geojson",
+        "new-taipei/banqiao/facilities/school.geojson",
+        "new-taipei/sanchong/facilities/school.geojson",
+        "new-taipei/zhonghe/facilities/school.geojson",
+        "new-taipei/yonghe/facilities/school.geojson",
+        "new-taipei/xinzhuang/facilities/school.geojson",
+        "new-taipei/xindian/facilities/school.geojson",
+        "new-taipei/tucheng/facilities/school.geojson",
+        "new-taipei/luzhou/facilities/school.geojson",
+        "new-taipei/shulin/facilities/school.geojson",
+        "new-taipei/yingge/facilities/school.geojson",
+        "new-taipei/sanxia/facilities/school.geojson",
+        "new-taipei/tamsui/facilities/school.geojson",
+        "new-taipei/xizhi/facilities/school.geojson",
+        "new-taipei/ruifang/facilities/school.geojson",
+        "new-taipei/wugu/facilities/school.geojson",
+        "new-taipei/taishan/facilities/school.geojson",
+        "new-taipei/linkou/facilities/school.geojson",
+        "new-taipei/shenkeng/facilities/school.geojson",
+        "new-taipei/shiding/facilities/school.geojson",
+        "new-taipei/pinglin/facilities/school.geojson",
+        "new-taipei/sanzhi/facilities/school.geojson",
+        "new-taipei/shimen/facilities/school.geojson",
+        "new-taipei/bali/facilities/school.geojson",
+        "new-taipei/pingxi/facilities/school.geojson",
+        "new-taipei/shuangxi/facilities/school.geojson",
+        "new-taipei/gongliao/facilities/school.geojson",
+        "new-taipei/jinshan/facilities/school.geojson",
+        "new-taipei/wanli/facilities/school.geojson",
+        "new-taipei/wulai/facilities/school.geojson"
+      ],
+      "metadataCheckedAt": "2026-07-21T02:58:29.532Z",
+      "validUntil": null,
+      "qualityGates": {
+        "automated": {
+          "status": "passed",
+          "adapterVersion": "community-v2",
+          "checkedAt": "2026-07-21T02:58:29.532Z",
+          "datasetSha256": "d57d3f06771b29cafaf1c64d9a1745d339041898e791e4998c0e0becab9336f6"
+        },
+        "manualAudit": {
+          "status": "passed",
+          "adapterVersion": "community-v2",
+          "checkedAt": "2026-07-21T02:57:03.168Z",
+          "sampleCount": 10,
+          "requiredSampleCount": 10,
+          "verificationMethods": [
+            "official-raw-offline"
+          ]
+        }
+      },
+      "matchingRates": {
+        "taipei": 0.9640287769784173,
+        "new-taipei": 1,
+        "overall": 0.9838709677419355
+      }
     },
     "medical": {
       "id": "medical",
       "status": "official",
-      "version": "medical-2026-07-20",
-      "updatedAt": "2026-07-20T06:01:00.530Z",
-      "attemptedAt": "2026-07-20T06:04:44.996Z",
+      "version": "medical-2026-07-21",
+      "updatedAt": "2026-07-21T02:58:29.534Z",
+      "attemptedAt": "2026-07-21T02:58:29.532Z",
       "recordCount": 64,
       "coverage": {
         "cities": [
@@ -1461,7 +1576,7 @@
       },
       "lastAttempt": {
         "status": "success",
-        "message": "人工驗收 10/10 通過，候選資料正式發布"
+        "message": "下載、schema 與品質檢查通過"
       },
       "files": [
         "taipei/zhongzheng/facilities/medical.geojson",
@@ -1506,14 +1621,14 @@
         "new-taipei/wanli/facilities/medical.geojson",
         "new-taipei/wulai/facilities/medical.geojson"
       ],
-      "metadataCheckedAt": "2026-07-20T06:01:00.528Z",
+      "metadataCheckedAt": "2026-07-21T02:58:29.532Z",
       "validUntil": null,
       "qualityGates": {
         "automated": {
           "status": "passed",
           "adapterVersion": "facilities-v1",
-          "checkedAt": "2026-07-20T06:01:00.528Z",
-          "datasetSha256": "89d295d1fb2893dcbeb0dcdd1d984e65a99b7ed98f7d1b9bf343459ca90cb704"
+          "checkedAt": "2026-07-21T02:58:29.532Z",
+          "datasetSha256": "92dbff70963a6668f2a45aad5db89bf9a219c835e9dc41c03acfefc370c79bcf"
         },
         "manualAudit": {
           "status": "passed",
@@ -1528,11 +1643,8 @@
       }
     },
     "park": {
-      "id": "park",
-      "status": "unavailable",
       "version": null,
       "updatedAt": null,
-      "attemptedAt": null,
       "recordCount": 0,
       "coverage": {
         "cities": [],
@@ -1542,11 +1654,14 @@
       "sha256": null,
       "matchingRate": null,
       "excluded": {},
+      "files": [],
+      "id": "park",
+      "status": "unavailable",
+      "attemptedAt": "2026-07-21T02:58:29.532Z",
       "lastAttempt": {
-        "status": "not-run",
-        "message": "尚未接入"
-      },
-      "files": []
+        "status": "failed",
+        "message": "自動 QA 未達發布門檻：park new-taipei 門牌匹配率 86.08% 未達 95%"
+      }
     },
     "market": {
       "id": "market",
@@ -1572,9 +1687,9 @@
     "parking": {
       "id": "parking",
       "status": "official",
-      "version": "parking-2026-07-20",
-      "updatedAt": "2026-07-20T06:01:00.530Z",
-      "attemptedAt": "2026-07-20T06:04:44.996Z",
+      "version": "parking-2026-07-21",
+      "updatedAt": "2026-07-21T02:58:29.534Z",
+      "attemptedAt": "2026-07-21T02:58:29.532Z",
       "recordCount": 2607,
       "coverage": {
         "cities": [
@@ -1636,7 +1751,7 @@
       },
       "lastAttempt": {
         "status": "success",
-        "message": "人工驗收 10/10 通過，候選資料正式發布"
+        "message": "下載、schema 與品質檢查通過"
       },
       "files": [
         "taipei/zhongzheng/facilities/parking.geojson",
@@ -1681,14 +1796,14 @@
         "new-taipei/wanli/facilities/parking.geojson",
         "new-taipei/wulai/facilities/parking.geojson"
       ],
-      "metadataCheckedAt": "2026-07-20T06:01:00.528Z",
+      "metadataCheckedAt": "2026-07-21T02:58:29.532Z",
       "validUntil": null,
       "qualityGates": {
         "automated": {
           "status": "passed",
           "adapterVersion": "facilities-v1",
-          "checkedAt": "2026-07-20T06:01:00.528Z",
-          "datasetSha256": "bf4bb11c02b34eb06380ad1df1cf0092a888ee2e9f93c2a123af2cc91f828998"
+          "checkedAt": "2026-07-21T02:58:29.532Z",
+          "datasetSha256": "e55525f82d2b1371d4c1db382e17017332f119d877fa32fa502cef090303bfc0"
         },
         "manualAudit": {
           "status": "passed",
@@ -1704,24 +1819,131 @@
     },
     "library": {
       "id": "library",
-      "status": "unavailable",
-      "version": null,
-      "updatedAt": null,
-      "attemptedAt": null,
-      "recordCount": 0,
+      "status": "official",
+      "version": "library-2026-07-21",
+      "updatedAt": "2026-07-21T02:59:00.336Z",
+      "attemptedAt": "2026-07-21T02:58:29.532Z",
+      "recordCount": 161,
       "coverage": {
-        "cities": [],
-        "districts": []
+        "cities": [
+          "taipei",
+          "new-taipei"
+        ],
+        "districts": [
+          "taipei/zhongzheng",
+          "taipei/datong",
+          "taipei/zhongshan",
+          "taipei/songshan",
+          "taipei/daan",
+          "taipei/wanhua",
+          "taipei/xinyi",
+          "taipei/shilin",
+          "taipei/beitou",
+          "taipei/neihu",
+          "taipei/nangang",
+          "taipei/wenshan",
+          "new-taipei/banqiao",
+          "new-taipei/sanchong",
+          "new-taipei/zhonghe",
+          "new-taipei/yonghe",
+          "new-taipei/xinzhuang",
+          "new-taipei/xindian",
+          "new-taipei/tucheng",
+          "new-taipei/luzhou",
+          "new-taipei/shulin",
+          "new-taipei/yingge",
+          "new-taipei/sanxia",
+          "new-taipei/tamsui",
+          "new-taipei/xizhi",
+          "new-taipei/ruifang",
+          "new-taipei/wugu",
+          "new-taipei/taishan",
+          "new-taipei/linkou",
+          "new-taipei/shenkeng",
+          "new-taipei/shiding",
+          "new-taipei/pinglin",
+          "new-taipei/sanzhi",
+          "new-taipei/shimen",
+          "new-taipei/bali",
+          "new-taipei/pingxi",
+          "new-taipei/shuangxi",
+          "new-taipei/gongliao",
+          "new-taipei/jinshan",
+          "new-taipei/wanli",
+          "new-taipei/wulai"
+        ]
       },
-      "downloadUrl": "",
-      "sha256": null,
+      "downloadUrl": "https://data.gov.tw/dataset/99567",
+      "sha256": "667430147a7c600f8ed9ed57b53c005b7388ccd26d8938c5c5c089e06aefcaf7",
       "matchingRate": null,
       "excluded": {},
       "lastAttempt": {
-        "status": "not-run",
-        "message": "尚未接入"
+        "status": "success",
+        "message": "下載、schema 與品質檢查通過"
       },
-      "files": []
+      "files": [
+        "taipei/zhongzheng/facilities/library.geojson",
+        "taipei/datong/facilities/library.geojson",
+        "taipei/zhongshan/facilities/library.geojson",
+        "taipei/songshan/facilities/library.geojson",
+        "taipei/daan/facilities/library.geojson",
+        "taipei/wanhua/facilities/library.geojson",
+        "taipei/xinyi/facilities/library.geojson",
+        "taipei/shilin/facilities/library.geojson",
+        "taipei/beitou/facilities/library.geojson",
+        "taipei/neihu/facilities/library.geojson",
+        "taipei/nangang/facilities/library.geojson",
+        "taipei/wenshan/facilities/library.geojson",
+        "new-taipei/banqiao/facilities/library.geojson",
+        "new-taipei/sanchong/facilities/library.geojson",
+        "new-taipei/zhonghe/facilities/library.geojson",
+        "new-taipei/yonghe/facilities/library.geojson",
+        "new-taipei/xinzhuang/facilities/library.geojson",
+        "new-taipei/xindian/facilities/library.geojson",
+        "new-taipei/tucheng/facilities/library.geojson",
+        "new-taipei/luzhou/facilities/library.geojson",
+        "new-taipei/shulin/facilities/library.geojson",
+        "new-taipei/yingge/facilities/library.geojson",
+        "new-taipei/sanxia/facilities/library.geojson",
+        "new-taipei/tamsui/facilities/library.geojson",
+        "new-taipei/xizhi/facilities/library.geojson",
+        "new-taipei/ruifang/facilities/library.geojson",
+        "new-taipei/wugu/facilities/library.geojson",
+        "new-taipei/taishan/facilities/library.geojson",
+        "new-taipei/linkou/facilities/library.geojson",
+        "new-taipei/shenkeng/facilities/library.geojson",
+        "new-taipei/shiding/facilities/library.geojson",
+        "new-taipei/pinglin/facilities/library.geojson",
+        "new-taipei/sanzhi/facilities/library.geojson",
+        "new-taipei/shimen/facilities/library.geojson",
+        "new-taipei/bali/facilities/library.geojson",
+        "new-taipei/pingxi/facilities/library.geojson",
+        "new-taipei/shuangxi/facilities/library.geojson",
+        "new-taipei/gongliao/facilities/library.geojson",
+        "new-taipei/jinshan/facilities/library.geojson",
+        "new-taipei/wanli/facilities/library.geojson",
+        "new-taipei/wulai/facilities/library.geojson"
+      ],
+      "metadataCheckedAt": "2026-07-21T02:58:29.532Z",
+      "validUntil": null,
+      "qualityGates": {
+        "automated": {
+          "status": "passed",
+          "adapterVersion": "library-v1",
+          "checkedAt": "2026-07-21T02:58:29.532Z",
+          "datasetSha256": "14fa91bc314f7a646734029d7a02ad34f253a42f1bd69ce3f57f958b1cd80f26"
+        },
+        "manualAudit": {
+          "status": "passed",
+          "adapterVersion": "library-v1",
+          "checkedAt": "2026-07-21T02:57:26.394Z",
+          "sampleCount": 10,
+          "requiredSampleCount": 10,
+          "verificationMethods": [
+            "official-raw-offline"
+          ]
+        }
+      }
     },
     "accidents": {
       "id": "accidents",

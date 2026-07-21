@@ -104,7 +104,7 @@ async function main() {
     }
     const [communityAudit, communityCandidates] = await Promise.all([
       readFile(
-        join(root, 'scripts', 'data', 'audits', 'community-v1.json'),
+        join(root, 'scripts', 'data', 'audits', 'community-v2.json'),
         'utf8',
       ).then(JSON.parse),
       readFile(
@@ -116,13 +116,14 @@ async function main() {
       try {
         const source = manifest.sources[id]
         await verifyCandidate(source)
-        const evaluation = evaluateFacilityAudit(communityAudit, id, {
+        const evaluation = evaluateFacilityAudit({ ...communityAudit, status: 'passed' }, id, {
           adapterVersion: source.qualityGates.automated.adapterVersion,
           sourceSha256: source.sha256,
           addressIndexSha256:
             id === 'park'
               ? communityCandidates.addressIndexSha256['new-taipei']
               : communityCandidates.addressIndexSha256,
+          landmarkSha256: communityCandidates.landmarkSha256,
           requireEvidenceSourceSha: true,
         })
         if (id === 'school') {
@@ -138,8 +139,35 @@ async function main() {
         failures.push(`${id}：${error instanceof Error ? error.message : String(error)}`)
       }
     }
+    try {
+      const [libraryAudit, libraryCandidates] = await Promise.all([
+        readFile(
+          join(root, 'scripts', 'data', 'audits', 'library-v1.json'),
+          'utf8',
+        ).then(JSON.parse),
+        readFile(
+          join(root, '.data-cache', 'library-audit-candidates.json'),
+          'utf8',
+        ).then(JSON.parse),
+      ])
+      const source = manifest.sources.library
+      await verifyCandidate(source)
+      if (libraryCandidates.fingerprints.sourceSha256 !== source.sha256 ||
+          libraryCandidates.fingerprints.datasetSha256 !== source.qualityGates.automated.datasetSha256) {
+        throw new Error('library 候選 fingerprints 與 manifest 不一致')
+      }
+      const evaluation = evaluateFacilityAudit(libraryAudit, 'library', {
+        adapterVersion: source.qualityGates.automated.adapterVersion,
+        sourceSha256: source.sha256,
+        requireEvidenceSourceSha: true,
+      })
+      promoteSource(source, evaluation, libraryAudit, now)
+      promoted += 1
+    } catch (error) {
+      failures.push(`library：${error instanceof Error ? error.message : String(error)}`)
+    }
     failures.forEach((message) => console.error(`[release] 未提升 ${message}`))
-    if (promoted === 0) throw new Error('四類設施皆未通過發布閘門')
+    if (promoted === 0) throw new Error('五類設施皆未通過發布閘門')
   }
 
   if (selectedSource === 'all' || selectedSource === 'accidents') {

@@ -7,10 +7,12 @@ import { buildNewTaipeiAddressIndex, buildTaipeiAddressIndex } from './address-i
 import {
   mergeSchoolCampuses,
   loadCommunityBoundaries,
+  parseNewTaipeiSchoolLandmarks,
   parseNewTaipeiParks,
   parseSchools,
   parseTaipeiParks,
 } from './community.mjs'
+import { parseLibraries } from './library.mjs'
 import {
   parseNewTaipeiHospitals,
   parseNewTaipeiParking,
@@ -440,7 +442,7 @@ function allCommunityCandidates(value) {
 async function communityRawBuffers(root, source) {
   const directory = join(root, '.data-cache', 'community')
   const names = source === 'school'
-    ? ['elementary.json', 'junior.json', 'senior.json', 'special.csv']
+    ? ['elementary.json', 'junior.json', 'senior.json', 'special.csv', 'new-taipei-landmarks.json']
     : ['taipei-park.json', 'new-taipei-park.csv']
   const buffers = await Promise.all(names.map((name) => readFile(join(directory, name))))
   return {
@@ -488,12 +490,15 @@ export async function buildCommunityEvidence(root, {
   let parsed
   const parseJson = (buffer) => JSON.parse(buffer.toString('utf8').replace(/^\uFEFF/, ''))
   if (source === 'school') {
+    if (sha256(raw.buffers[4]) !== candidates.landmarkSha256) {
+      throw new Error('school 地標來源雜湊與候選不一致')
+    }
     parsed = mergeSchoolCampuses(parseSchools({
       elementary: parseJson(raw.buffers[0]),
       junior: parseJson(raw.buffers[1]),
       senior: parseJson(raw.buffers[2]),
       special: raw.buffers[3].toString('utf8'),
-    }, indexes, now))
+    }, indexes, now, parseNewTaipeiSchoolLandmarks(parseJson(raw.buffers[4]))))
   } else {
     parsed = candidate.city === 'taipei'
       ? parseTaipeiParks(
@@ -538,12 +543,85 @@ export async function buildCommunityEvidence(root, {
     verificationMethod: 'official-raw-offline',
     sourceSha256: raw.sourceSha256,
     ...(addressIndexSha256 ? { addressIndexSha256 } : {}),
+    ...(rawItem.evidence.locationMethod === 'ntpc-landmark-exact'
+      ? { landmarkSha256: candidates.landmarkSha256 }
+      : {}),
+    locationMethod: rawItem.evidence.locationMethod ?? 'direct-coordinate',
     rawRecordCount: 1,
     fields,
     checkedAt: now,
   }
   evidence.queryOutputSha256 = sha256(JSON.stringify({
     source,
+    id,
+    city: candidate.city,
+    district: candidate.district,
+    ...evidence,
+  }))
+  return {
+    candidate,
+    evidence,
+    blocked: false,
+    reason: null,
+    result: Object.values(fields).every(Boolean) ? 'matched' : 'mismatch',
+  }
+}
+
+export async function buildLibraryEvidence(root, {
+  id,
+  now = new Date().toISOString(),
+}) {
+  const [manifest, candidates] = await Promise.all([
+    readJson(join(root, 'public', 'data', 'manifest.json')),
+    readJson(join(root, '.data-cache', 'library-audit-candidates.json')),
+  ])
+  const candidate = Object.entries(candidates.samples)
+    .flatMap(([city, samples]) => samples.map((sample) => ({ ...sample, city, source: 'library' })))
+    .find((item) => item.id === id)
+  if (!candidate) throw new Error(`library 候選清單不存在 ID ${id}`)
+  const source = manifest.sources.library
+  if (candidates.adapterVersion !== source.qualityGates.automated.adapterVersion) {
+    throw new Error('library candidate adapter 版本與 manifest 不一致')
+  }
+  if (candidates.fingerprints.sourceSha256 !== source.sha256 ||
+      candidates.fingerprints.datasetSha256 !== source.qualityGates.automated.datasetSha256) {
+    throw new Error('library 候選 fingerprints 與 manifest 不一致')
+  }
+  const rawFile = join(root, '.data-cache', 'library', 'public-libraries.json')
+  const raw = await readFile(rawFile)
+  if (sha256(raw) !== source.sha256) throw new Error('library raw cache 雜湊與候選不一致')
+  const parsed = parseLibraries(
+    JSON.parse(raw.toString('utf8').replace(/^\uFEFF/, '')),
+    now,
+  )
+  const rawItem = parsed.find((item) => item.feature?.properties?.id === id)
+  if (!rawItem) {
+    return {
+      candidate,
+      blocked: true,
+      reason: '官方原始檔找不到候選 ID',
+      result: 'blocked',
+      evidence: null,
+    }
+  }
+  const fields = {
+    id: rawItem.feature.properties.id === candidate.id,
+    name: rawItem.name === candidate.name,
+    district: rawItem.district === candidate.district,
+    coordinate: coordinateDistance(rawItem.coordinate, {
+      longitude: candidate.longitude,
+      latitude: candidate.latitude,
+    }) <= 1,
+  }
+  const evidence = {
+    verificationMethod: 'official-raw-offline',
+    sourceSha256: source.sha256,
+    rawRecordCount: 1,
+    fields,
+    checkedAt: now,
+  }
+  evidence.queryOutputSha256 = sha256(JSON.stringify({
+    source: 'library',
     id,
     city: candidate.city,
     district: candidate.district,

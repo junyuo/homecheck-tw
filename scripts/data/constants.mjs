@@ -76,6 +76,9 @@ export const SOURCE_URLS = {
   seniorSchool: 'https://stats.moe.gov.tw/files/school/114/high.json',
   specialSchool:
     'https://www.k12ea.gov.tw/files/common_unit/431a1ae5-9503-4675-8e59-07d7286be83f/doc/%E7%89%B9%E6%AE%8A%E6%95%99%E8%82%B2%E5%AD%B8%E6%A0%A1%E5%90%8D%E9%8C%84.csv',
+  newTaipeiLandmarks:
+    'https://data.ntpc.gov.tw/api/datasets/6dcff24a-838c-40fb-a9df-f1160afafe84/json?page=0&size=100000',
+  publicLibraries: 'https://plisnet.nlpi.edu.tw/api/API/LibraryInfoData',
   taipeiPark: 'https://parks.taipei/parks/api/',
   newTaipeiPark:
     'https://data.ntpc.gov.tw/api/datasets/5fe3a136-29cc-4695-a17e-6636a32c3342/csv',

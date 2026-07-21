@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "generatedAt": "2026-07-21T01:00:05.761Z",
+  "generatedAt": "2026-07-21T02:59:00.417Z",
   "sources": {
     "actual-price": {
       "status": "official",
@@ -80,23 +80,28 @@
       "matchingRate": null
     },
     "school": {
-      "status": "unavailable",
-      "updatedAt": null,
-      "attemptedAt": null,
+      "status": "official",
+      "updatedAt": "2026-07-21T02:58:41.233Z",
+      "attemptedAt": "2026-07-21T02:58:29.532Z",
       "lastAttempt": {
-        "status": "not-run",
-        "message": "尚未接入"
+        "status": "success",
+        "message": "下載、schema 與品質檢查通過"
       },
-      "recordCount": 0,
-      "matchingRate": null
+      "recordCount": 602,
+      "matchingRate": 0.9838709677419355,
+      "matchingRates": {
+        "taipei": 0.9640287769784173,
+        "new-taipei": 1,
+        "overall": 0.9838709677419355
+      }
     },
     "medical": {
       "status": "official",
-      "updatedAt": "2026-07-20T06:01:00.530Z",
-      "attemptedAt": "2026-07-20T06:04:44.996Z",
+      "updatedAt": "2026-07-21T02:58:29.534Z",
+      "attemptedAt": "2026-07-21T02:58:29.532Z",
       "lastAttempt": {
         "status": "success",
-        "message": "人工驗收 10/10 通過，候選資料正式發布"
+        "message": "下載、schema 與品質檢查通過"
       },
       "recordCount": 64,
       "matchingRate": 0.967741935483871
@@ -104,10 +109,10 @@
     "park": {
       "status": "unavailable",
       "updatedAt": null,
-      "attemptedAt": null,
+      "attemptedAt": "2026-07-21T02:58:29.532Z",
       "lastAttempt": {
-        "status": "not-run",
-        "message": "尚未接入"
+        "status": "failed",
+        "message": "自動 QA 未達發布門檻：park new-taipei 門牌匹配率 86.08% 未達 95%"
       },
       "recordCount": 0,
       "matchingRate": null
@@ -125,24 +130,24 @@
     },
     "parking": {
       "status": "official",
-      "updatedAt": "2026-07-20T06:01:00.530Z",
-      "attemptedAt": "2026-07-20T06:04:44.996Z",
+      "updatedAt": "2026-07-21T02:58:29.534Z",
+      "attemptedAt": "2026-07-21T02:58:29.532Z",
       "lastAttempt": {
         "status": "success",
-        "message": "人工驗收 10/10 通過，候選資料正式發布"
+        "message": "下載、schema 與品質檢查通過"
       },
       "recordCount": 2607,
       "matchingRate": null
     },
     "library": {
-      "status": "unavailable",
-      "updatedAt": null,
-      "attemptedAt": null,
+      "status": "official",
+      "updatedAt": "2026-07-21T02:59:00.336Z",
+      "attemptedAt": "2026-07-21T02:58:29.532Z",
       "lastAttempt": {
-        "status": "not-run",
-        "message": "尚未接入"
+        "status": "success",
+        "message": "下載、schema 與品質檢查通過"
       },
-      "recordCount": 0,
+      "recordCount": 161,
       "matchingRate": null
     },
     "accidents": {

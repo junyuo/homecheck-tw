@@ -478,9 +478,10 @@ function ResultsPage({
   const parkingAvailable = available(result.sources.parking?.status)
   const schoolAvailable = available(result.sources.school?.status)
   const parkAvailable = available(result.sources.park?.status)
-  const availableLifeCount = [medicalAvailable, parkingAvailable, schoolAvailable, parkAvailable]
+  const libraryAvailable = available(result.sources.library?.status)
+  const availableLifeCount = [medicalAvailable, parkingAvailable, schoolAvailable, parkAvailable, libraryAvailable]
     .filter(Boolean).length
-  const lifeStatus = availableLifeCount === 4
+  const lifeStatus = availableLifeCount === 5
     ? 'official'
     : availableLifeCount > 0
       ? 'stale'
@@ -610,7 +611,7 @@ function ResultsPage({
           index="04"
           title="生活機能"
           level="unknown"
-          status={<span className={`source-status ${lifeStatus}`}>{availableLifeCount === 4 ? '4 類正式資料' : hasLifeData ? `${availableLifeCount} 類正式資料` : '資料不足'}</span>}
+          status={<span className={`source-status ${lifeStatus}`}>{availableLifeCount === 5 ? '5 類正式資料' : hasLifeData ? `${availableLifeCount} 類正式資料` : '資料不足'}</span>}
         >
           <dl className="metrics">
             <div><dt>{result.input.radius >= 1000 ? '1 公里' : `${result.input.radius} 公尺`}內醫院</dt><dd>{medicalAvailable ? `${result.lifeFacilities.medical.count.toLocaleString('zh-TW')} 間` : '資料不足'}</dd></div>
@@ -622,10 +623,12 @@ function ResultsPage({
             <div><dt>學校級別</dt><dd>{schoolAvailable ? `國小 ${result.lifeFacilities.school.byLevel.elementary}、國中 ${result.lifeFacilities.school.byLevel.junior}、高中 ${result.lifeFacilities.school.byLevel.senior}、特教 ${result.lifeFacilities.school.byLevel.special}` : '資料不足'}</dd></div>
             <div><dt>{result.input.radius >= 1000 ? '1 公里' : `${result.input.radius} 公尺`}內公園綠地</dt><dd>{parkAvailable ? `${result.lifeFacilities.park.count.toLocaleString('zh-TW')} 處` : '資料不足'}</dd></div>
             <div><dt>最近公園綠地</dt><dd>{parkAvailable ? <>{result.lifeFacilities.park.nearestName ?? '資料不足'}<br />{formatDistance(result.lifeFacilities.park.nearestDistance)}</> : '資料不足'}</dd></div>
+            <div><dt>{result.input.radius >= 1000 ? '1 公里' : `${result.input.radius} 公尺`}內公共圖書館</dt><dd>{libraryAvailable ? `${result.lifeFacilities.library.count.toLocaleString('zh-TW')} 間` : '資料不足'}</dd></div>
+            <div><dt>最近公共圖書館</dt><dd>{libraryAvailable ? <>{result.lifeFacilities.library.nearestName ?? '資料不足'}<br />{formatDistance(result.lifeFacilities.library.nearestDistance)}</> : '資料不足'}</dd></div>
           </dl>
           <div className="evidence">
-            <p><strong>涵蓋類型</strong>醫療只納入醫院；停車場只呈現靜態汽車格位；學校限國小、國中、一般高中與特殊教育學校；公園資料保留公園、綠地與廣場官方分類。</p>
-            <p><strong>資料信心</strong>四類來源各自獨立驗證；學校距離不代表學區、入學資格或招生結果。公園數量不代表面積、品質、開放狀態或實際入口距離。</p>
+            <p><strong>涵蓋類型</strong>醫療只納入醫院；停車場只呈現靜態汽車格位；學校限國小、國中、一般高中與特殊教育學校；公園資料保留公園、綠地與廣場官方分類；圖書館只納入官方公立公共圖書館。</p>
+            <p><strong>資料信心</strong>五類來源各自獨立驗證；學校距離不代表學區、入學資格或招生結果。公園數量不代表面積或品質；圖書館距離不代表藏書、開放時間或服務品質。</p>
             <p><strong>建議確認</strong>實際走訪日常採買、垃圾處理、醫療與停車動線，並留意營業時間。</p>
           </div>
         </ResultCard>
@@ -717,6 +720,7 @@ function ComparePage({ saved, setSaved }: { saved: SavedProperty[]; setSaved: (i
               ['路外停車場', (x: SavedProperty) => x.lifeSnapshotLegacy ? '舊快照，請重新查詢' : `${x.result.lifeFacilities.parking.count.toLocaleString('zh-TW')} 處；最近 ${x.result.lifeFacilities.parking.nearestName ?? '資料不足'}（${formatDistance(x.result.lifeFacilities.parking.nearestDistance)}）`],
               ['學校', (x: SavedProperty) => x.communitySnapshotLegacy ? '舊快照，請重新查詢' : `${x.result.lifeFacilities.school.count.toLocaleString('zh-TW')} 處校園；最近 ${x.result.lifeFacilities.school.nearestName ?? '資料不足'}（${formatDistance(x.result.lifeFacilities.school.nearestDistance)}）`],
               ['公園綠地', (x: SavedProperty) => x.communitySnapshotLegacy ? '舊快照，請重新查詢' : `${x.result.lifeFacilities.park.count.toLocaleString('zh-TW')} 處；最近 ${x.result.lifeFacilities.park.nearestName ?? '資料不足'}（${formatDistance(x.result.lifeFacilities.park.nearestDistance)}）`],
+              ['公共圖書館', (x: SavedProperty) => x.librarySnapshotLegacy ? '舊快照，請重新查詢' : `${x.result.lifeFacilities.library.count.toLocaleString('zh-TW')} 間；最近 ${x.result.lifeFacilities.library.nearestName ?? '資料不足'}（${formatDistance(x.result.lifeFacilities.library.nearestDistance)}）`],
               ['交通事故狀況', (x: SavedProperty) => x.accidentSnapshotLegacy ? '舊快照，請重新查詢' : x.result.sources.accidents?.status === 'official' ? `${x.result.accidentSummary.total.toLocaleString('zh-TW')} 件（A1 ${x.result.accidentSummary.a1}／A2 ${x.result.accidentSummary.a2}）` : '資料不足'],
               ['資料品質', (x: SavedProperty) => x.historicDemo ? '歷史 Demo（不與正式結果混用）' : x.result.dataQuality === 'official' ? '全部正式' : x.result.dataQuality === 'mixed' ? '混合來源' : '資料不足'],
               ['待確認事項', (x: SavedProperty) => `${x.result.checklist.filter((item) => !item.checked).length} 項`],
@@ -764,6 +768,7 @@ function MethodsPage({ manifest }: { manifest: DataManifest | null }) {
               <div><dt>資料筆數</dt><dd>{(state?.recordCount ?? 0).toLocaleString('zh-TW')}</dd></div>
               <div><dt>覆蓋範圍</dt><dd>{state?.coverage.districts.length ? `${state.coverage.districts.length} 個行政區` : '尚未接入'}</dd></div>
               {state?.matchingRate !== null && state?.matchingRate !== undefined && <div><dt>地址匹配率</dt><dd>{(state.matchingRate * 100).toFixed(2)}%</dd></div>}
+              {state?.matchingRates?.taipei !== undefined && state?.matchingRates?.['new-taipei'] !== undefined && <div><dt>各市匹配率</dt><dd>臺北 {(state.matchingRates.taipei * 100).toFixed(2)}%、新北 {(state.matchingRates['new-taipei'] * 100).toFixed(2)}%</dd></div>}
               <div><dt>最近嘗試</dt><dd>{state?.lastAttempt.message ?? '尚未執行'}</dd></div>
               <div><dt>已知限制</dt><dd>{source.notes}</dd></div>
             </dl>

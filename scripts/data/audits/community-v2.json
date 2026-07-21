@@ -1,0 +1,367 @@
+{
+  "adapterVersion": "community-v2",
+  "status": "pending",
+  "checkedAt": "2026-07-21T02:57:03.168Z",
+  "samples": [
+    {
+      "id": "00a4ab5d71369084acaef8e8",
+      "source": "school",
+      "city": "taipei",
+      "district": "beitou",
+      "result": "matched",
+      "verificationMethod": "official-raw-offline",
+      "fields": {
+        "id": true,
+        "name": true,
+        "district": true,
+        "coordinate": true,
+        "schoolLevels": true
+      },
+      "schoolLevels": [
+        "elementary"
+      ],
+      "evidence": {
+        "verificationMethod": "official-raw-offline",
+        "sourceSha256": "769c83f959005a09ac7ab16e3c772dfaaa7ccca2907536cd4909dc5bab36ec92",
+        "addressIndexSha256": "67162e22fdd5cde1a415419fe9da58393d1680cb3abf5c384d70430f3b8f669a",
+        "locationMethod": "address-index-exact",
+        "rawRecordCount": 1,
+        "fields": {
+          "id": true,
+          "name": true,
+          "district": true,
+          "coordinate": true,
+          "schoolLevels": true
+        },
+        "checkedAt": "2026-07-21T02:53:49.763Z",
+        "queryOutputSha256": "af5cd52308ed9c83fbe4a91c710964f18b40027b4e7c675cfb1917c06455305c"
+      },
+      "checkedAt": "2026-07-21T02:54:12.460Z",
+      "attemptCount": 1
+    },
+    {
+      "id": "01219d5858e183735d4d7638",
+      "source": "school",
+      "city": "taipei",
+      "district": "zhongshan",
+      "result": "matched",
+      "verificationMethod": "official-raw-offline",
+      "fields": {
+        "id": true,
+        "name": true,
+        "district": true,
+        "coordinate": true,
+        "schoolLevels": true
+      },
+      "schoolLevels": [
+        "junior"
+      ],
+      "evidence": {
+        "verificationMethod": "official-raw-offline",
+        "sourceSha256": "769c83f959005a09ac7ab16e3c772dfaaa7ccca2907536cd4909dc5bab36ec92",
+        "addressIndexSha256": "67162e22fdd5cde1a415419fe9da58393d1680cb3abf5c384d70430f3b8f669a",
+        "locationMethod": "address-index-exact",
+        "rawRecordCount": 1,
+        "fields": {
+          "id": true,
+          "name": true,
+          "district": true,
+          "coordinate": true,
+          "schoolLevels": true
+        },
+        "checkedAt": "2026-07-21T02:54:12.778Z",
+        "queryOutputSha256": "fa1d4b83639ac6aaac7ad912aa2c9df831eaebd713b3bfbb80bea5e5355e63a8"
+      },
+      "checkedAt": "2026-07-21T02:54:34.161Z",
+      "attemptCount": 1
+    },
+    {
+      "id": "01490f6739084fb65367eeb2",
+      "source": "school",
+      "city": "taipei",
+      "district": "daan",
+      "result": "matched",
+      "verificationMethod": "official-raw-offline",
+      "fields": {
+        "id": true,
+        "name": true,
+        "district": true,
+        "coordinate": true,
+        "schoolLevels": true
+      },
+      "schoolLevels": [
+        "senior"
+      ],
+      "evidence": {
+        "verificationMethod": "official-raw-offline",
+        "sourceSha256": "769c83f959005a09ac7ab16e3c772dfaaa7ccca2907536cd4909dc5bab36ec92",
+        "addressIndexSha256": "67162e22fdd5cde1a415419fe9da58393d1680cb3abf5c384d70430f3b8f669a",
+        "locationMethod": "address-index-exact",
+        "rawRecordCount": 1,
+        "fields": {
+          "id": true,
+          "name": true,
+          "district": true,
+          "coordinate": true,
+          "schoolLevels": true
+        },
+        "checkedAt": "2026-07-21T02:54:34.442Z",
+        "queryOutputSha256": "83c7183aed3c335486434b3ebae10b20b8ba79254043f85be1dda3efa0bb535b"
+      },
+      "checkedAt": "2026-07-21T02:54:53.933Z",
+      "attemptCount": 1
+    },
+    {
+      "id": "47b5a161fabc471efea9c602",
+      "source": "school",
+      "city": "taipei",
+      "district": "wenshan",
+      "result": "matched",
+      "verificationMethod": "official-raw-offline",
+      "fields": {
+        "id": true,
+        "name": true,
+        "district": true,
+        "coordinate": true,
+        "schoolLevels": true
+      },
+      "schoolLevels": [
+        "special"
+      ],
+      "evidence": {
+        "verificationMethod": "official-raw-offline",
+        "sourceSha256": "769c83f959005a09ac7ab16e3c772dfaaa7ccca2907536cd4909dc5bab36ec92",
+        "addressIndexSha256": "67162e22fdd5cde1a415419fe9da58393d1680cb3abf5c384d70430f3b8f669a",
+        "locationMethod": "address-index-exact",
+        "rawRecordCount": 1,
+        "fields": {
+          "id": true,
+          "name": true,
+          "district": true,
+          "coordinate": true,
+          "schoolLevels": true
+        },
+        "checkedAt": "2026-07-21T02:54:54.258Z",
+        "queryOutputSha256": "17b8cc5b4f9bface6562e29adb30128b3dad22ea0c33253b90894480330edd79"
+      },
+      "checkedAt": "2026-07-21T02:55:12.909Z",
+      "attemptCount": 1
+    },
+    {
+      "id": "00ca81618750aec1615218ec",
+      "source": "school",
+      "city": "taipei",
+      "district": "datong",
+      "result": "matched",
+      "verificationMethod": "official-raw-offline",
+      "fields": {
+        "id": true,
+        "name": true,
+        "district": true,
+        "coordinate": true,
+        "schoolLevels": true
+      },
+      "schoolLevels": [
+        "elementary"
+      ],
+      "evidence": {
+        "verificationMethod": "official-raw-offline",
+        "sourceSha256": "769c83f959005a09ac7ab16e3c772dfaaa7ccca2907536cd4909dc5bab36ec92",
+        "addressIndexSha256": "67162e22fdd5cde1a415419fe9da58393d1680cb3abf5c384d70430f3b8f669a",
+        "locationMethod": "address-index-exact",
+        "rawRecordCount": 1,
+        "fields": {
+          "id": true,
+          "name": true,
+          "district": true,
+          "coordinate": true,
+          "schoolLevels": true
+        },
+        "checkedAt": "2026-07-21T02:55:13.165Z",
+        "queryOutputSha256": "186e9df6bff616e8734a8933fdf27df1b60539b0e91b64fcd849b372650c3b60"
+      },
+      "checkedAt": "2026-07-21T02:55:31.727Z",
+      "attemptCount": 1
+    },
+    {
+      "id": "0020f856f6f5968b215a4ec2",
+      "source": "school",
+      "city": "new-taipei",
+      "district": "linkou",
+      "result": "matched",
+      "verificationMethod": "official-raw-offline",
+      "fields": {
+        "id": true,
+        "name": true,
+        "district": true,
+        "coordinate": true,
+        "schoolLevels": true
+      },
+      "schoolLevels": [
+        "elementary"
+      ],
+      "evidence": {
+        "verificationMethod": "official-raw-offline",
+        "sourceSha256": "769c83f959005a09ac7ab16e3c772dfaaa7ccca2907536cd4909dc5bab36ec92",
+        "addressIndexSha256": "779e771bbde2f11130d00912281b74541a87c402dff9e9c4c9fa58a5d7f26302",
+        "locationMethod": "address-index-exact",
+        "rawRecordCount": 1,
+        "fields": {
+          "id": true,
+          "name": true,
+          "district": true,
+          "coordinate": true,
+          "schoolLevels": true
+        },
+        "checkedAt": "2026-07-21T02:55:31.984Z",
+        "queryOutputSha256": "80b548a0d407094a945bbd96fa76b483ff427deb01aae218d452c20bbade2633"
+      },
+      "checkedAt": "2026-07-21T02:55:49.989Z",
+      "attemptCount": 1
+    },
+    {
+      "id": "04eb052f851617d50975a9cf",
+      "source": "school",
+      "city": "new-taipei",
+      "district": "yonghe",
+      "result": "matched",
+      "verificationMethod": "official-raw-offline",
+      "fields": {
+        "id": true,
+        "name": true,
+        "district": true,
+        "coordinate": true,
+        "schoolLevels": true
+      },
+      "schoolLevels": [
+        "junior"
+      ],
+      "evidence": {
+        "verificationMethod": "official-raw-offline",
+        "sourceSha256": "769c83f959005a09ac7ab16e3c772dfaaa7ccca2907536cd4909dc5bab36ec92",
+        "addressIndexSha256": "779e771bbde2f11130d00912281b74541a87c402dff9e9c4c9fa58a5d7f26302",
+        "locationMethod": "address-index-exact",
+        "rawRecordCount": 1,
+        "fields": {
+          "id": true,
+          "name": true,
+          "district": true,
+          "coordinate": true,
+          "schoolLevels": true
+        },
+        "checkedAt": "2026-07-21T02:55:50.239Z",
+        "queryOutputSha256": "15dcd0fe37018ade4f96599dfc58479d77af350761f1db4a1be909754cfd2ab0"
+      },
+      "checkedAt": "2026-07-21T02:56:08.166Z",
+      "attemptCount": 1
+    },
+    {
+      "id": "00eb8321a35977bb5880d7e3",
+      "source": "school",
+      "city": "new-taipei",
+      "district": "linkou",
+      "result": "matched",
+      "verificationMethod": "official-raw-offline",
+      "fields": {
+        "id": true,
+        "name": true,
+        "district": true,
+        "coordinate": true,
+        "schoolLevels": true
+      },
+      "schoolLevels": [
+        "senior"
+      ],
+      "evidence": {
+        "verificationMethod": "official-raw-offline",
+        "sourceSha256": "769c83f959005a09ac7ab16e3c772dfaaa7ccca2907536cd4909dc5bab36ec92",
+        "addressIndexSha256": "779e771bbde2f11130d00912281b74541a87c402dff9e9c4c9fa58a5d7f26302",
+        "locationMethod": "address-index-exact",
+        "rawRecordCount": 1,
+        "fields": {
+          "id": true,
+          "name": true,
+          "district": true,
+          "coordinate": true,
+          "schoolLevels": true
+        },
+        "checkedAt": "2026-07-21T02:56:08.442Z",
+        "queryOutputSha256": "eab7a9515caab510abcbf24cfd88e46440ea3ce2027e574b2334119821b8de43"
+      },
+      "checkedAt": "2026-07-21T02:56:26.892Z",
+      "attemptCount": 1
+    },
+    {
+      "id": "6b3360df56fc43ecc50155b6",
+      "source": "school",
+      "city": "new-taipei",
+      "district": "linkou",
+      "result": "matched",
+      "verificationMethod": "official-raw-offline",
+      "fields": {
+        "id": true,
+        "name": true,
+        "district": true,
+        "coordinate": true,
+        "schoolLevels": true
+      },
+      "schoolLevels": [
+        "special"
+      ],
+      "evidence": {
+        "verificationMethod": "official-raw-offline",
+        "sourceSha256": "769c83f959005a09ac7ab16e3c772dfaaa7ccca2907536cd4909dc5bab36ec92",
+        "addressIndexSha256": "779e771bbde2f11130d00912281b74541a87c402dff9e9c4c9fa58a5d7f26302",
+        "locationMethod": "address-index-exact",
+        "rawRecordCount": 1,
+        "fields": {
+          "id": true,
+          "name": true,
+          "district": true,
+          "coordinate": true,
+          "schoolLevels": true
+        },
+        "checkedAt": "2026-07-21T02:56:27.153Z",
+        "queryOutputSha256": "9a05e54bb7533445820077b0a5fcaf6c2c020d6c1286a3dd6bd155dc40eb2593"
+      },
+      "checkedAt": "2026-07-21T02:56:44.872Z",
+      "attemptCount": 1
+    },
+    {
+      "id": "007da7f96f8336b8f76070bb",
+      "source": "school",
+      "city": "new-taipei",
+      "district": "sanchong",
+      "result": "matched",
+      "verificationMethod": "official-raw-offline",
+      "fields": {
+        "id": true,
+        "name": true,
+        "district": true,
+        "coordinate": true,
+        "schoolLevels": true
+      },
+      "schoolLevels": [
+        "elementary"
+      ],
+      "evidence": {
+        "verificationMethod": "official-raw-offline",
+        "sourceSha256": "769c83f959005a09ac7ab16e3c772dfaaa7ccca2907536cd4909dc5bab36ec92",
+        "addressIndexSha256": "779e771bbde2f11130d00912281b74541a87c402dff9e9c4c9fa58a5d7f26302",
+        "locationMethod": "address-index-exact",
+        "rawRecordCount": 1,
+        "fields": {
+          "id": true,
+          "name": true,
+          "district": true,
+          "coordinate": true,
+          "schoolLevels": true
+        },
+        "checkedAt": "2026-07-21T02:56:45.128Z",
+        "queryOutputSha256": "cdfe938676eb3234ee0a79289eba2c890280af7354300772a94f3c82c38f853a"
+      },
+      "checkedAt": "2026-07-21T02:57:03.168Z",
+      "attemptCount": 1
+    }
+  ]
+}

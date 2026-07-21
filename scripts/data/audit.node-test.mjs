@@ -214,6 +214,27 @@ test('學校驗收要求每市五筆並涵蓋四種學校級別', () => {
   }).passed, false)
 })
 
+test('圖書館驗收要求每市五筆並涵蓋至少三個行政區', () => {
+  const samples = ['taipei', 'new-taipei'].flatMap((city) =>
+    Array.from({ length: 5 }, (_, index) => ({
+      id: `${city}-${index}`,
+      source: 'library',
+      city,
+      district: ['first', 'second', 'third'][index % 3],
+      result: 'matched',
+      verificationMethod: 'official-raw-offline',
+      fields: { name: true, id: true, district: true, coordinate: true },
+    })))
+  assert.equal(evaluateFacilityAudit({
+    status: 'passed', adapterVersion: 'library-v1', samples,
+  }, 'library', { adapterVersion: 'library-v1' }).passed, true)
+  samples.filter((sample) => sample.city === 'taipei')
+    .forEach((sample) => { sample.district = 'first' })
+  assert.equal(evaluateFacilityAudit({
+    status: 'passed', adapterVersion: 'library-v1', samples,
+  }, 'library', { adapterVersion: 'library-v1' }).passed, false)
+})
+
 test('事故驗收要求每市五件、三年、A1/A2 與三個行政區', () => {
   const years = [2023, 2024, 2025, 2023, 2024]
   const samples = ['taipei', 'new-taipei'].flatMap((city) =>

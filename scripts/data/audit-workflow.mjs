@@ -56,6 +56,11 @@ function accidentCandidates(candidateFile) {
     samples.map((sample) => ({ ...sample, source: 'accidents', city })))
 }
 
+function libraryCandidates(candidateFile) {
+  return Object.entries(candidateFile.samples).flatMap(([city, samples]) =>
+    samples.map((sample) => ({ ...sample, source: 'library', city })))
+}
+
 function assertAdapterVersion(audit, candidates) {
   if (audit.adapterVersion !== candidates.adapterVersion) {
     throw new Error(
@@ -106,6 +111,15 @@ function readiness(audit, manifest) {
       },
     ),
   ]))
+  const library = evaluateFacilityAudit(
+    { ...audit.library, status: 'passed' },
+    'library',
+    {
+      adapterVersion:
+        manifest.sources.library?.qualityGates?.automated?.adapterVersion ??
+        audit.library.adapterVersion,
+    },
+  )
   const accidents = evaluateAccidentAudit(
     { ...audit.accidents, status: 'passed' },
     {
@@ -121,10 +135,11 @@ function readiness(audit, manifest) {
     medical: facilities.medical,
     school: community.school,
     park: community.park,
+    library,
     accidents,
     ready: price.passed && risks.flood.passed && risks.liquefaction.passed &&
       facilities.parking.passed && facilities.medical.passed &&
-      community.school.passed && community.park.passed && accidents.passed,
+      community.school.passed && community.park.passed && library.passed && accidents.passed,
   }
 }
 
@@ -134,12 +149,14 @@ async function loadContext(root) {
     priceAudit: join(root, 'scripts', 'data', 'audits', 'price-v1.json'),
     riskAudit: join(root, 'scripts', 'data', 'audits', 'risks-v1.json'),
     facilityAudit: join(root, 'scripts', 'data', 'audits', 'facilities-v1.json'),
-    communityAudit: join(root, 'scripts', 'data', 'audits', 'community-v1.json'),
+    communityAudit: join(root, 'scripts', 'data', 'audits', 'community-v2.json'),
+    libraryAudit: join(root, 'scripts', 'data', 'audits', 'library-v1.json'),
     accidentAudit: join(root, 'scripts', 'data', 'audits', 'accidents-v1.json'),
     priceCandidates: join(root, '.data-cache', 'price-audit-candidates.json'),
     riskCandidates: join(root, '.data-cache', 'risk-audit-candidates.json'),
     facilityCandidates: join(root, '.data-cache', 'facility-audit-candidates.json'),
     communityCandidates: join(root, '.data-cache', 'community-audit-candidates.json'),
+    libraryCandidates: join(root, '.data-cache', 'library-audit-candidates.json'),
     accidentCandidates: join(root, '.data-cache', 'accident-audit-candidates.json'),
   }
   const [
@@ -148,11 +165,13 @@ async function loadContext(root) {
     riskAudit,
     facilityAudit,
     communityAudit,
+    libraryAudit,
     accidentAudit,
     priceCandidateFile,
     riskCandidateFile,
     facilityCandidateFile,
     communityCandidateFile,
+    libraryCandidateFile,
     accidentCandidateFile,
   ] =
     await Promise.all([
@@ -161,22 +180,26 @@ async function loadContext(root) {
       readJson(files.riskAudit),
       readJson(files.facilityAudit),
       readJson(files.communityAudit),
+      readJson(files.libraryAudit),
       readJson(files.accidentAudit),
       readJson(files.priceCandidates),
       readJson(files.riskCandidates),
       readJson(files.facilityCandidates),
       readJson(files.communityCandidates),
+      readJson(files.libraryCandidates),
       readJson(files.accidentCandidates),
     ])
   assertAdapterVersion(priceAudit, priceCandidateFile)
   assertAdapterVersion(riskAudit, riskCandidateFile)
   assertAdapterVersion(facilityAudit, facilityCandidateFile)
   assertAdapterVersion(communityAudit, communityCandidateFile)
+  assertAdapterVersion(libraryAudit, libraryCandidateFile)
   assertAdapterVersion(accidentAudit, accidentCandidateFile)
   assertAuditPrivacy(priceAudit)
   assertAuditPrivacy(riskAudit)
   assertAuditPrivacy(facilityAudit)
   assertAuditPrivacy(communityAudit)
+  assertAuditPrivacy(libraryAudit)
   assertAuditPrivacy(accidentAudit)
   return {
     files,
@@ -185,11 +208,13 @@ async function loadContext(root) {
     riskAudit,
     facilityAudit,
     communityAudit,
+    libraryAudit,
     accidentAudit,
     priceCandidateFile,
     riskCandidateFile,
     facilityCandidateFile,
     communityCandidateFile,
+    libraryCandidateFile,
     accidentCandidateFile,
   }
 }
@@ -350,8 +375,9 @@ export async function recordAudit(root, {
   const isRisk = ['flood', 'liquefaction'].includes(source)
   const isFacility = ['parking', 'medical'].includes(source)
   const isCommunity = ['school', 'park'].includes(source)
+  const isLibrary = source === 'library'
   const isAccident = source === 'accidents'
-  if (!isPrice && !isRisk && !isFacility && !isCommunity && !isAccident) {
+  if (!isPrice && !isRisk && !isFacility && !isCommunity && !isLibrary && !isAccident) {
     throw new Error(`不支援的 source：${source}`)
   }
   const candidates = isPrice
@@ -360,6 +386,8 @@ export async function recordAudit(root, {
       ? riskCandidates(context.riskCandidateFile).filter((sample) => sample.source === source)
       : isAccident
         ? accidentCandidates(context.accidentCandidateFile)
+        : isLibrary
+          ? libraryCandidates(context.libraryCandidateFile)
         : facilityCandidates(
         isCommunity ? context.communityCandidateFile : context.facilityCandidateFile,
       ).filter((sample) => sample.source === source)
@@ -371,6 +399,8 @@ export async function recordAudit(root, {
       ? context.riskAudit
       : isCommunity
         ? context.communityAudit
+        : isLibrary
+          ? context.libraryAudit
         : isAccident ? context.accidentAudit : context.facilityAudit
   const existingIndex = audit.samples.findIndex((sample) => sample.id === id)
   if (existingIndex >= 0 && !replace) {
@@ -392,6 +422,7 @@ export async function recordAudit(root, {
     risks: isRisk ? audit : context.riskAudit,
     facilities: isFacility ? audit : context.facilityAudit,
     community: isCommunity ? audit : context.communityAudit,
+    library: isLibrary ? audit : context.libraryAudit,
     accidents: isAccident ? audit : context.accidentAudit,
   }
   const progress = readiness(nextContext, context.manifest)
@@ -401,6 +432,8 @@ export async function recordAudit(root, {
       ? progress.flood.passed && progress.liquefaction.passed ? 'passed' : 'pending'
       : isAccident
         ? progress.accidents.passed ? 'passed' : 'pending'
+        : isLibrary
+          ? progress.library.passed ? 'passed' : 'pending'
         : isCommunity
         ? progress.school.passed && progress.park.passed ? 'passed' : 'pending'
         : progress.parking.passed && progress.medical.passed ? 'passed' : 'pending'
@@ -412,6 +445,8 @@ export async function recordAudit(root, {
         ? context.files.riskAudit
         : isCommunity
         ? context.files.communityAudit
+        : isLibrary
+          ? context.files.libraryAudit
         : isAccident
           ? context.files.accidentAudit
           : context.files.facilityAudit,
@@ -433,12 +468,14 @@ export async function auditStatus(root) {
     risks: context.riskAudit,
     facilities: context.facilityAudit,
     community: context.communityAudit,
+    library: context.libraryAudit,
     accidents: context.accidentAudit,
   }, context.manifest)
   const priceSamples = context.priceAudit.samples
   const riskSamples = context.riskAudit.samples
   const facilitySamples = context.facilityAudit.samples
   const communitySamples = context.communityAudit.samples
+  const librarySamples = context.libraryAudit.samples
   const accidentSamples = context.accidentAudit.samples
   return {
     ...progress,
@@ -447,10 +484,11 @@ export async function auditStatus(root) {
       risks: context.riskAudit.adapterVersion,
       facilities: context.facilityAudit.adapterVersion,
       community: context.communityAudit.adapterVersion,
+      library: context.libraryAudit.adapterVersion,
       accidents: context.accidentAudit.adapterVersion,
     },
     inconclusive: priceSamples.filter((sample) => sample.result === 'inconclusive').length,
-    mismatches: [...priceSamples, ...riskSamples, ...facilitySamples, ...communitySamples, ...accidentSamples]
+    mismatches: [...priceSamples, ...riskSamples, ...facilitySamples, ...communitySamples, ...librarySamples, ...accidentSamples]
       .filter((sample) => sample.result === 'mismatch').length,
     verificationMethods: Object.fromEntries(['flood', 'liquefaction'].map((source) => [
       source,
@@ -460,9 +498,9 @@ export async function auditStatus(root) {
         .filter(Boolean))],
     ])),
     facilityVerificationMethods: Object.fromEntries(
-      ['parking', 'medical', 'school', 'park'].map((source) => [
-      source,
-      [...new Set([...facilitySamples, ...communitySamples]
+      ['parking', 'medical', 'school', 'park', 'library'].map((source) => [
+        source,
+        [...new Set([...facilitySamples, ...communitySamples, ...librarySamples]
         .filter((sample) => sample.source === source && sample.result === 'matched')
         .map((sample) => sample.verificationMethod)
         .filter(Boolean))],

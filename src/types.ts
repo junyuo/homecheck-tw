@@ -71,7 +71,7 @@ export interface FacilityProperties {
   id?: string
   name: string
   category: 'metro' | 'rail' | 'bus' | 'school' | 'medical' | 'park' | 'market' | 'parking' | 'library'
-  facilityType?: 'offstreet-parking' | 'hospital' | 'school-campus' | 'park-area'
+  facilityType?: 'offstreet-parking' | 'hospital' | 'school-campus' | 'park-area' | 'public-library'
   sourceUpdatedAt?: string
   carCapacity?: number
   schoolLevels?: Array<'elementary' | 'junior' | 'senior' | 'special'>
@@ -127,6 +127,7 @@ export interface SourceState {
   downloadUrl: string
   sha256: string | null
   matchingRate: number | null
+  matchingRates?: Partial<Record<'taipei' | 'new-taipei' | 'overall', number>>
   metadataCheckedAt?: string | null
   validUntil?: string | null
   qualityGates?: Record<string, {
@@ -224,6 +225,7 @@ export interface AnalysisResult {
     parking: LifeFacilitySummary
     school: SchoolFacilitySummary
     park: ParkFacilitySummary
+    library: LifeFacilitySummary
   }
   accidentCount: number
   accidentSummary: {
@@ -256,5 +258,6 @@ export interface SavedProperty {
   lifeSnapshotLegacy?: boolean
   communitySnapshotLegacy?: boolean
   accidentSnapshotLegacy?: boolean
+  librarySnapshotLegacy?: boolean
   result: AnalysisResult
 }

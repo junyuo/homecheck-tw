@@ -4,8 +4,9 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import test from 'node:test'
 import { assertAuditPrivacy } from './audit-workflow.mjs'
-import { buildFacilityEvidence, buildRiskEvidence, resolveEvidenceMatches } from './audit-evidence.mjs'
+import { buildFacilityEvidence, buildLibraryEvidence, buildRiskEvidence, resolveEvidenceMatches } from './audit-evidence.mjs'
 import { sha256, stableId, twd97ToWgs84 } from './core.mjs'
+import { parseLibraries } from './library.mjs'
 
 const sourceSha256 = 'a'.repeat(64)
 const datasetSha256 = 'b'.repeat(64)
@@ -224,4 +225,56 @@ test('停車場證據從官方 raw 重建並比對格位，來源雜湊不符時
     buildFacilityEvidence(root, { source: 'parking', id }),
     /fingerprints/,
   )
+})
+
+test('圖書館證據從官方 raw 重建且不保存地址', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'homecheck-library-evidence-'))
+  await mkdir(join(root, 'public', 'data'), { recursive: true })
+  await mkdir(join(root, '.data-cache', 'library'), { recursive: true })
+  const value = [{
+    縣市: '臺北市',
+    圖書館資訊: [{
+      Name: '臺北市立圖書館總館',
+      Area: '大安區',
+      Address: '臺北市大安區建國南路二段125號',
+      Longitude: 121.5384,
+      Latitude: 25.0292,
+    }],
+  }]
+  const raw = Buffer.from(JSON.stringify(value))
+  const sourceHash = sha256(raw)
+  const [item] = parseLibraries(value, '2026-07-21T00:00:00.000Z')
+  await writeFile(join(root, '.data-cache', 'library', 'public-libraries.json'), raw)
+  await writeJson(join(root, 'public', 'data', 'manifest.json'), {
+    sources: {
+      library: {
+        sha256: sourceHash,
+        qualityGates: { automated: { adapterVersion: 'library-v1', datasetSha256 } },
+      },
+    },
+  })
+  await writeJson(join(root, '.data-cache', 'library-audit-candidates.json'), {
+    adapterVersion: 'library-v1',
+    fingerprints: { sourceSha256: sourceHash, datasetSha256 },
+    samples: {
+      taipei: [{
+        id: item.feature.properties.id,
+        city: 'taipei',
+        district: 'daan',
+        name: item.name,
+        longitude: item.coordinate.longitude,
+        latitude: item.coordinate.latitude,
+      }],
+      'new-taipei': [],
+    },
+  })
+  const result = await buildLibraryEvidence(root, { id: item.feature.properties.id })
+  assert.equal(result.result, 'matched')
+  assert.equal(JSON.stringify(result.evidence).includes('address'), false)
+  assert.deepEqual(result.evidence.fields, {
+    id: true,
+    name: true,
+    district: true,
+    coordinate: true,
+  })
 })

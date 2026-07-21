@@ -41,6 +41,7 @@ const makeResult = (id: string): AnalysisResult => ({
       byLevel: { elementary: 0, junior: 0, senior: 0, special: 0 },
     },
     park: { count: 0, nearestDistance: null, nearestName: null, nearestType: null },
+    library: { count: 0, nearestDistance: null, nearestName: null },
   },
   accidentCount: 0,
   accidentSummary: { total: 0, a1: 0, a2: 0, years: [] },
@@ -154,5 +155,19 @@ describe('比較清單 Local Storage', () => {
     const [migrated] = loadSavedProperties(storage)
     expect(migrated.accidentSnapshotLegacy).toBe(true)
     expect(migrated.result.accidentSummary.total).toBe(0)
+  })
+
+  it('v6 保留事故明細並標示圖書館快照需重新查詢', () => {
+    const result = makeResult('v6')
+    const legacy = structuredClone(result)
+    delete (legacy.lifeFacilities as Partial<typeof legacy.lifeFacilities>).library
+    storage.setItem('homecheck-tw:properties', JSON.stringify({
+      schemaVersion: 6,
+      properties: [{ id: 'v6', savedAt: '2026-07-21', label: '舊快照', result: legacy }],
+    }))
+    const [migrated] = loadSavedProperties(storage)
+    expect(migrated.accidentSnapshotLegacy).toBe(false)
+    expect(migrated.librarySnapshotLegacy).toBe(true)
+    expect(migrated.result.lifeFacilities.library.count).toBe(0)
   })
 })
