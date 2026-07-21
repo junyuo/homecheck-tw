@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import { resolve } from 'node:path'
 import {
+  buildAccidentEvidence,
   buildCommunityEvidence,
   buildFacilityEvidence,
   buildRiskEvidence,
@@ -21,7 +22,9 @@ async function main() {
   const confirmed = option('confirm') === 'true'
   const isFacility = ['parking', 'medical'].includes(source)
   const isCommunity = ['school', 'park'].includes(source)
-  const result = isFacility
+  const result = source === 'accidents'
+    ? await buildAccidentEvidence(root, { id })
+    : isFacility
     ? await buildFacilityEvidence(root, { source, id })
     : isCommunity
       ? await buildCommunityEvidence(root, { source, id })
@@ -35,6 +38,9 @@ async function main() {
     latitude: result.candidate.latitude,
     expectedCategory: result.candidate.expectedCategory,
     observedCategory: result.observedCategory,
+    date: result.candidate.date,
+    year: result.candidate.year,
+    severity: result.candidate.severity,
     result: result.result,
     reason: result.reason,
     evidence: result.evidence,

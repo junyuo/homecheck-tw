@@ -81,9 +81,10 @@ export interface FacilityProperties {
 }
 
 export interface AccidentProperties {
+  id: string
   date: string
-  severity: string
-  demo?: boolean
+  year: number
+  severity: 'A1' | 'A2'
 }
 
 export type PointCollection<T> = FeatureCollection<Point, T>
@@ -164,6 +165,7 @@ export interface RuntimeSourceState {
   updatedAt: string | null
   validUntil?: string | null
   message: string
+  years?: number[]
 }
 
 export interface DistrictDataset {
@@ -224,6 +226,12 @@ export interface AnalysisResult {
     park: ParkFacilitySummary
   }
   accidentCount: number
+  accidentSummary: {
+    total: number
+    a1: number
+    a2: number
+    years: number[]
+  }
   completeness: number
   checklist: ChecklistItem[]
   updatedAt: string
@@ -247,5 +255,6 @@ export interface SavedProperty {
   riskSnapshotLegacy?: boolean
   lifeSnapshotLegacy?: boolean
   communitySnapshotLegacy?: boolean
+  accidentSnapshotLegacy?: boolean
   result: AnalysisResult
 }

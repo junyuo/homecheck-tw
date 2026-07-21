@@ -12,7 +12,7 @@ function option(name, fallback = '') {
 }
 
 function printProgress(status) {
-  for (const source of ['price', 'flood', 'liquefaction', 'parking', 'medical', 'school', 'park']) {
+  for (const source of ['price', 'flood', 'liquefaction', 'parking', 'medical', 'school', 'park', 'accidents']) {
     const item = status[source]
     console.log(
       `[audit] ${source}: ${item.passed ? 'passed' : 'pending'} ` +
@@ -21,6 +21,7 @@ function printProgress(status) {
         `，方式 ${(
           status.verificationMethods[source] ??
           status.facilityVerificationMethods[source] ??
+          (source === 'accidents' ? status.accidentVerificationMethods : undefined) ??
           []
         ).join(', ') || '尚無'}`),
     )

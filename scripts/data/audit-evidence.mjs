@@ -17,6 +17,7 @@ import {
   parseTaipeiHospitals,
   parseTaipeiParking,
 } from './facilities.mjs'
+import { inspectAccidentCandidate } from './accidents.mjs'
 import { validateShapefileEntries } from './risks.mjs'
 
 const LIQUEFACTION_CLASSES = ['低潛勢', '中潛勢', '高潛勢']
@@ -376,6 +377,56 @@ export async function buildFacilityEvidence(root, {
     evidence,
     blocked: false,
     reason: null,
+    result: matched ? 'matched' : 'mismatch',
+  }
+}
+
+export async function buildAccidentEvidence(root, {
+  id,
+  now = new Date().toISOString(),
+}) {
+  const [manifest, candidates] = await Promise.all([
+    readJson(join(root, 'public', 'data', 'manifest.json')),
+    readJson(join(root, '.data-cache', 'accident-audit-candidates.json')),
+  ])
+  const candidate = Object.entries(candidates.samples)
+    .flatMap(([city, samples]) => samples.map((sample) => ({ ...sample, city, source: 'accidents' })))
+    .find((item) => item.id === id)
+  if (!candidate) throw new Error(`accidents 候選清單不存在 ID ${id}`)
+  const source = manifest.sources.accidents
+  if (candidates.adapterVersion !== source.qualityGates.automated.adapterVersion) {
+    throw new Error('accidents candidate adapter 版本與 manifest 不一致')
+  }
+  if (candidates.fingerprints.sourceSha256 !== source.sha256 ||
+      candidates.fingerprints.datasetSha256 !== source.qualityGates.automated.datasetSha256) {
+    throw new Error('accidents 候選 fingerprints 與 manifest 不一致')
+  }
+  const archive = join(root, '.data-cache', 'accidents', `${candidate.year}.zip`)
+  const boundaries = await loadCommunityBoundaries(join(root, 'public', 'data'))
+  const inspected = await inspectAccidentCandidate(archive, candidate, boundaries)
+  const fields = inspected.fields
+  const evidence = {
+    verificationMethod: 'official-raw-offline',
+    sourceSha256: source.sha256,
+    rawRecordCount: inspected.rawRecordCount,
+    fields,
+    checkedAt: now,
+  }
+  evidence.queryOutputSha256 = sha256(JSON.stringify({
+    id,
+    city: candidate.city,
+    district: candidate.district,
+    year: candidate.year,
+    severity: candidate.severity,
+    ...evidence,
+  }))
+  const matched = inspected.rawRecordCount > 0 &&
+    ['id', 'date', 'severity', 'district', 'coordinate'].every((field) => fields[field] === true)
+  return {
+    candidate,
+    evidence,
+    blocked: inspected.rawRecordCount === 0,
+    reason: inspected.rawRecordCount === 0 ? '官方原始 ZIP 找不到候選事故 ID' : null,
     result: matched ? 'matched' : 'mismatch',
   }
 }

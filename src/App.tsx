@@ -485,8 +485,6 @@ function ResultsPage({
     : availableLifeCount > 0
       ? 'stale'
       : 'unavailable'
-  const transitSourceIds: DataSourceId[] = ['metro', 'rail', busSource]
-  const hasTransitData = transitSourceIds.some((id) => available(result.sources[id]?.status))
   const priceBlocked = result.sources['actual-price']?.status === 'unavailable'
   const floodBlocked = result.sources.flood?.status === 'unavailable'
   const liquefactionBlocked = result.sources.liquefaction?.status === 'unavailable'
@@ -590,17 +588,19 @@ function ResultsPage({
           </div>
         </ResultCard>
 
-        <ResultCard icon={TrainFront} index="03" title="交通環境" level={!hasTransitData || !hasAccidentData ? 'unknown' : result.accidentCount > 2 ? 'attention' : 'low'}>
+        <ResultCard icon={TrainFront} index="03" title="交通環境" level="unknown">
           <dl className="metrics">
             <div><dt>最近捷運站</dt><dd>{formatDistance(result.nearestMetro)}</dd></div>
             <div><dt>最近火車站</dt><dd>{formatDistance(result.nearestRail)}</dd></div>
             <div><dt>生活圈內公車站</dt><dd>{hasBusData ? `${result.busCount.toLocaleString('zh-TW')} 個站位` : '資料不足'}</dd></div>
-            <div><dt>交通事故</dt><dd>{hasAccidentData ? `${result.accidentCount.toLocaleString('zh-TW')} 件` : '資料不足'}</dd></div>
+            <div><dt>傷亡交通事故</dt><dd>{hasAccidentData ? `${result.accidentSummary.total.toLocaleString('zh-TW')} 件` : '資料不足'}</dd></div>
+            <div><dt>A1／A2 分布</dt><dd>{hasAccidentData ? `A1 ${result.accidentSummary.a1.toLocaleString('zh-TW')}、A2 ${result.accidentSummary.a2.toLocaleString('zh-TW')}` : '資料不足'}</dd></div>
+            <div><dt>事故資料年度</dt><dd>{hasAccidentData && result.accidentSummary.years.length ? `${result.accidentSummary.years[0]}–${result.accidentSummary.years.at(-1)}` : '資料不足'}</dd></div>
           </dl>
           <div className="evidence">
             <p><strong>查詢範圍</strong>以確認座標為中心，半徑 {result.input.radius >= 1000 ? '1 公里' : `${result.input.radius} 公尺`}。</p>
             <p><strong>觀察到的事實</strong>距離為直線距離，不等同步行路徑；主要道路資料尚未接入。</p>
-            <p><strong>資料信心</strong>依捷運、公車、鐵路與事故各自來源狀態判定；缺少某來源不等於附近沒有該設施或事故。</p>
+            <p><strong>資料信心</strong>依捷運、公車、鐵路與事故各自來源狀態判定；歷史傷亡事故件數少不代表安全，也不代表即時道路狀況。</p>
             <p><strong>建議確認</strong>在平日尖峰與夜間實走，留意轉乘、噪音、人行空間與事故熱點。</p>
           </div>
         </ResultCard>
@@ -638,7 +638,7 @@ function ResultsPage({
             <h2>把點位放回地圖上看。</h2>
             <p>地圖以外的完整文字結果已列在上方；只顯示已通過驗證的官方點位與風險圖層。</p>
           </div>
-          <AnalysisMap latitude={result.input.latitude} longitude={result.input.longitude} dataset={dataset} flood={dataset.flood} liquefaction={dataset.liquefaction} />
+          <AnalysisMap latitude={result.input.latitude} longitude={result.input.longitude} radius={result.input.radius} dataset={dataset} flood={dataset.flood} liquefaction={dataset.liquefaction} />
         </section>
       )}
 
@@ -717,7 +717,7 @@ function ComparePage({ saved, setSaved }: { saved: SavedProperty[]; setSaved: (i
               ['路外停車場', (x: SavedProperty) => x.lifeSnapshotLegacy ? '舊快照，請重新查詢' : `${x.result.lifeFacilities.parking.count.toLocaleString('zh-TW')} 處；最近 ${x.result.lifeFacilities.parking.nearestName ?? '資料不足'}（${formatDistance(x.result.lifeFacilities.parking.nearestDistance)}）`],
               ['學校', (x: SavedProperty) => x.communitySnapshotLegacy ? '舊快照，請重新查詢' : `${x.result.lifeFacilities.school.count.toLocaleString('zh-TW')} 處校園；最近 ${x.result.lifeFacilities.school.nearestName ?? '資料不足'}（${formatDistance(x.result.lifeFacilities.school.nearestDistance)}）`],
               ['公園綠地', (x: SavedProperty) => x.communitySnapshotLegacy ? '舊快照，請重新查詢' : `${x.result.lifeFacilities.park.count.toLocaleString('zh-TW')} 處；最近 ${x.result.lifeFacilities.park.nearestName ?? '資料不足'}（${formatDistance(x.result.lifeFacilities.park.nearestDistance)}）`],
-              ['交通事故狀況', (x: SavedProperty) => x.result.sources.accidents?.status === 'official' ? `${x.result.accidentCount.toLocaleString('zh-TW')} 件` : '資料不足'],
+              ['交通事故狀況', (x: SavedProperty) => x.accidentSnapshotLegacy ? '舊快照，請重新查詢' : x.result.sources.accidents?.status === 'official' ? `${x.result.accidentSummary.total.toLocaleString('zh-TW')} 件（A1 ${x.result.accidentSummary.a1}／A2 ${x.result.accidentSummary.a2}）` : '資料不足'],
               ['資料品質', (x: SavedProperty) => x.historicDemo ? '歷史 Demo（不與正式結果混用）' : x.result.dataQuality === 'official' ? '全部正式' : x.result.dataQuality === 'mixed' ? '混合來源' : '資料不足'],
               ['待確認事項', (x: SavedProperty) => `${x.result.checklist.filter((item) => !item.checked).length} 項`],
               ['資料完整度', (x: SavedProperty) => `${x.result.completeness}%`],

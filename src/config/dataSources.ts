@@ -137,7 +137,7 @@ export const dataSources: DataSource[] = [
     agency: '內政部警政署',
     sourceUrl: 'https://data.gov.tw/dataset/177136',
     license: '政府資料開放授權條款第 1 版',
-    refreshFrequency: '每月檢查 metadata',
-    notes: '只發布事故日期、等級與座標；件數少不代表較安全。',
+    refreshFrequency: '每月 6 日檢查 2023–2025 完整年度',
+    notes: '只發布去識別的事故日期、A1／A2 等級與座標；歷史件數少不代表較安全。',
   },
 ]

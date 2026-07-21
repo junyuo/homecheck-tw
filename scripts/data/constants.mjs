@@ -79,6 +79,11 @@ export const SOURCE_URLS = {
   taipeiPark: 'https://parks.taipei/parks/api/',
   newTaipeiPark:
     'https://data.ntpc.gov.tw/api/datasets/5fe3a136-29cc-4695-a17e-6636a32c3342/csv',
+  accidents: {
+    2023: 'https://opdadm.moi.gov.tw/api/v1/no-auth/resource/api/dataset/E68DFD97-92B3-4A78-A447-87F1390B54B0/resource/C0876EEB-9468-4B23-8E67-AB57E3563A1B/download',
+    2024: 'https://opdadm.moi.gov.tw/api/v1/no-auth/resource/api/dataset/CCAD7AA8-5139-4066-8BE3-D6CC3154C137/resource/36C1D864-51F8-4A78-9D68-8298E00B0732/download',
+    2025: 'https://opdadm.moi.gov.tw/api/v1/no-auth/resource/api/dataset/FCD9C2D4-CB71-4EAA-AA4C-B088E5FE3157/resource/76BD5265-18D6-43F8-9C48-162DC7B01A1E/download',
+  },
   districtBoundary:
     'https://www.tgos.tw/tgos/VirtualDir/Product/3fe61d4a-ca23-4f45-8aca-4a536f40f290/%E9%84%89%28%E9%8E%AE%E3%80%81%E5%B8%82%E3%80%81%E5%8D%80%29%E7%95%8C%E7%B7%9A1140318.zip',
   taipeiLiquefaction:

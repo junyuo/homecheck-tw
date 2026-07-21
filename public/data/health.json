@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "generatedAt": "2026-07-20T06:04:45.337Z",
+  "generatedAt": "2026-07-21T01:00:05.761Z",
   "sources": {
     "actual-price": {
       "status": "official",
@@ -146,14 +146,14 @@
       "matchingRate": null
     },
     "accidents": {
-      "status": "unavailable",
-      "updatedAt": null,
-      "attemptedAt": null,
+      "status": "official",
+      "updatedAt": "2026-07-21T00:56:24.561Z",
+      "attemptedAt": "2026-07-21T01:00:05.348Z",
       "lastAttempt": {
-        "status": "not-run",
-        "message": "尚未建立最近三個完整年度快照"
+        "status": "success",
+        "message": "人工驗收 10/10 通過，候選資料正式發布"
       },
-      "recordCount": 0,
+      "recordCount": 218122,
       "matchingRate": null
     },
     "district-boundary": {

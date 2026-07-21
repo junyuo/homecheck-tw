@@ -67,6 +67,7 @@ async function fixture() {
     ['medical', 'facilities-v1'],
     ['school', 'community-v1'],
     ['park', 'community-v1'],
+    ['accidents', 'accidents-v1'],
   ].map(([id, adapterVersion]) => [id, {
     qualityGates: { automated: { adapterVersion } },
   }]))
@@ -91,6 +92,12 @@ async function fixture() {
   })
   await writeJson(join(root, 'scripts', 'data', 'audits', 'community-v1.json'), {
     adapterVersion: 'community-v1',
+    status: 'pending',
+    checkedAt: null,
+    samples: [],
+  })
+  await writeJson(join(root, 'scripts', 'data', 'audits', 'accidents-v1.json'), {
+    adapterVersion: 'accidents-v1',
     status: 'pending',
     checkedAt: null,
     samples: [],
@@ -140,6 +147,10 @@ async function fixture() {
       school: { taipei: [], 'new-taipei': [] },
       park: { taipei: [], 'new-taipei': [] },
     },
+  })
+  await writeJson(join(root, '.data-cache', 'accident-audit-candidates.json'), {
+    adapterVersion: 'accidents-v1',
+    samples: { taipei: [], 'new-taipei': [] },
   })
   return root
 }

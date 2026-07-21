@@ -205,4 +205,38 @@ export function evaluateFacilityAudit(audit, source, {
   }
 }
 
+export function evaluateAccidentAudit(audit, {
+  adapterVersion,
+  sourceSha256,
+  requireEvidenceSourceSha = false,
+} = {}) {
+  const samples = Array.isArray(audit?.samples) ? audit.samples : []
+  const mismatches = samples.filter((sample) => sample.result === 'mismatch').length
+  const counts = {}
+  const coveragePassed = ['taipei', 'new-taipei'].every((city) => {
+    const matched = [...uniqueMatchedSamples(samples, (sample) =>
+      sample.city === city &&
+      sample.verificationMethod === 'official-raw-offline' &&
+      ['id', 'date', 'severity', 'district', 'coordinate']
+        .every((field) => sample.fields?.[field] === true))]
+    counts[city] = matched.length
+    return matched.length >= 5 &&
+      [2023, 2024, 2025].every((year) => matched.some((sample) => sample.year === year)) &&
+      ['A1', 'A2'].every((severity) => matched.some((sample) => sample.severity === severity)) &&
+      new Set(matched.map((sample) => sample.district)).size >= 3
+  })
+  const evidenceValid = !requireEvidenceSourceSha || samples.every((sample) =>
+    sample.evidence?.sourceSha256 === sourceSha256 &&
+    /^[a-f0-9]{64}$/.test(sample.evidence?.queryOutputSha256 ?? ''))
+  return {
+    passed: audit?.status === 'passed' && audit?.adapterVersion === adapterVersion &&
+      mismatches === 0 && coveragePassed && evidenceValid,
+    sampleCount: (counts.taipei ?? 0) + (counts['new-taipei'] ?? 0),
+    requiredSampleCount: 10,
+    counts,
+    mismatches,
+    verificationMethods: [...new Set(samples.map((sample) => sample.verificationMethod).filter(Boolean))],
+  }
+}
+
 export const PRICE_AUDIT_FIELDS = PRICE_FIELDS

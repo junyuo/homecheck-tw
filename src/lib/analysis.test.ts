@@ -104,6 +104,23 @@ describe('空間分析', () => {
     expect(result.lifeFacilities.park.nearestType).toBe('green-space')
   })
 
+  it('事故來源官方且行政區為零件時仍視為完整資料', () => {
+    const dataset: DistrictDataset = {
+      transactions: [],
+      facilities: { type: 'FeatureCollection', features: [] },
+      accidents: { type: 'FeatureCollection', features: [] },
+      flood: null,
+      floodScenario: '24h-500',
+      availableFloodScenarios: [],
+      liquefaction: null,
+      sources: { accidents: { status: 'official', updatedAt: '2026-07-21', message: '', years: [2023, 2024, 2025] } },
+      updatedAt: '2026-07-21',
+    }
+    const result = buildAnalysis(input, dataset)
+    expect(result.accidentSummary).toEqual({ total: 0, a1: 0, a2: 0, years: [2023, 2024, 2025] })
+    expect(result.completeness).toBe(17)
+  })
+
   it('判斷點是否落在風險多邊形內', () => {
     const layer: RiskCollection = {
       type: 'FeatureCollection',

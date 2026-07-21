@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { evaluateFacilityAudit, evaluatePriceAudit, evaluateRailAudit, evaluateRiskAudit } from './audit.mjs'
+import { evaluateAccidentAudit, evaluateFacilityAudit, evaluatePriceAudit, evaluateRailAudit, evaluateRiskAudit } from './audit.mjs'
 import { selectAuditCandidates } from './price.mjs'
 
 const matchedFields = {
@@ -212,4 +212,26 @@ test('學校驗收要求每市五筆並涵蓋四種學校級別', () => {
   }, 'school', {
     adapterVersion: 'community-v1',
   }).passed, false)
+})
+
+test('事故驗收要求每市五件、三年、A1/A2 與三個行政區', () => {
+  const years = [2023, 2024, 2025, 2023, 2024]
+  const samples = ['taipei', 'new-taipei'].flatMap((city) =>
+    years.map((year, index) => ({
+      id: `${city}-${index}`,
+      city,
+      district: ['daan', 'xinyi', 'zhongshan'][index % 3],
+      year,
+      severity: index === 0 ? 'A1' : 'A2',
+      result: 'matched',
+      verificationMethod: 'official-raw-offline',
+      fields: { id: true, date: true, severity: true, district: true, coordinate: true },
+    })))
+  assert.equal(evaluateAccidentAudit({
+    status: 'passed', adapterVersion: 'accidents-v1', samples,
+  }, { adapterVersion: 'accidents-v1' }).passed, true)
+  samples[0].fields.coordinate = false
+  assert.equal(evaluateAccidentAudit({
+    status: 'passed', adapterVersion: 'accidents-v1', samples,
+  }, { adapterVersion: 'accidents-v1' }).passed, false)
 })

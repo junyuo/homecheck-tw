@@ -2,6 +2,7 @@
 import { access, cp, mkdir, readFile, rename, rm, writeFile } from 'node:fs/promises'
 import { join, resolve } from 'node:path'
 import {
+  evaluateAccidentAudit,
   evaluateFacilityAudit,
   evaluatePriceAudit,
   evaluateRailAudit,
@@ -15,6 +16,7 @@ import { updateOfficialCommunity } from './data/community.mjs'
 import { updateOfficialFacilities } from './data/facilities.mjs'
 import { updateOfficialRisks } from './data/risks.mjs'
 import { updateOfficialTransport } from './data/transport.mjs'
+import { updateOfficialAccidents } from './data/accidents.mjs'
 
 const root = resolve(import.meta.dirname, '..')
 const publicData = join(root, 'public', 'data')
@@ -540,7 +542,74 @@ async function main() {
       }
     }
   }
-  if (shouldRun('accidents')) log('accidents', '事故來源尚未產生通過去識別與三年度門檻的快照')
+  if (shouldRun('accidents')) {
+    log('accidents', '更新 2023–2025 雙北 A1／A2 傷亡道路交通事故')
+    try {
+      const result = await updateOfficialAccidents({
+        output: staging,
+        cache,
+        now: new Date(),
+        dryRun,
+        reuseCache: process.env.REUSE_DATA_CACHE === 'true',
+        previous: manifest.sources.accidents,
+      })
+      if (dryRun) {
+        log('accidents', `dry run：${result.recordCount.toLocaleString('zh-TW')} 件`)
+      } else {
+        const audit = JSON.parse(await readFile(
+          join(root, 'scripts', 'data', 'audits', 'accidents-v1.json'),
+          'utf8',
+        ))
+        const datasetSha256 = await sourceFilesSha256(staging, result.files)
+        const evaluation = evaluateAccidentAudit(audit, {
+          adapterVersion: result.adapterVersion,
+        })
+        const nextSource = officialSource(
+          manifest.sources.accidents,
+          {
+            ...result,
+            qualityGates: {
+              automated: {
+                status: 'passed',
+                adapterVersion: result.adapterVersion,
+                checkedAt: now,
+                datasetSha256,
+              },
+              manualAudit: manualGate(evaluation, result.adapterVersion, audit.checkedAt),
+            },
+          },
+          now,
+          'https://data.gov.tw/dataset/177136',
+          {
+            cities: ['taipei', 'new-taipei'],
+            districts: ALL_DISTRICTS.map(({ city, slug }) => `${city}/${slug}`),
+            years: result.years,
+          },
+        )
+        if (!evaluation.passed) {
+          nextSource.status = 'unavailable'
+          nextSource.lastAttempt = {
+            status: 'success',
+            message: '自動 QA 通過；等待臺北／新北各 5 件官方原始檔離線驗收',
+          }
+        }
+        manifest.sources.accidents = nextSource
+        log('accidents', result.unchanged
+          ? '官方檔案雜湊未變，略過事故快照重建'
+          : `${result.recordCount.toLocaleString('zh-TW')} 件${evaluation.passed ? '，正式' : '，候選'}`)
+      }
+    } catch (error) {
+      failed = true
+      const message = error instanceof Error ? error.message : String(error)
+      manifest.sources.accidents = sourceFailure(
+        manifest.sources.accidents,
+        'accidents',
+        now,
+        message,
+      )
+      log('accidents', `失敗：${message}`)
+    }
+  }
 
   if (dryRun) {
     log('dry-run', failed ? '驗證完成但有來源失敗，未修改 public/data' : '驗證完成，未修改 public/data')

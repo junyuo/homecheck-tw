@@ -3,7 +3,7 @@ import { DEFAULT_FLOOD_SCENARIO } from '../config/risks'
 
 export const STORAGE_KEY = 'homecheck-tw:properties'
 export const MAX_PROPERTIES = 3
-export const STORAGE_SCHEMA_VERSION = 5
+export const STORAGE_SCHEMA_VERSION = 6
 
 interface StorageEnvelope {
   schemaVersion: typeof STORAGE_SCHEMA_VERSION
@@ -29,6 +29,7 @@ function migrateLegacy(
   riskSnapshotLegacy = true,
   lifeSnapshotLegacy = true,
   communitySnapshotLegacy = true,
+  accidentSnapshotLegacy = true,
 ): SavedProperty[] {
   return items.map((item) => {
     const legacy = item.result as AnalysisResult & { demo?: boolean }
@@ -38,6 +39,7 @@ function migrateLegacy(
       riskSnapshotLegacy: item.riskSnapshotLegacy ?? riskSnapshotLegacy,
       lifeSnapshotLegacy: item.lifeSnapshotLegacy ?? lifeSnapshotLegacy,
       communitySnapshotLegacy: item.communitySnapshotLegacy ?? communitySnapshotLegacy,
+      accidentSnapshotLegacy: item.accidentSnapshotLegacy ?? accidentSnapshotLegacy,
       result: {
         ...legacy,
         input: {
@@ -69,6 +71,12 @@ function migrateLegacy(
             nearestType: null,
           },
         },
+        accidentSummary: legacy.accidentSummary ?? {
+          total: legacy.accidentCount ?? 0,
+          a1: 0,
+          a2: 0,
+          years: [],
+        },
         dataQuality: legacy.demo === true ? 'historic-demo' : (legacy.dataQuality ?? 'unavailable'),
         sources: legacy.sources ?? {},
       },
@@ -88,6 +96,9 @@ export function loadSavedProperties(storage: Pick<Storage, 'getItem'> = localSto
     if (Array.isArray(parsed)) return migrateLegacy(parsed).slice(0, MAX_PROPERTIES)
     if (parsed?.schemaVersion === STORAGE_SCHEMA_VERSION && Array.isArray(parsed.properties)) {
       return parsed.properties.slice(0, MAX_PROPERTIES)
+    }
+    if (parsed?.schemaVersion === 5 && Array.isArray(parsed.properties)) {
+      return migrateLegacy(parsed.properties, false, false, false, true).slice(0, MAX_PROPERTIES)
     }
     if (parsed?.schemaVersion === 4 && Array.isArray(parsed.properties)) {
       return migrateLegacy(parsed.properties, false, false, true).slice(0, MAX_PROPERTIES)

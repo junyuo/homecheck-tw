@@ -22,9 +22,9 @@
 | 雙北學校 | unavailable | `community-v1` 已接入最新 114 學年度四類名錄；臺北門牌達標，但新北精確匹配率 91.81% 未達 95%，不發布候選 |
 | 雙北公園綠地 | unavailable | `community-v1` 已接入臺北公園／綠地／廣場與新北公園；新北精確匹配率 86.08% 未達 95%，不發布候選 |
 | 市場、圖書館 | unavailable | 每類來源獨立接入，不以單一成功類別代表全部 |
-| A1／A2 事故 | unavailable | 尚未完成最近三個完整年度的去識別快照 |
+| A1／A2 事故 | official | 2023–2025 雙北 218,122 件去識別事故；同案當事人列已合併，臺北／新北各 5 件官方 raw 離線驗收通過 |
 
-最新機器可讀狀態以 [`public/data/manifest.json`](public/data/manifest.json) 和 [`public/data/health.json`](public/data/health.json) 為準。實價筆數與匹配率會隨官方更新而變動；上表是 2026-07-20 本機正式發布的快照。
+最新機器可讀狀態以 [`public/data/manifest.json`](public/data/manifest.json) 和 [`public/data/health.json`](public/data/health.json) 為準。實價筆數與匹配率會隨官方更新而變動；上表是 2026-07-21 本機正式發布的快照。
 
 ## 分析規則
 
@@ -38,7 +38,7 @@
 - 災害圖資：只供區域性判讀，不代表個別建物安全。
 - 生活機能：分別顯示生活圈內醫院、路外停車場、學校與公園綠地數量及最近點位直線距離；學校距離不代表學區或入學資格，公園點位不代表面積、品質、開放狀態或實際入口。
 - 來源：每個來源獨立為 `official`、`stale`、`failed` 或 `unavailable`；一個來源載入失敗不會拖垮其他結果。
-- Local Storage：schema v5；既有 v4 的醫院與停車場明細保持有效，新增學校／公園欄標示為舊快照並要求重新查詢；既有 v3、v2 與舊 Demo 仍依原規則遷移。
+- Local Storage：schema v6；v5 事故總數保留，新增 A1／A2 與年度明細標示為舊快照；既有 v4–v2 與舊 Demo 仍依原規則遷移。
 
 ## 技術架構
 
@@ -78,12 +78,14 @@ public/data/
 ├── taipei/{district}/
 │   ├── transactions/{year}.json
 │   ├── facilities/{source}.geojson
+│   ├── accidents/{year}.json
 │   └── risks/
 │       ├── flood/{scenario}.geojson
 │       └── liquefaction.geojson
 └── new-taipei/{district}/
     ├── transactions/{year}.json
     ├── facilities/{source}.geojson
+    ├── accidents/{year}.json
     └── risks/
         ├── flood/{scenario}.geojson
         └── liquefaction.geojson
@@ -110,6 +112,8 @@ npm run audit:evidence -- --source=parking --id=<id>
 npm run audit:evidence -- --source=medical --id=<id> --confirm
 npm run audit:evidence -- --source=school --id=<id>
 npm run audit:evidence -- --source=park --id=<id> --confirm
+npm run audit:evidence -- --source=accidents --id=<id>
+npm run audit:evidence -- --source=accidents --id=<id> --confirm
 ```
 
 價格 `matched` 表示七個必要欄位已逐一一致；重做既有 ID 必須明確加上 `--replace`。`inconclusive` 至少需兩次查詢，CLI 會提示同城市、同建物型態的備援樣本。災害可人工填入官方圖台分類，或以 `audit:evidence` 直接查詢官方 raw SHP／GeoJSON；設施證據則比對名稱、ID、行政區、原始座標或門牌匹配結果，停車場另比對汽車格位。未加 `--confirm` 只預覽且不寫檔，來源雜湊或欄位不符均會阻擋。
@@ -123,6 +127,7 @@ npm run update-data -- --source=price --dry-run
 npm run update-data -- --source=risks --dry-run
 npm run update-data -- --source=transport --dry-run
 npm run update-data -- --source=facilities --dry-run
+npm run update-data -- --source=accidents --dry-run
 ```
 
 正式更新：
@@ -132,6 +137,7 @@ npm run update-data -- --source=price
 npm run update-data -- --source=risks
 npm run update-data -- --source=transport
 npm run update-data -- --source=facilities
+npm run update-data -- --source=accidents
 ```
 
 支援的 scope 為 `all|price|risks|transport|facilities|accidents`。未完成的 adapter 只會保留 `unavailable`，不會產生替代資料。
@@ -153,6 +159,8 @@ npm run update-data -- --source=facilities
 
 `facilities-v1` 會分別產生停車場與醫院各 41 個行政區 GeoJSON。獨立的 `community-v1` 處理學校與公園綠地，不會讓既有設施稽核失效。學校只選最新學年度的國小、國中、一般高中與特殊教育學校，同址且 30 公尺內的部別合併；臺北公園保留公園、綠地、廣場分類，新北公園只接受完整門牌精確匹配。每類都需先達 95% 地址匹配、自動 QA 與臺北／新北各 5 筆官方原始檔離線證據，才可獨立提升為 `official`。
 
+`accidents-v1` 以 `unzip -p` 串流解析 2023–2025 官方 A1／A2 ZIP，依案件層級欄位產生穩定 ID，合併同案多位當事人列。公開檔只保留 ID、日期、年度、A1／A2 與座標；三年共 123 個行政區／年度檔必須整體通過 QA 及雙北各 5 件離線證據才能發布。
+
 完成稽核後，以發布工具只檢查並提升既有候選；它不下載或重建大型圖資，失敗不修改 last-good：
 
 ```bash
@@ -161,12 +169,13 @@ npm run audit:status
 npm run release-data -- --source=price --dry-run
 npm run release-data -- --source=risks --dry-run
 npm run release-data -- --source=facilities --dry-run
+npm run release-data -- --source=accidents --dry-run
 npm run release-data -- --source=all
 ```
 
 發布前會重新確認 adapter 版本、來源雜湊格式、manifest 內的當前候選檔雜湊、人工樣本數、零 mismatch、檔案清單及完整資料 QA。人工驗收只綁定 adapter 版本；只有解析、映射或座標邏輯變更才需要升版並重設稽核，日常來源更新仍由自動 QA 驗證，不要求重做全部人工抽查。
 
-`.github/workflows/update-data.yml` 可選 source 及 `dryRun`。價格於每月 2、12、22 日 08:17、災害 metadata／雜湊於每月 3 日 09:17、交通於每月 4 日 09:17、設施於每月 5 日 09:17（臺灣時間）執行；雜湊未變時不重建圖層。Workflow 只提交 `public/data`。
+`.github/workflows/update-data.yml` 可選 source 及 `dryRun`。價格於每月 2、12、22 日 08:17、災害 metadata／雜湊於 3 日 09:17、交通於 4 日 09:17、設施於 5 日 09:17、事故於 6 日 09:17（臺灣時間）執行。Workflow 只提交 `public/data`。
 
 ## GitHub Pages
 

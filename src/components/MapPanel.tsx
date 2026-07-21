@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { CircleMarker, GeoJSON, MapContainer, TileLayer, useMapEvents } from 'react-leaflet'
 import type { LatLngExpression, LeafletMouseEvent } from 'leaflet'
 import type { DistrictDataset, FacilityProperties, RiskCollection } from '../types'
+import { distanceMeters } from '../lib/analysis'
 
 const riskColors = {
   low: '#527a62',
@@ -59,12 +60,14 @@ interface AnalysisMapProps {
   dataset: DistrictDataset
   flood: RiskCollection | null
   liquefaction: RiskCollection | null
+  radius: number
 }
 
-export function AnalysisMap({ latitude, longitude, dataset, flood, liquefaction }: AnalysisMapProps) {
+export function AnalysisMap({ latitude, longitude, dataset, flood, liquefaction, radius }: AnalysisMapProps) {
   const [visible, setVisible] = useState(() => new Set<FacilityProperties['category']>(['metro', 'bus', 'medical', 'park']))
   const [showFlood, setShowFlood] = useState(true)
   const [showLiquefaction, setShowLiquefaction] = useState(true)
+  const [showAccidents, setShowAccidents] = useState(false)
   const position: LatLngExpression = [latitude, longitude]
   const categories = useMemo(
     () => [...new Set(dataset.facilities.features.map((item) => item.properties.category))],
@@ -98,6 +101,10 @@ export function AnalysisMap({ latitude, longitude, dataset, flood, liquefaction 
             <input type="checkbox" checked={showLiquefaction} onChange={(event) => setShowLiquefaction(event.target.checked)} />
             土壤液化
           </label>}
+          {dataset.accidents.features.length > 0 && <label className="layer-chip">
+            <input type="checkbox" checked={showAccidents} onChange={(event) => setShowAccidents(event.target.checked)} />
+            A1／A2 事故
+          </label>}
         </div>
       </div>
       <MapContainer center={position} zoom={15} scrollWheelZoom className="map result-map" aria-label="分析圖層地圖">
@@ -118,6 +125,24 @@ export function AnalysisMap({ latitude, longitude, dataset, flood, liquefaction 
                 weight: 2,
                 fillColor: facilityColors[feature.properties.category],
                 fillOpacity: 0.9,
+              }}
+            />
+          ))}
+        {showAccidents && dataset.accidents.features
+          .filter((feature) => distanceMeters(
+            { latitude, longitude },
+            { latitude: feature.geometry.coordinates[1], longitude: feature.geometry.coordinates[0] },
+          ) <= radius)
+          .map((feature) => (
+            <CircleMarker
+              key={feature.properties.id}
+              center={[feature.geometry.coordinates[1], feature.geometry.coordinates[0]]}
+              radius={4}
+              pathOptions={{
+                color: '#fff',
+                weight: 1,
+                fillColor: feature.properties.severity === 'A1' ? '#b84b3e' : '#d19a28',
+                fillOpacity: 0.85,
               }}
             />
           ))}

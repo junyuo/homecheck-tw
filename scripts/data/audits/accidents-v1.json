@@ -1,0 +1,337 @@
+{
+  "adapterVersion": "accidents-v1",
+  "status": "passed",
+  "checkedAt": "2026-07-21T00:59:51.314Z",
+  "samples": [
+    {
+      "id": "000010c219b2505c8843c109",
+      "source": "accidents",
+      "city": "taipei",
+      "district": "datong",
+      "year": 2023,
+      "severity": "A2",
+      "result": "matched",
+      "verificationMethod": "official-raw-offline",
+      "fields": {
+        "id": true,
+        "date": true,
+        "severity": true,
+        "district": true,
+        "coordinate": true
+      },
+      "evidence": {
+        "verificationMethod": "official-raw-offline",
+        "sourceSha256": "0fdb0996db163545e2ca89591d316daec7ad7cc1cbfcc399bb9334362fdaec94",
+        "rawRecordCount": 2,
+        "fields": {
+          "id": true,
+          "date": true,
+          "severity": true,
+          "district": true,
+          "coordinate": true
+        },
+        "checkedAt": "2026-07-21T00:58:17.831Z",
+        "queryOutputSha256": "37d5b6110d77f053ea3b97738e81e3f6e69e866dbcc1654005fa83922626938e"
+      },
+      "checkedAt": "2026-07-21T00:58:29.033Z",
+      "attemptCount": 1
+    },
+    {
+      "id": "00007617499673d6db6a64f3",
+      "source": "accidents",
+      "city": "taipei",
+      "district": "wanhua",
+      "year": 2024,
+      "severity": "A2",
+      "result": "matched",
+      "verificationMethod": "official-raw-offline",
+      "fields": {
+        "id": true,
+        "date": true,
+        "severity": true,
+        "district": true,
+        "coordinate": true
+      },
+      "evidence": {
+        "verificationMethod": "official-raw-offline",
+        "sourceSha256": "0fdb0996db163545e2ca89591d316daec7ad7cc1cbfcc399bb9334362fdaec94",
+        "rawRecordCount": 2,
+        "fields": {
+          "id": true,
+          "date": true,
+          "severity": true,
+          "district": true,
+          "coordinate": true
+        },
+        "checkedAt": "2026-07-21T00:58:29.110Z",
+        "queryOutputSha256": "032ce8667cfd6a8020406596313a0a0838323b4c44bae5d297fc5af2ff22fde4"
+      },
+      "checkedAt": "2026-07-21T00:58:40.511Z",
+      "attemptCount": 1
+    },
+    {
+      "id": "000167b53274391c43e3cf6d",
+      "source": "accidents",
+      "city": "taipei",
+      "district": "wenshan",
+      "year": 2025,
+      "severity": "A2",
+      "result": "matched",
+      "verificationMethod": "official-raw-offline",
+      "fields": {
+        "id": true,
+        "date": true,
+        "severity": true,
+        "district": true,
+        "coordinate": true
+      },
+      "evidence": {
+        "verificationMethod": "official-raw-offline",
+        "sourceSha256": "0fdb0996db163545e2ca89591d316daec7ad7cc1cbfcc399bb9334362fdaec94",
+        "rawRecordCount": 7,
+        "fields": {
+          "id": true,
+          "date": true,
+          "severity": true,
+          "district": true,
+          "coordinate": true
+        },
+        "checkedAt": "2026-07-21T00:58:40.602Z",
+        "queryOutputSha256": "a800b38ed65f269f1a29dc59725cb05881c930d87ae7b5fd3f4ad37588ca446e"
+      },
+      "checkedAt": "2026-07-21T00:58:52.301Z",
+      "attemptCount": 1
+    },
+    {
+      "id": "00515107b8e34285e7490c20",
+      "source": "accidents",
+      "city": "taipei",
+      "district": "wanhua",
+      "year": 2023,
+      "severity": "A1",
+      "result": "matched",
+      "verificationMethod": "official-raw-offline",
+      "fields": {
+        "id": true,
+        "date": true,
+        "severity": true,
+        "district": true,
+        "coordinate": true
+      },
+      "evidence": {
+        "verificationMethod": "official-raw-offline",
+        "sourceSha256": "0fdb0996db163545e2ca89591d316daec7ad7cc1cbfcc399bb9334362fdaec94",
+        "rawRecordCount": 4,
+        "fields": {
+          "id": true,
+          "date": true,
+          "severity": true,
+          "district": true,
+          "coordinate": true
+        },
+        "checkedAt": "2026-07-21T00:58:52.385Z",
+        "queryOutputSha256": "d036d89b514e4495c0d6d5331e01bc27b69fdb5a4bf8be7f02a79571892712c1"
+      },
+      "checkedAt": "2026-07-21T00:58:52.548Z",
+      "attemptCount": 1
+    },
+    {
+      "id": "00006bc9e0735c0c63383f18",
+      "source": "accidents",
+      "city": "taipei",
+      "district": "zhongzheng",
+      "year": 2023,
+      "severity": "A2",
+      "result": "matched",
+      "verificationMethod": "official-raw-offline",
+      "fields": {
+        "id": true,
+        "date": true,
+        "severity": true,
+        "district": true,
+        "coordinate": true
+      },
+      "evidence": {
+        "verificationMethod": "official-raw-offline",
+        "sourceSha256": "0fdb0996db163545e2ca89591d316daec7ad7cc1cbfcc399bb9334362fdaec94",
+        "rawRecordCount": 2,
+        "fields": {
+          "id": true,
+          "date": true,
+          "severity": true,
+          "district": true,
+          "coordinate": true
+        },
+        "checkedAt": "2026-07-21T00:58:52.610Z",
+        "queryOutputSha256": "e4783cccc7ffb35b2758d5fba5b0eab261c7eb843384496dfa6ac1632399d8b0"
+      },
+      "checkedAt": "2026-07-21T00:59:04.031Z",
+      "attemptCount": 1
+    },
+    {
+      "id": "00011ab2b85d28088ca29a2f",
+      "source": "accidents",
+      "city": "new-taipei",
+      "district": "xindian",
+      "year": 2023,
+      "severity": "A2",
+      "result": "matched",
+      "verificationMethod": "official-raw-offline",
+      "fields": {
+        "id": true,
+        "date": true,
+        "severity": true,
+        "district": true,
+        "coordinate": true
+      },
+      "evidence": {
+        "verificationMethod": "official-raw-offline",
+        "sourceSha256": "0fdb0996db163545e2ca89591d316daec7ad7cc1cbfcc399bb9334362fdaec94",
+        "rawRecordCount": 2,
+        "fields": {
+          "id": true,
+          "date": true,
+          "severity": true,
+          "district": true,
+          "coordinate": true
+        },
+        "checkedAt": "2026-07-21T00:59:04.101Z",
+        "queryOutputSha256": "c4d100431b67c7044b9192812ca27f05c272cb7498e49a335024b86b87c9e9b2"
+      },
+      "checkedAt": "2026-07-21T00:59:15.597Z",
+      "attemptCount": 1
+    },
+    {
+      "id": "00007b11b0f97bfb5104cc35",
+      "source": "accidents",
+      "city": "new-taipei",
+      "district": "yonghe",
+      "year": 2024,
+      "severity": "A2",
+      "result": "matched",
+      "verificationMethod": "official-raw-offline",
+      "fields": {
+        "id": true,
+        "date": true,
+        "severity": true,
+        "district": true,
+        "coordinate": true
+      },
+      "evidence": {
+        "verificationMethod": "official-raw-offline",
+        "sourceSha256": "0fdb0996db163545e2ca89591d316daec7ad7cc1cbfcc399bb9334362fdaec94",
+        "rawRecordCount": 2,
+        "fields": {
+          "id": true,
+          "date": true,
+          "severity": true,
+          "district": true,
+          "coordinate": true
+        },
+        "checkedAt": "2026-07-21T00:59:15.711Z",
+        "queryOutputSha256": "1af13863c6851f418fa68abc7664668e7984545656843e45783b87fbdd735a8a"
+      },
+      "checkedAt": "2026-07-21T00:59:26.850Z",
+      "attemptCount": 1
+    },
+    {
+      "id": "000070e6764efc9738f7b3a2",
+      "source": "accidents",
+      "city": "new-taipei",
+      "district": "sanchong",
+      "year": 2025,
+      "severity": "A2",
+      "result": "matched",
+      "verificationMethod": "official-raw-offline",
+      "fields": {
+        "id": true,
+        "date": true,
+        "severity": true,
+        "district": true,
+        "coordinate": true
+      },
+      "evidence": {
+        "verificationMethod": "official-raw-offline",
+        "sourceSha256": "0fdb0996db163545e2ca89591d316daec7ad7cc1cbfcc399bb9334362fdaec94",
+        "rawRecordCount": 2,
+        "fields": {
+          "id": true,
+          "date": true,
+          "severity": true,
+          "district": true,
+          "coordinate": true
+        },
+        "checkedAt": "2026-07-21T00:59:26.932Z",
+        "queryOutputSha256": "cb99d6c717855f6ce4f8a34fc59b0a7551b51e5b7fa73a2c42494fa4c668c6ba"
+      },
+      "checkedAt": "2026-07-21T00:59:39.042Z",
+      "attemptCount": 1
+    },
+    {
+      "id": "00038622a8e6b96b6ddb0ffb",
+      "source": "accidents",
+      "city": "new-taipei",
+      "district": "wugu",
+      "year": 2024,
+      "severity": "A1",
+      "result": "matched",
+      "verificationMethod": "official-raw-offline",
+      "fields": {
+        "id": true,
+        "date": true,
+        "severity": true,
+        "district": true,
+        "coordinate": true
+      },
+      "evidence": {
+        "verificationMethod": "official-raw-offline",
+        "sourceSha256": "0fdb0996db163545e2ca89591d316daec7ad7cc1cbfcc399bb9334362fdaec94",
+        "rawRecordCount": 2,
+        "fields": {
+          "id": true,
+          "date": true,
+          "severity": true,
+          "district": true,
+          "coordinate": true
+        },
+        "checkedAt": "2026-07-21T00:59:39.125Z",
+        "queryOutputSha256": "b87030b82c17eb5efac9a553fcb80f6b905214f3fa3c228781cdb188fe34c885"
+      },
+      "checkedAt": "2026-07-21T00:59:39.257Z",
+      "attemptCount": 1
+    },
+    {
+      "id": "000073cefe267a5f37b0273e",
+      "source": "accidents",
+      "city": "new-taipei",
+      "district": "xinzhuang",
+      "year": 2025,
+      "severity": "A2",
+      "result": "matched",
+      "verificationMethod": "official-raw-offline",
+      "fields": {
+        "id": true,
+        "date": true,
+        "severity": true,
+        "district": true,
+        "coordinate": true
+      },
+      "evidence": {
+        "verificationMethod": "official-raw-offline",
+        "sourceSha256": "0fdb0996db163545e2ca89591d316daec7ad7cc1cbfcc399bb9334362fdaec94",
+        "rawRecordCount": 2,
+        "fields": {
+          "id": true,
+          "date": true,
+          "severity": true,
+          "district": true,
+          "coordinate": true
+        },
+        "checkedAt": "2026-07-21T00:59:39.316Z",
+        "queryOutputSha256": "66bb9d429819a8ef5850688b6e6d7f10822aadb44bf147e1f5e257902c52adb1"
+      },
+      "checkedAt": "2026-07-21T00:59:51.314Z",
+      "attemptCount": 1
+    }
+  ]
+}

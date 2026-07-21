@@ -2,6 +2,7 @@
 import { cp, readFile, rm, writeFile } from 'node:fs/promises'
 import { join, resolve } from 'node:path'
 import {
+  evaluateAccidentAudit,
   evaluateFacilityAudit,
   evaluatePriceAudit,
   evaluateRailAudit,
@@ -14,7 +15,7 @@ const root = resolve(import.meta.dirname, '..')
 const publicData = join(root, 'public', 'data')
 const staging = join(root, '.data-release-staging')
 const backup = join(root, '.data-release-last-good')
-const validSources = new Set(['all', 'price', 'risks', 'facilities'])
+const validSources = new Set(['all', 'price', 'risks', 'facilities', 'accidents'])
 
 function option(name, fallback) {
   const inline = process.argv.find((argument) => argument.startsWith(`--${name}=`))
@@ -139,6 +140,25 @@ async function main() {
     }
     failures.forEach((message) => console.error(`[release] 未提升 ${message}`))
     if (promoted === 0) throw new Error('四類設施皆未通過發布閘門')
+  }
+
+  if (selectedSource === 'all' || selectedSource === 'accidents') {
+    const [audit, candidates] = await Promise.all([
+      readFile(join(root, 'scripts', 'data', 'audits', 'accidents-v1.json'), 'utf8').then(JSON.parse),
+      readFile(join(root, '.data-cache', 'accident-audit-candidates.json'), 'utf8').then(JSON.parse),
+    ])
+    const source = manifest.sources.accidents
+    await verifyCandidate(source)
+    const evaluation = evaluateAccidentAudit(audit, {
+      adapterVersion: source.qualityGates.automated.adapterVersion,
+      sourceSha256: source.sha256,
+      requireEvidenceSourceSha: true,
+    })
+    if (candidates.fingerprints.sourceSha256 !== source.sha256 ||
+        candidates.fingerprints.datasetSha256 !== source.qualityGates.automated.datasetSha256) {
+      throw new Error('accidents 候選 fingerprints 與 manifest 不一致')
+    }
+    promoteSource(source, evaluation, audit, now)
   }
 
   const railPrerequisites = ['actual-price', 'flood', 'liquefaction']

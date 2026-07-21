@@ -1,6 +1,7 @@
 import { readFile, rename, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import {
+  evaluateAccidentAudit,
   evaluateFacilityAudit,
   evaluatePriceAudit,
   evaluateRiskAudit,
@@ -8,7 +9,9 @@ import {
 } from './audit.mjs'
 
 const VALID_RESULTS = new Set(['matched', 'mismatch', 'inconclusive'])
-const FORBIDDEN_AUDIT_KEYS = new Set(['address', 'districtLabel'])
+const FORBIDDEN_AUDIT_KEYS = new Set([
+  'address', 'districtLabel', 'location', 'police', 'time', 'party',
+])
 
 async function readJson(file) {
   return JSON.parse(await readFile(file, 'utf8'))
@@ -46,6 +49,11 @@ function facilityCandidates(candidateFile) {
   return Object.keys(candidateFile.samples).flatMap((source) =>
     Object.entries(candidateFile.samples[source]).flatMap(([city, samples]) =>
       samples.map((sample) => ({ ...sample, source, city }))))
+}
+
+function accidentCandidates(candidateFile) {
+  return Object.entries(candidateFile.samples).flatMap(([city, samples]) =>
+    samples.map((sample) => ({ ...sample, source: 'accidents', city })))
 }
 
 function assertAdapterVersion(audit, candidates) {
@@ -98,6 +106,13 @@ function readiness(audit, manifest) {
       },
     ),
   ]))
+  const accidents = evaluateAccidentAudit(
+    { ...audit.accidents, status: 'passed' },
+    {
+      adapterVersion: manifest.sources.accidents?.qualityGates?.automated?.adapterVersion ??
+        audit.accidents.adapterVersion,
+    },
+  )
   return {
     price,
     flood: risks.flood,
@@ -106,9 +121,10 @@ function readiness(audit, manifest) {
     medical: facilities.medical,
     school: community.school,
     park: community.park,
+    accidents,
     ready: price.passed && risks.flood.passed && risks.liquefaction.passed &&
       facilities.parking.passed && facilities.medical.passed &&
-      community.school.passed && community.park.passed,
+      community.school.passed && community.park.passed && accidents.passed,
   }
 }
 
@@ -119,10 +135,12 @@ async function loadContext(root) {
     riskAudit: join(root, 'scripts', 'data', 'audits', 'risks-v1.json'),
     facilityAudit: join(root, 'scripts', 'data', 'audits', 'facilities-v1.json'),
     communityAudit: join(root, 'scripts', 'data', 'audits', 'community-v1.json'),
+    accidentAudit: join(root, 'scripts', 'data', 'audits', 'accidents-v1.json'),
     priceCandidates: join(root, '.data-cache', 'price-audit-candidates.json'),
     riskCandidates: join(root, '.data-cache', 'risk-audit-candidates.json'),
     facilityCandidates: join(root, '.data-cache', 'facility-audit-candidates.json'),
     communityCandidates: join(root, '.data-cache', 'community-audit-candidates.json'),
+    accidentCandidates: join(root, '.data-cache', 'accident-audit-candidates.json'),
   }
   const [
     manifest,
@@ -130,10 +148,12 @@ async function loadContext(root) {
     riskAudit,
     facilityAudit,
     communityAudit,
+    accidentAudit,
     priceCandidateFile,
     riskCandidateFile,
     facilityCandidateFile,
     communityCandidateFile,
+    accidentCandidateFile,
   ] =
     await Promise.all([
       readJson(files.manifest),
@@ -141,19 +161,23 @@ async function loadContext(root) {
       readJson(files.riskAudit),
       readJson(files.facilityAudit),
       readJson(files.communityAudit),
+      readJson(files.accidentAudit),
       readJson(files.priceCandidates),
       readJson(files.riskCandidates),
       readJson(files.facilityCandidates),
       readJson(files.communityCandidates),
+      readJson(files.accidentCandidates),
     ])
   assertAdapterVersion(priceAudit, priceCandidateFile)
   assertAdapterVersion(riskAudit, riskCandidateFile)
   assertAdapterVersion(facilityAudit, facilityCandidateFile)
   assertAdapterVersion(communityAudit, communityCandidateFile)
+  assertAdapterVersion(accidentAudit, accidentCandidateFile)
   assertAuditPrivacy(priceAudit)
   assertAuditPrivacy(riskAudit)
   assertAuditPrivacy(facilityAudit)
   assertAuditPrivacy(communityAudit)
+  assertAuditPrivacy(accidentAudit)
   return {
     files,
     manifest,
@@ -161,10 +185,12 @@ async function loadContext(root) {
     riskAudit,
     facilityAudit,
     communityAudit,
+    accidentAudit,
     priceCandidateFile,
     riskCandidateFile,
     facilityCandidateFile,
     communityCandidateFile,
+    accidentCandidateFile,
   }
 }
 
@@ -283,6 +309,31 @@ function facilityRecord(candidate, { result, attempts, evidence, now }) {
   }
 }
 
+function accidentRecord(candidate, { result, attempts, evidence, now }) {
+  if (!['matched', 'mismatch'].includes(result)) throw new Error('事故 result 只接受 matched 或 mismatch')
+  if (evidence?.verificationMethod !== 'official-raw-offline') {
+    throw new Error('事故稽核必須使用官方原始檔離線證據')
+  }
+  const fields = evidence.fields ?? {}
+  const allMatched = ['id', 'date', 'severity', 'district', 'coordinate']
+    .every((field) => fields[field] === true)
+  if ((result === 'matched') !== allMatched) throw new Error('事故欄位比對結果與 result 不一致')
+  return {
+    id: candidate.id,
+    source: 'accidents',
+    city: candidate.city,
+    district: candidate.district,
+    year: candidate.year,
+    severity: candidate.severity,
+    result,
+    verificationMethod: evidence.verificationMethod,
+    fields,
+    evidence,
+    checkedAt: now,
+    attemptCount: attempts,
+  }
+}
+
 export async function recordAudit(root, {
   source,
   id,
@@ -299,14 +350,17 @@ export async function recordAudit(root, {
   const isRisk = ['flood', 'liquefaction'].includes(source)
   const isFacility = ['parking', 'medical'].includes(source)
   const isCommunity = ['school', 'park'].includes(source)
-  if (!isPrice && !isRisk && !isFacility && !isCommunity) {
+  const isAccident = source === 'accidents'
+  if (!isPrice && !isRisk && !isFacility && !isCommunity && !isAccident) {
     throw new Error(`不支援的 source：${source}`)
   }
   const candidates = isPrice
     ? priceCandidates(context.priceCandidateFile)
     : isRisk
       ? riskCandidates(context.riskCandidateFile).filter((sample) => sample.source === source)
-      : facilityCandidates(
+      : isAccident
+        ? accidentCandidates(context.accidentCandidateFile)
+        : facilityCandidates(
         isCommunity ? context.communityCandidateFile : context.facilityCandidateFile,
       ).filter((sample) => sample.source === source)
   const candidate = candidates.find((sample) => sample.id === id)
@@ -317,7 +371,7 @@ export async function recordAudit(root, {
       ? context.riskAudit
       : isCommunity
         ? context.communityAudit
-        : context.facilityAudit
+        : isAccident ? context.accidentAudit : context.facilityAudit
   const existingIndex = audit.samples.findIndex((sample) => sample.id === id)
   if (existingIndex >= 0 && !replace) {
     throw new Error(`${id} 已有稽核紀錄；確認重做時請加 --replace`)
@@ -326,7 +380,9 @@ export async function recordAudit(root, {
     ? priceRecord(candidate, { result, attempts, mismatchFields, now })
     : isRisk
       ? riskRecord(candidate, { result, observed, attempts, evidence, now })
-      : facilityRecord(candidate, { result, attempts, evidence, now })
+      : isAccident
+        ? accidentRecord(candidate, { result, attempts, evidence, now })
+        : facilityRecord(candidate, { result, attempts, evidence, now })
   if (existingIndex >= 0) audit.samples[existingIndex] = record
   else audit.samples.push(record)
   audit.checkedAt = now
@@ -336,13 +392,16 @@ export async function recordAudit(root, {
     risks: isRisk ? audit : context.riskAudit,
     facilities: isFacility ? audit : context.facilityAudit,
     community: isCommunity ? audit : context.communityAudit,
+    accidents: isAccident ? audit : context.accidentAudit,
   }
   const progress = readiness(nextContext, context.manifest)
   if (isPrice) audit.status = progress.price.passed ? 'passed' : 'pending'
   else audit.status =
     isRisk
       ? progress.flood.passed && progress.liquefaction.passed ? 'passed' : 'pending'
-      : isCommunity
+      : isAccident
+        ? progress.accidents.passed ? 'passed' : 'pending'
+        : isCommunity
         ? progress.school.passed && progress.park.passed ? 'passed' : 'pending'
         : progress.parking.passed && progress.medical.passed ? 'passed' : 'pending'
   assertAuditPrivacy(audit)
@@ -352,7 +411,9 @@ export async function recordAudit(root, {
       : isRisk
         ? context.files.riskAudit
         : isCommunity
-          ? context.files.communityAudit
+        ? context.files.communityAudit
+        : isAccident
+          ? context.files.accidentAudit
           : context.files.facilityAudit,
     audit,
   )
@@ -372,11 +433,13 @@ export async function auditStatus(root) {
     risks: context.riskAudit,
     facilities: context.facilityAudit,
     community: context.communityAudit,
+    accidents: context.accidentAudit,
   }, context.manifest)
   const priceSamples = context.priceAudit.samples
   const riskSamples = context.riskAudit.samples
   const facilitySamples = context.facilityAudit.samples
   const communitySamples = context.communityAudit.samples
+  const accidentSamples = context.accidentAudit.samples
   return {
     ...progress,
     adapterVersions: {
@@ -384,9 +447,10 @@ export async function auditStatus(root) {
       risks: context.riskAudit.adapterVersion,
       facilities: context.facilityAudit.adapterVersion,
       community: context.communityAudit.adapterVersion,
+      accidents: context.accidentAudit.adapterVersion,
     },
     inconclusive: priceSamples.filter((sample) => sample.result === 'inconclusive').length,
-    mismatches: [...priceSamples, ...riskSamples, ...facilitySamples, ...communitySamples]
+    mismatches: [...priceSamples, ...riskSamples, ...facilitySamples, ...communitySamples, ...accidentSamples]
       .filter((sample) => sample.result === 'mismatch').length,
     verificationMethods: Object.fromEntries(['flood', 'liquefaction'].map((source) => [
       source,
@@ -404,6 +468,10 @@ export async function auditStatus(root) {
         .filter(Boolean))],
       ]),
     ),
+    accidentVerificationMethods: [...new Set(accidentSamples
+      .filter((sample) => sample.result === 'matched')
+      .map((sample) => sample.verificationMethod)
+      .filter(Boolean))],
   }
 }
 

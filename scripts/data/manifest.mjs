@@ -33,7 +33,7 @@ export async function validateData(directory) {
   const jsonFiles = files.filter((file) => file.endsWith('.json') || file.endsWith('.geojson'))
   for (const file of jsonFiles) {
     const data = JSON.parse(await readFile(file, 'utf8'))
-    if (file.endsWith('.geojson')) {
+    if (file.endsWith('.geojson') || file.includes('/accidents/')) {
       if (data.type !== 'FeatureCollection' || !Array.isArray(data.features)) {
         throw new Error(`${file} 不是 FeatureCollection`)
       }
@@ -41,7 +41,16 @@ export async function validateData(directory) {
         if (!feature.geometry || !validateCoordinates(feature.geometry.coordinates)) {
           throw new Error(`${file} 含空 geometry 或雙北範圍外座標`)
         }
-        if (file.includes('/risks/')) {
+        if (file.includes('/accidents/')) {
+          const properties = feature.properties ?? {}
+          const keys = Object.keys(properties)
+          if (keys.some((key) => !['id', 'date', 'year', 'severity'].includes(key)) ||
+              !properties.id || !/^20(23|24|25)-\d{2}-\d{2}$/.test(properties.date ?? '') ||
+              ![2023, 2024, 2025].includes(properties.year) ||
+              !['A1', 'A2'].includes(properties.severity)) {
+            throw new Error(`${file} 含無效或非公開白名單的事故欄位`)
+          }
+        } else if (file.includes('/risks/')) {
           const properties = feature.properties ?? {}
           if (!['flood', 'liquefaction'].includes(properties.riskType) ||
               !['low', 'attention', 'priority'].includes(properties.level) ||
@@ -101,6 +110,7 @@ export async function validateData(directory) {
     medical: 41,
     school: 41,
     park: 41,
+    accidents: 123,
   }
   for (const [id, expected] of Object.entries(expectedFiles)) {
     const source = manifest.sources[id]

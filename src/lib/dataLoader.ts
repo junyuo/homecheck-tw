@@ -57,6 +57,7 @@ const runtimeState = (
     updatedAt: outsideCoverage ? null : (source?.updatedAt ?? null),
     validUntil: outsideCoverage ? null : source?.validUntil,
     message: outsideCoverage ? '此行政區不在來源涵蓋範圍' : (source?.lastAttempt.message ?? '尚未接入'),
+    years: outsideCoverage ? [] : source?.coverage.years,
   }
 }
 

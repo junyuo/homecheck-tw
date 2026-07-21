@@ -283,7 +283,7 @@ export function buildAnalysis(
     metro.length > 0 || rail.length > 0,
     dataset.facilities.features.some((feature) =>
       !['metro', 'rail', 'bus'].includes(feature.properties.category)),
-    dataset.accidents.features.length > 0,
+    ['official', 'stale'].includes(dataset.sources.accidents?.status ?? ''),
   ]
   const sourceStatuses = Object.values(dataset.sources).map((source) => source.status)
   const officialCount = sourceStatuses.filter((status) => status === 'official').length
@@ -317,6 +317,17 @@ export function buildAnalysis(
       park: parkSummary,
     },
     accidentCount: nearbyAccidents.length,
+    accidentSummary: {
+      total: nearbyAccidents.length,
+      a1: nearbyAccidents.filter((item) => item.properties.severity === 'A1').length,
+      a2: nearbyAccidents.filter((item) => item.properties.severity === 'A2').length,
+      years: [...new Set([
+        ...(dataset.sources.accidents?.years ?? []),
+        ...dataset.accidents.features.map((item) => item.properties.year),
+      ])]
+        .filter(Number.isInteger)
+        .sort((a, b) => a - b),
+    },
     completeness: Math.round(completenessSignals.filter(Boolean).length / completenessSignals.length * 100),
     checklist: makeChecklist(price, floodLevel, liquefactionLevel, nearbyAccidents.length),
     updatedAt: dataset.updatedAt,
