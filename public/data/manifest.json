@@ -1,7 +1,7 @@
 {
   "schemaVersion": "2.0.0",
-  "dataVersion": "production-2026-07-21",
-  "generatedAt": "2026-07-21T02:58:29.532Z",
+  "dataVersion": "production-2026-07-22",
+  "generatedAt": "2026-07-22T03:49:16.501Z",
   "mode": "production",
   "coverage": {
     "cities": [
@@ -64,10 +64,10 @@
     "actual-price": {
       "id": "actual-price",
       "status": "official",
-      "version": "price-2026-07-19",
-      "updatedAt": "2026-07-19T06:10:33.054Z",
-      "attemptedAt": "2026-07-20T01:54:44.449Z",
-      "recordCount": 230297,
+      "version": "price-2026-07-22",
+      "updatedAt": "2026-07-22T03:49:16.503Z",
+      "attemptedAt": "2026-07-22T03:49:16.501Z",
+      "recordCount": 229772,
       "coverage": {
         "cities": [
           "taipei",
@@ -126,20 +126,20 @@
         ]
       },
       "downloadUrl": "https://data.gov.tw/dataset/25119",
-      "sha256": "f8ccdeb6378b38cae354c3cf28fb9ccd5cb769731452922a1f5f20fdadbbd09e",
-      "matchingRate": 0.9940133975587438,
+      "sha256": "dcb12495b3e043d6170c3b9bb2fc8537522e1ca47001e8129cd7f039a0eb6866",
+      "matchingRate": 0.9940127013791552,
       "excluded": {
-        "nonResidentialTarget": 60774,
-        "unsupportedBuilding": 55752,
-        "outsideWindow": 53995,
-        "invalidCoreFields": 6234,
+        "nonResidentialTarget": 60740,
+        "unsupportedBuilding": 55682,
+        "outsideWindow": 54320,
+        "invalidCoreFields": 6222,
         "ambiguousAddress": 99,
-        "unmatchedAddress": 1288,
+        "unmatchedAddress": 1285,
         "outOfBounds": 0
       },
       "lastAttempt": {
         "status": "success",
-        "message": "人工驗收 20/20 通過，候選資料正式發布"
+        "message": "下載、schema 與品質檢查通過"
       },
       "files": [
         "taipei/zhongzheng/transactions/2021.json",
@@ -374,14 +374,14 @@
         "new-taipei/wulai/transactions/2024.json",
         "new-taipei/wulai/transactions/2025.json"
       ],
-      "metadataCheckedAt": "2026-07-19T06:10:33.052Z",
+      "metadataCheckedAt": "2026-07-22T03:49:16.501Z",
       "validUntil": null,
       "qualityGates": {
         "automated": {
           "status": "passed",
           "adapterVersion": "price-v1",
-          "checkedAt": "2026-07-19T06:10:33.052Z",
-          "datasetSha256": "626c3635d395ca543875067b6e6ea8f1b37c9ed73dbb81af7f3d111274f54c76"
+          "checkedAt": "2026-07-22T03:49:16.501Z",
+          "datasetSha256": "b03a95a3313509d97d29def0559c98146cd49a19ccbf2d6166dc2da78150cc01"
         },
         "manualAudit": {
           "status": "passed",
