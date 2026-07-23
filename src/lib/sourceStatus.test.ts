@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { sourceStatusText } from './sourceStatus'
+import { sourceRecordCountText, sourceStatusText } from './sourceStatus'
 import type { SourceState } from '../types'
 
 function source(
@@ -54,5 +54,17 @@ describe('sourceStatusText', () => {
 
   it('沒有來源時顯示尚未接入', () => {
     expect(sourceStatusText(undefined)).toBe('尚未接入')
+  })
+})
+
+describe('sourceRecordCountText', () => {
+  it('未接入來源不顯示為零筆', () => {
+    expect(sourceRecordCountText(source('unavailable'))).toBe('資料不足')
+  })
+
+  it('正式來源顯示格式化筆數', () => {
+    const value = source('official')
+    value.recordCount = 1234
+    expect(sourceRecordCountText(value)).toBe('1,234')
   })
 })

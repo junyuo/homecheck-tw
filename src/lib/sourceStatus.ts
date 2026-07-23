@@ -25,3 +25,10 @@ export function sourceStatusText(
 
   return sourceStatusLabel[source?.status ?? 'unavailable']
 }
+
+export function sourceRecordCountText(
+  source: DataManifest['sources'][DataSourceId] | undefined,
+) {
+  if (source?.status !== 'official' && source?.status !== 'stale') return '資料不足'
+  return source.recordCount.toLocaleString('zh-TW')
+}

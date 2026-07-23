@@ -189,6 +189,7 @@ input:disabled { background: #efefeb; color: #8a8f91; }
 .price-trend { margin: 20px 0; padding: 16px; border: 1px solid var(--line); border-radius: 9px; background: white; }
 .trend-heading h3 { margin: 0; font-size: .9rem; }
 .trend-heading p, .trend-empty { margin: 4px 0 0; font-size: .72rem; }
+.trend-warning { margin: 10px 0 0; padding: 8px 10px; border-left: 3px solid var(--orange); background: var(--orange-light); color: #754222; font-size: .72rem; }
 .price-trend svg { display: block; width: 100%; height: auto; margin: 10px 0 2px; overflow: visible; }
 .price-trend svg text { fill: var(--muted); font-size: 11px; }
 .trend-axis { stroke: #cfd3d0; stroke-width: 1; }
@@ -199,6 +200,7 @@ input:disabled { background: #efefeb; color: #8a8f91; }
 .trend-table th, .trend-table td { padding: 7px 5px; border-top: 1px solid var(--line); }
 .trend-table th { text-align: left; color: var(--muted); }
 .trend-table td { text-align: right; font-variant-numeric: tabular-nums; }
+.trend-table .low-sample th, .trend-table .low-sample td { background: #fff8f1; }
 .metrics { display: grid; grid-template-columns: 1fr 1fr; margin: 12px 0 20px; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
 .metrics div { padding: 13px; min-width: 0; }
 .metrics div:nth-child(even) { border-left: 1px solid var(--line); }

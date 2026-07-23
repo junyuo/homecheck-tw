@@ -123,6 +123,8 @@ npm run audit:evidence -- --source=accidents --id=<id> --confirm
 
 ## 更新資料
 
+正式發布前依 [`docs/production-regression.md`](docs/production-regression.md) 驗收；尚未發布來源的查核證據與發布條件記錄於 [`docs/data-source-exploration.md`](docs/data-source-exploration.md)。
+
 手動 dry run：
 
 ```bash

@@ -54,6 +54,12 @@ function normalizeSchoolName(value) {
     .replace(/[()（）\[\]【】\s]/g, '')
 }
 
+function normalizeLandmarkName(value) {
+  return String(value ?? '').normalize('NFKC')
+    .replaceAll('台', '臺')
+    .replace(/[()（）\[\]【】\s]/g, '')
+}
+
 export function parseNewTaipeiSchoolLandmarks(value) {
   if (!Array.isArray(value)) throw new Error('新北重要地標來源不是陣列')
   const schoolTypes = new Set(['國民小學', '國民中學', '高中職', '完全中學', '教育研究機構'])
@@ -88,6 +94,42 @@ export function parseNewTaipeiSchoolLandmarks(value) {
     }
   }
   return index
+}
+
+export function parseNewTaipeiParkLandmarks(value) {
+  if (!Array.isArray(value)) throw new Error('新北重要地標來源不是陣列')
+  const index = new Map()
+  for (const row of value) {
+    if (!/公園|綠地|廣場/.test(String(row['地標類型'] ?? ''))) continue
+    const districtLabel = String(row['行政區'] ?? '').trim()
+    const district = DISTRICTS['new-taipei'][districtLabel]
+    const name = normalizeLandmarkName(row['地標名稱'])
+    const coordinate = twd97ToWgs84(row.twd97_x, row.twd97_y)
+    if (!district || !name || !coordinate || !inTaipeiMetroArea(coordinate)) continue
+    const key = `${districtLabel}|${name}`
+    const item = {
+      coordinate,
+      district,
+      districtLabel,
+      objectId: String(row.objectid ?? ''),
+      rawCoordinate: {
+        crs: 'EPSG:3826',
+        x: Number(row.twd97_x),
+        y: Number(row.twd97_y),
+      },
+    }
+    if (!index.has(key)) index.set(key, item)
+    else if (coordinateDistance(index.get(key)?.coordinate, coordinate) > 1) index.set(key, null)
+  }
+  return index
+}
+
+function coordinateDistance(first, second) {
+  if (!first || !second) return Infinity
+  return Math.hypot(
+    (first.latitude - second.latitude) * 111000,
+    (first.longitude - second.longitude) * 101000,
+  )
 }
 
 function matchSchoolAddress(index, rawAddress, simplifiedAddress, city, districtLabel) {
@@ -322,7 +364,7 @@ export function parseTaipeiParks(value, sourceUpdatedAt, boundaries = null) {
   })
 }
 
-export function parseNewTaipeiParks(text, addressIndex, sourceUpdatedAt) {
+export function parseNewTaipeiParks(text, addressIndex, sourceUpdatedAt, landmarkIndex = new Map()) {
   return csvRecords(text).map((row) => {
     const location = locationFromAddress('new-taipei', `${row.area}${row.address}`)
     const name = String(row.name ?? '').trim()
@@ -338,18 +380,30 @@ export function parseNewTaipeiParks(text, addressIndex, sourceUpdatedAt) {
       'new-taipei',
       location.districtLabel,
     )
-    if (matched.status !== 'matched') {
+    const landmark = matched.status === 'unmatched'
+      ? landmarkIndex.get(`${location.districtLabel}|${normalizeLandmarkName(name)}`)
+      : null
+    if (matched.status !== 'matched' && !landmark) {
       return { excluded: `${matched.status}Address`, city: 'new-taipei' }
     }
+    const coordinate = matched.status === 'matched' ? matched.coordinate : landmark.coordinate
     return pointFeature({
       source: 'park',
       rawId: row.seqno,
       ...location,
       name,
-      coordinate: matched.coordinate,
+      coordinate,
       sourceUpdatedAt,
       properties: { facilityType: 'park-area', parkType: 'park' },
-      evidence: { addressSha256: sha256(address), parkType: 'park' },
+      evidence: {
+        addressSha256: sha256(address),
+        parkType: 'park',
+        locationMethod: landmark ? 'ntpc-landmark-exact' : 'address-index-exact',
+        ...(landmark ? {
+          landmarkObjectId: landmark.objectId,
+          rawCoordinate: landmark.rawCoordinate,
+        } : {}),
+      },
     })
   })
 }
@@ -533,7 +587,8 @@ export async function updateOfficialCommunity({
       taipei: indexes.taipei.sha256,
       'new-taipei': indexes['new-taipei'].sha256,
     }
-    const landmarkIndex = parseNewTaipeiSchoolLandmarks(jsonBuffer(landmarks))
+    const landmarkRows = jsonBuffer(landmarks)
+    const landmarkIndex = parseNewTaipeiSchoolLandmarks(landmarkRows)
     candidates.landmarkSha256 = sha256(landmarks)
     const parsed = parseSchools({
       elementary: jsonBuffer(elementary),
@@ -566,7 +621,7 @@ export async function updateOfficialCommunity({
     results.push({ id: 'school', status: 'failed', error: error instanceof Error ? error.message : String(error) })
   }
   try {
-    const [taipei, newTaipei] = await Promise.all([
+    const [taipei, newTaipei, landmarks] = await Promise.all([
       rawFile(cache, 'taipei-park.json', SOURCE_URLS.taipeiPark, reuseCache),
       rawFile(
         cache,
@@ -574,6 +629,7 @@ export async function updateOfficialCommunity({
         `${SOURCE_URLS.newTaipeiPark}?page=0&size=100000`,
         reuseCache,
       ),
+      rawFile(cache, 'new-taipei-landmarks.json', SOURCE_URLS.newTaipeiLandmarks, reuseCache),
     ])
     if (!indexes) {
       indexes = {
@@ -589,7 +645,9 @@ export async function updateOfficialCommunity({
       newTaipei.toString('utf8'),
       indexes['new-taipei'].index,
       now.toISOString(),
+      parseNewTaipeiParkLandmarks(jsonBuffer(landmarks)),
     )
+    candidates.landmarkSha256 = sha256(landmarks)
     const rates = addressMatchingRates(parsedNewTaipei)
     candidates.matchingRates.park = {
       taipei: 1,
@@ -609,7 +667,7 @@ export async function updateOfficialCommunity({
       'park',
       quality.accepted,
       now,
-      sha256([sha256(taipei), sha256(newTaipei)].join(':')),
+      sha256([sha256(taipei), sha256(newTaipei), sha256(landmarks)].join(':')),
       quality.excluded,
       previous.park,
     )

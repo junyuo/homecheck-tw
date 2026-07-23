@@ -38,7 +38,7 @@ import {
   inputToDraft,
   type PropertyFormDraft,
 } from './lib/propertyDraft'
-import { sourceStatusText } from './lib/sourceStatus'
+import { sourceRecordCountText, sourceStatusText } from './lib/sourceStatus'
 import { clearProperties, deleteProperty, loadSavedProperties, saveProperty } from './lib/storage'
 import type {
   AnalysisResult,
@@ -422,8 +422,11 @@ function availabilityClass(value: 'official' | 'partial' | 'unavailable') {
   return value === 'official' ? 'official' : value === 'partial' ? 'stale' : 'unavailable'
 }
 
-function PriceTrend({ trend }: { trend: AnalysisResult['price']['trend'] }) {
+export function PriceTrend({ trend }: { trend: AnalysisResult['price']['trend'] }) {
   if (!trend.length) return <p className="trend-empty">沒有足夠的年度樣本可呈現趨勢。</p>
+  const lowSampleYears = trend
+    .filter((item) => item.sampleCount !== undefined && item.sampleCount < 5)
+    .map((item) => item.year)
   const max = Math.max(...trend.map((item) => item.median), 1)
   const width = 520
   const height = 180
@@ -439,6 +442,9 @@ function PriceTrend({ trend }: { trend: AnalysisResult['price']['trend'] }) {
         <h3 id="price-trend-title">附近相似物件近年中位數怎麼變？</h3>
         <p>只使用本次比較條件內的成交樣本。</p>
       </div>
+      {lowSampleYears.length > 0 && <p className="trend-warning" role="note">
+        樣本偏少：{lowSampleYears.join('、')} 年少於 5 筆，年度中位數波動可能較大。
+      </p>}
       <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label="各年度相似成交單價中位數折線圖">
         <line x1="25" y1={height - 25} x2={width - 15} y2={height - 25} className="trend-axis" />
         <polyline points={points.map((item) => `${item.x},${item.y}`).join(' ')} className="trend-line" />
@@ -450,7 +456,7 @@ function PriceTrend({ trend }: { trend: AnalysisResult['price']['trend'] }) {
       <div className="trend-table-wrap">
         <table className="trend-table">
           <thead><tr><th scope="col">年度</th><th scope="col">中位數／坪</th><th scope="col">樣本數</th></tr></thead>
-          <tbody>{trend.map((item) => <tr key={item.year}>
+          <tbody>{trend.map((item) => <tr key={item.year} className={item.sampleCount !== undefined && item.sampleCount < 5 ? 'low-sample' : undefined}>
             <th scope="row">{item.year}</th>
             <td>{currency.format(item.median)}</td>
             <td>{item.sampleCount === undefined ? '舊快照未保存' : `${item.sampleCount.toLocaleString('zh-TW')} 筆`}</td>
@@ -832,7 +838,7 @@ function MethodsPage({ manifest }: { manifest: DataManifest | null }) {
               <div><dt>更新時間</dt><dd>{state?.updatedAt ? formatTaiwanDate(state.updatedAt) : '尚無正式快照'}</dd></div>
               {state?.validUntil && <div><dt>有效期限</dt><dd>{formatTaiwanDate(state.validUntil)}</dd></div>}
               <div><dt>更新頻率</dt><dd>{source.refreshFrequency}</dd></div>
-              <div><dt>資料筆數</dt><dd>{(state?.recordCount ?? 0).toLocaleString('zh-TW')}</dd></div>
+              <div><dt>資料筆數</dt><dd>{sourceRecordCountText(state)}</dd></div>
               <div><dt>覆蓋範圍</dt><dd>{state?.coverage.districts.length ? `${state.coverage.districts.length} 個行政區` : '尚未接入'}</dd></div>
               {state?.matchingRate !== null && state?.matchingRate !== undefined && <div><dt>地址匹配率</dt><dd>{(state.matchingRate * 100).toFixed(2)}%</dd></div>}
               {state?.matchingRates?.taipei !== undefined && state?.matchingRates?.['new-taipei'] !== undefined && <div><dt>各市匹配率</dt><dd>臺北 {(state.matchingRates.taipei * 100).toFixed(2)}%、新北 {(state.matchingRates['new-taipei'] * 100).toFixed(2)}%</dd></div>}

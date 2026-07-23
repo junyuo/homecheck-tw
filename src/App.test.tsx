@@ -1,6 +1,6 @@
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import App from './App'
+import App, { PriceTrend } from './App'
 
 vi.mock('./components/MapPanel', () => ({
   MapPicker: ({ onChange }: { onChange: (latitude: number, longitude: number) => void }) => (
@@ -43,5 +43,18 @@ describe('查詢表單', () => {
     fireEvent.change(screen.getByLabelText('縣市'), { target: { value: 'new-taipei' } })
     await waitFor(() => expect(screen.queryByRole('status')).not.toBeInTheDocument())
     expect(screen.getByRole('button', { name: '產生風險整理' })).toBeDisabled()
+  })
+})
+
+describe('價格年度趨勢', () => {
+  afterEach(cleanup)
+
+  it('年度樣本少於 5 筆時顯示明確警示', () => {
+    render(<PriceTrend trend={[
+      { year: 2024, median: 500000, sampleCount: 4 },
+      { year: 2025, median: 520000, sampleCount: 8 },
+    ]} />)
+    expect(screen.getByRole('note')).toHaveTextContent('2024 年少於 5 筆')
+    expect(screen.getByRole('row', { name: /2024/ })).toHaveClass('low-sample')
   })
 })

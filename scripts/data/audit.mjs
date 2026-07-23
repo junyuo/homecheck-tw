@@ -174,6 +174,8 @@ export function evaluateFacilityAudit(audit, source, {
     (!['medical', 'school', 'park'].includes(source) ||
       (source === 'medical' && sample.city === 'taipei') ||
       (source === 'park' && sample.city === 'taipei') ||
+      (source === 'park' && sample.evidence?.locationMethod === 'ntpc-landmark-exact' &&
+        sample.evidence?.landmarkSha256 === landmarkSha256) ||
       sample.evidence?.addressIndexSha256 === (
         typeof addressIndexSha256 === 'object'
           ? addressIndexSha256[sample.city]

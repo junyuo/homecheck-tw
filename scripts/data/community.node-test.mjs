@@ -3,6 +3,7 @@ import test from 'node:test'
 import { addressKey } from './address-index.mjs'
 import {
   mergeSchoolCampuses,
+  parseNewTaipeiParkLandmarks,
   parseNewTaipeiSchoolLandmarks,
   parseNewTaipeiParks,
   parseSchools,
@@ -85,6 +86,38 @@ test('新北公園只接受可精確比對的完整門牌', () => {
   )
   assert.equal(parsed[0].feature.properties.parkType, 'park')
   assert.equal(parsed[1].excluded, 'invalidCoreFields')
+})
+
+test('新北公園可用同行政區與同名的官方地標座標補位', () => {
+  const landmarkIndex = parseNewTaipeiParkLandmarks([{
+    objectid: 'park-landmark-1',
+    行政區: '板橋區',
+    地標類型: '公園綠地',
+    地標名稱: '測試公園',
+    twd97_x: '297000',
+    twd97_y: '2768000',
+  }])
+  const parsed = parseNewTaipeiParks([
+    '"seqno","name","area","address","management","localcallservice","areacode"',
+    '"1","測試公園","板橋區","文化路一段99號","","",""',
+  ].join('\n'), new Map(), '2026-07-23T00:00:00.000Z', landmarkIndex)
+
+  assert.equal(parsed[0].evidence.locationMethod, 'ntpc-landmark-exact')
+  assert.equal(parsed[0].evidence.landmarkObjectId, 'park-landmark-1')
+  assert.equal(parsed[0].feature.properties.parkType, 'park')
+})
+
+test('新北公園遇到同名但不同座標的地標時不自動補位', () => {
+  const landmarkIndex = parseNewTaipeiParkLandmarks([
+    { objectid: '1', 行政區: '板橋區', 地標類型: '公園', 地標名稱: '同名公園', twd97_x: '297000', twd97_y: '2768000' },
+    { objectid: '2', 行政區: '板橋區', 地標類型: '公園', 地標名稱: '同名公園', twd97_x: '297500', twd97_y: '2768500' },
+  ])
+  const parsed = parseNewTaipeiParks([
+    '"seqno","name","area","address","management","localcallservice","areacode"',
+    '"1","同名公園","板橋區","文化路一段99號","","",""',
+  ].join('\n'), new Map(), '2026-07-23T00:00:00.000Z', landmarkIndex)
+
+  assert.equal(parsed[0].excluded, 'unmatchedAddress')
 })
 
 test('臺北公園保留公園、綠地與廣場官方類型', () => {

@@ -8,6 +8,7 @@ import {
   mergeSchoolCampuses,
   loadCommunityBoundaries,
   parseNewTaipeiSchoolLandmarks,
+  parseNewTaipeiParkLandmarks,
   parseNewTaipeiParks,
   parseSchools,
   parseTaipeiParks,
@@ -443,7 +444,7 @@ async function communityRawBuffers(root, source) {
   const directory = join(root, '.data-cache', 'community')
   const names = source === 'school'
     ? ['elementary.json', 'junior.json', 'senior.json', 'special.csv', 'new-taipei-landmarks.json']
-    : ['taipei-park.json', 'new-taipei-park.csv']
+    : ['taipei-park.json', 'new-taipei-park.csv', 'new-taipei-landmarks.json']
   const buffers = await Promise.all(names.map((name) => readFile(join(directory, name))))
   return {
     buffers,
@@ -500,13 +501,21 @@ export async function buildCommunityEvidence(root, {
       special: raw.buffers[3].toString('utf8'),
     }, indexes, now, parseNewTaipeiSchoolLandmarks(parseJson(raw.buffers[4]))))
   } else {
+    if (sha256(raw.buffers[2]) !== candidates.landmarkSha256) {
+      throw new Error('park 地標來源雜湊與候選不一致')
+    }
     parsed = candidate.city === 'taipei'
       ? parseTaipeiParks(
         parseJson(raw.buffers[0]),
         now,
         await loadCommunityBoundaries(join(root, 'public', 'data')),
       )
-      : parseNewTaipeiParks(raw.buffers[1].toString('utf8'), indexes['new-taipei'].index, now)
+      : parseNewTaipeiParks(
+        raw.buffers[1].toString('utf8'),
+        indexes['new-taipei'].index,
+        now,
+        parseNewTaipeiParkLandmarks(parseJson(raw.buffers[2])),
+      )
   }
   indexes.taipei.index.clear()
   indexes['new-taipei'].index.clear()
