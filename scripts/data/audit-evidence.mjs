@@ -21,7 +21,11 @@ import {
   parseTaipeiParking,
 } from './facilities.mjs'
 import { inspectAccidentCandidate } from './accidents.mjs'
-import { parseNewTaipeiMarkets, parseTaipeiMarkets } from './market.mjs'
+import {
+  decodeMarketCsv,
+  parseNewTaipeiMarkets,
+  parseTaipeiMarkets,
+} from './market.mjs'
 import { validateShapefileEntries } from './risks.mjs'
 
 const LIQUEFACTION_CLASSES = ['低潛勢', '中潛勢', '高潛勢']
@@ -389,27 +393,29 @@ export async function buildMarketEvidence(root, {
   id,
   now = new Date().toISOString(),
 }) {
-  const [manifest, candidates] = await Promise.all([
-    readJson(join(root, 'public', 'data', 'manifest.json')),
-    readJson(join(root, '.data-cache', 'market-audit-candidates.json')),
-  ])
+  const candidates = await readJson(
+    join(root, '.data-cache', 'market-audit-candidates.json'),
+  )
   const candidate = Object.entries(candidates.samples ?? {})
     .flatMap(([city, samples]) => samples.map((sample) => ({ ...sample, city, source: 'market' })))
     .find((item) => item.id === id)
   if (!candidate) throw new Error(`market 候選清單不存在 ID ${id}`)
-  const source = manifest.sources.market
-  if (candidates.adapterVersion !== source.qualityGates.automated.adapterVersion) {
-    throw new Error('market candidate adapter 版本與 manifest 不一致')
+  if (candidates.status !== 'ready' ||
+      candidates.adapterVersion !== candidates.releaseSource?.adapterVersion) {
+    throw new Error('market 候選尚未通過自動品質閘門')
   }
-  if (candidates.fingerprints.sourceSha256 !== source.sha256 ||
-      candidates.fingerprints.datasetSha256 !== source.qualityGates.automated.datasetSha256) {
-    throw new Error('market 候選 fingerprints 與 manifest 不一致')
-  }
-  const rawNames = ['taipei-public-market.csv', 'taipei-private-market.csv', 'new-taipei-market.csv']
+  const rawNames = [
+    'taipei-public-market.csv',
+    'taipei-public-market-stalls.csv',
+    'taipei-private-market.csv',
+    'new-taipei-market.csv',
+  ]
   const raw = await Promise.all(rawNames.map((name) =>
     readFile(join(root, '.data-cache', 'market', name))))
   const sourceSha256 = sha256(raw.map((buffer) => sha256(buffer)).join(':'))
-  if (sourceSha256 !== source.sha256) throw new Error('market raw cache 雜湊與候選不一致')
+  if (sourceSha256 !== candidates.fingerprints.sourceSha256) {
+    throw new Error('market raw cache 雜湊與候選不一致')
+  }
   const cache = join(root, '.data-cache')
   const indexes = {
     taipei: await buildTaipeiAddressIndex(cache, true),
@@ -418,14 +424,21 @@ export async function buildMarketEvidence(root, {
   if (indexes[candidate.city].sha256 !== candidates.addressIndexSha256[candidate.city]) {
     throw new Error(`market ${candidate.city} 門牌索引雜湊與候選不一致`)
   }
+  const boundaries = await loadCommunityBoundaries(join(root, 'public', 'data'))
   const parsed = candidate.city === 'taipei'
     ? parseTaipeiMarkets({
-      publicCsv: raw[0].toString('utf8'),
-      privateCsv: raw[1].toString('utf8'),
+      publicCsv: decodeMarketCsv(raw[0], 'big5'),
+      publicStallCsv: decodeMarketCsv(raw[1], 'big5'),
+      privateCsv: decodeMarketCsv(raw[2], 'big5'),
       addressIndex: indexes.taipei.index,
+      boundaries,
       sourceUpdatedAt: now,
     })
-    : parseNewTaipeiMarkets(raw[2].toString('utf8'), indexes['new-taipei'].index, now)
+    : parseNewTaipeiMarkets(
+      decodeMarketCsv(raw[3]),
+      indexes['new-taipei'].index,
+      now,
+    )
   indexes.taipei.index.clear()
   indexes['new-taipei'].index.clear()
   const rawItem = parsed.find((item) => item.feature?.properties?.id === id)
@@ -448,11 +461,14 @@ export async function buildMarketEvidence(root, {
     }) <= 1,
     marketOwnership:
       rawItem.feature.properties.marketOwnership === candidate.marketOwnership,
+    classificationMethod:
+      rawItem.classificationMethod === candidate.classificationMethod,
   }
   const evidence = {
     verificationMethod: 'official-raw-offline',
     sourceSha256,
     addressIndexSha256: indexes[candidate.city].sha256,
+    locationMethod: rawItem.evidence.locationMethod,
     rawRecordCount: 1,
     fields,
     checkedAt: now,

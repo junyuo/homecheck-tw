@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-import { cp, readFile, rm, writeFile } from 'node:fs/promises'
-import { join, resolve } from 'node:path'
+import { cp, mkdir, readFile, rm, writeFile } from 'node:fs/promises'
+import { dirname, join, resolve } from 'node:path'
 import {
   evaluateAccidentAudit,
   evaluateFacilityAudit,
@@ -42,6 +42,7 @@ async function main() {
   await validateData(publicData)
   const manifest = JSON.parse(await readFile(join(publicData, 'manifest.json'), 'utf8'))
   const now = new Date().toISOString()
+  let marketRelease = null
 
   if (selectedSource === 'all' || selectedSource === 'price') {
     const source = manifest.sources['actual-price']
@@ -175,19 +176,55 @@ async function main() {
       readFile(join(root, 'scripts', 'data', 'audits', 'market-v1.json'), 'utf8').then(JSON.parse),
       readFile(join(root, '.data-cache', 'market-audit-candidates.json'), 'utf8').then(JSON.parse),
     ])
-    const source = manifest.sources.market
-    await verifyCandidate(source)
-    if (candidates.fingerprints.sourceSha256 !== source.sha256 ||
-        candidates.fingerprints.datasetSha256 !== source.qualityGates.automated.datasetSha256) {
-      throw new Error('market 候選 fingerprints 與 manifest 不一致')
+    if (candidates.status !== 'ready' ||
+        candidates.adapterVersion !== candidates.releaseSource?.adapterVersion) {
+      throw new Error('market 候選尚未通過自動品質閘門')
+    }
+    const generated = join(root, '.data-cache', 'generated-market')
+    const datasetSha256 = await sourceFilesSha256(
+      generated,
+      candidates.releaseSource.files,
+    )
+    if (candidates.fingerprints.sourceSha256 !== candidates.releaseSource.sha256 ||
+        candidates.fingerprints.datasetSha256 !== datasetSha256) {
+      throw new Error('market 候選 fingerprints 與 cache 輸出不一致')
     }
     const evaluation = evaluateFacilityAudit(audit, 'market', {
-      adapterVersion: source.qualityGates.automated.adapterVersion,
-      sourceSha256: source.sha256,
+      adapterVersion: candidates.adapterVersion,
+      sourceSha256: candidates.fingerprints.sourceSha256,
       addressIndexSha256: candidates.addressIndexSha256,
       requireEvidenceSourceSha: true,
     })
+    const source = {
+      ...manifest.sources.market,
+      ...candidates.releaseSource,
+      status: 'unavailable',
+      attemptedAt: now,
+      coverage: {
+        cities: ['taipei', 'new-taipei'],
+        districts: manifest.coverage.districts,
+      },
+      downloadUrl: 'https://data.gov.tw/dataset/121593',
+      metadataCheckedAt: candidates.generatedAt,
+      qualityGates: {
+        automated: {
+          status: 'passed',
+          adapterVersion: candidates.adapterVersion,
+          checkedAt: candidates.generatedAt,
+          datasetSha256,
+        },
+      },
+      lastAttempt: {
+        status: 'success',
+        message: '自動 QA 通過；等待臺北／新北各 5 筆官方原始檔離線驗收',
+      },
+    }
     promoteSource(source, evaluation, audit, now)
+    manifest.sources.market = source
+    marketRelease = {
+      generated,
+      files: candidates.releaseSource.files,
+    }
   }
 
   if (selectedSource === 'all' || selectedSource === 'accidents') {
@@ -231,6 +268,12 @@ async function main() {
 
   await rm(staging, { recursive: true, force: true })
   await cp(publicData, staging, { recursive: true })
+  if (marketRelease) {
+    for (const file of marketRelease.files) {
+      await mkdir(dirname(join(staging, file)), { recursive: true })
+      await cp(join(marketRelease.generated, file), join(staging, file))
+    }
+  }
   manifest.generatedAt = now
   manifest.dataVersion = `production-${now.slice(0, 10)}`
   await writeFile(join(staging, 'manifest.json'), `${JSON.stringify(manifest, null, 2)}\n`)

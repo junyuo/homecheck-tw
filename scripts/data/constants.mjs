@@ -82,8 +82,12 @@ export const SOURCE_URLS = {
   taipeiPark: 'https://parks.taipei/parks/api/',
   newTaipeiPark:
     'https://data.ntpc.gov.tw/api/datasets/5fe3a136-29cc-4695-a17e-6636a32c3342/csv',
-  taipeiPublicMarket: null,
-  taipeiPrivateMarket: null,
+  taipeiPublicMarket:
+    'https://data.taipei/api/dataset/89bebb3a-990d-4070-bd67-631a575f6d4a/resource/35acfce1-2c4d-4c70-aa75-601cdab2b3f7/download',
+  taipeiPublicMarketStalls:
+    'https://data.taipei/api/frontstage/tpeod/dataset/resource.download?rid=b0ef64c1-d920-44ba-8bfb-821456ce660b',
+  taipeiPrivateMarket:
+    'https://data.taipei/api/frontstage/tpeod/dataset/resource.download?rid=7f4cc85a-a956-4a93-bd7f-e9dd252bbb1c',
   newTaipeiMarket:
     'https://data.ntpc.gov.tw/api/datasets/785BE91A-CAAF-4E1C-91D6-F7D616D31A45/csv?page=0&size=100000',
   accidents: {

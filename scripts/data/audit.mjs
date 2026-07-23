@@ -166,7 +166,7 @@ export function evaluateFacilityAudit(audit, source, {
         ...(source === 'parking' ? ['carCapacity'] : []),
         ...(source === 'school' ? ['schoolLevels'] : []),
         ...(source === 'park' ? ['parkType'] : []),
-        ...(source === 'market' ? ['marketOwnership'] : [])]
+        ...(source === 'market' ? ['marketOwnership', 'classificationMethod'] : [])]
         .every((field) => sample.fields?.[field] === true))].length,
   ]))
   const evidenceValid = !requireEvidenceSourceSha || sourceSamples.every((sample) =>
@@ -195,6 +195,20 @@ export function evaluateFacilityAudit(audit, source, {
     new Set(sourceSamples
       .filter((sample) => sample.city === city && sample.result === 'matched')
       .map((sample) => sample.district)).size >= 3)
+  const marketCoverage = source !== 'market' || (
+    sourceSamples.filter((sample) =>
+      sample.city === 'taipei' &&
+      sample.marketOwnership === 'public' &&
+      sample.result === 'matched').length >= 3 &&
+    sourceSamples.filter((sample) =>
+      sample.city === 'taipei' &&
+      sample.marketOwnership === 'private' &&
+      sample.result === 'matched').length >= 2 &&
+    sourceSamples.filter((sample) =>
+      sample.city === 'new-taipei' &&
+      sample.marketOwnership === 'public' &&
+      sample.result === 'matched').length >= 5
+  )
   const passed = audit?.status === 'passed' &&
     audit?.adapterVersion === adapterVersion &&
     counts.taipei >= 5 &&
@@ -202,7 +216,8 @@ export function evaluateFacilityAudit(audit, source, {
     mismatches === 0 &&
     evidenceValid &&
     schoolCoverage &&
-    libraryCoverage
+    libraryCoverage &&
+    marketCoverage
   return {
     passed,
     sampleCount: counts.taipei + counts['new-taipei'],

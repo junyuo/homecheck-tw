@@ -68,7 +68,7 @@ async function fixture() {
     ['school', 'community-v2'],
     ['park', 'community-v2'],
     ['library', 'library-v1'],
-    ['market', 'market-v1'],
+    ['market', 'market-v2'],
     ['accidents', 'accidents-v1'],
   ].map(([id, adapterVersion]) => [id, {
     qualityGates: { automated: { adapterVersion } },
@@ -111,7 +111,7 @@ async function fixture() {
     samples: [],
   })
   await writeJson(join(root, 'scripts', 'data', 'audits', 'market-v1.json'), {
-    adapterVersion: 'market-v1',
+    adapterVersion: 'market-v2',
     status: 'pending',
     checkedAt: null,
     samples: [],
@@ -171,7 +171,7 @@ async function fixture() {
     samples: { taipei: [], 'new-taipei': [] },
   })
   await writeJson(join(root, '.data-cache', 'market-audit-candidates.json'), {
-    adapterVersion: 'market-v1',
+    adapterVersion: 'market-v2',
     samples: { taipei: [], 'new-taipei': [] },
   })
   return root

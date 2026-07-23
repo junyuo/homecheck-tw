@@ -9,6 +9,7 @@
 - 發現並修正：unavailable 來源的資料筆數不可顯示為 0，改為「資料不足」（待下一次部署驗證）。
 - 待人工：Chrome 與 Safari 原生列印／PDF 分頁、Safari 桌面流程、375px 手機實機與 VoiceOver。
 - `market-v1` 本機 production build：Chrome 空白提交門檻、範例模式、結果市場缺口／資料不足與 375px 無水平溢出通過；原生 Chrome／Safari PDF、Safari 桌面與 VoiceOver 仍待人工。
+- `market-v2` live QA：臺北 100%、新北 78.79%、整體 91.46%；新北未達 95% 門檻，release dry-run 正確阻擋且 `public/data` 無差異。正式發布後的市場結果、地圖、列印與跨瀏覽器驗收因此尚未啟動。
 
 ## 核心流程
 

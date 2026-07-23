@@ -336,7 +336,7 @@ function facilityRecord(candidate, { result, attempts, evidence, now }) {
     ...(candidate.source === 'parking' ? ['carCapacity'] : []),
     ...(candidate.source === 'school' ? ['schoolLevels'] : []),
     ...(candidate.source === 'park' ? ['parkType'] : []),
-    ...(candidate.source === 'market' ? ['marketOwnership'] : [])]
+    ...(candidate.source === 'market' ? ['marketOwnership', 'classificationMethod'] : [])]
   const allMatched = requiredFields
     .every((field) => fields[field] === true)
   if (result === 'matched' && !allMatched) {
@@ -356,6 +356,9 @@ function facilityRecord(candidate, { result, attempts, evidence, now }) {
     ...(candidate.schoolLevels ? { schoolLevels: candidate.schoolLevels } : {}),
     ...(candidate.parkType ? { parkType: candidate.parkType } : {}),
     ...(candidate.marketOwnership ? { marketOwnership: candidate.marketOwnership } : {}),
+    ...(candidate.classificationMethod
+      ? { classificationMethod: candidate.classificationMethod }
+      : {}),
     evidence,
     checkedAt: now,
     attemptCount: attempts,

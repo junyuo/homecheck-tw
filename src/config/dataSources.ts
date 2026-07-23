@@ -127,8 +127,8 @@ export const dataSources: DataSource[] = [
     agency,
     sourceUrl: 'https://data.ntpc.gov.tw/datasets/785BE91A-CAAF-4E1C-91D6-F7D616D31A45',
     license: '政府資料開放授權條款第 1 版／臺北市公開資料',
-    refreshFrequency: '尚未接入',
-    notes: 'market-v1 只納入官方公有／民有傳統零售市場，排除超市、批發市場、夜市與一般商店；臺北公有市場尚缺可證明現況的機器可讀清冊，因此維持資料不足。',
+    refreshFrequency: '候選資料按月檢查；尚未發布',
+    notes: 'market-v2 已接入雙北官方清冊並只納入公有／民有傳統零售市場；臺北定位率 100%，新北 78.79% 未達 95% 發布門檻，因此維持資料不足。',
   })),
   {
     id: 'library',
