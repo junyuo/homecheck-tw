@@ -159,7 +159,11 @@ export function analyzePrice(input: PropertyInput, transactions: Transaction[]):
     insufficient: comparable.length < 5,
     trend: [...byYear.entries()]
       .sort(([a], [b]) => a - b)
-      .map(([year, values]) => ({ year, median: quantile(values, 0.5) ?? 0 })),
+      .map(([year, values]) => ({
+        year,
+        median: quantile(values, 0.5) ?? 0,
+        sampleCount: values.length,
+      })),
   }
 }
 

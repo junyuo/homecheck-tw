@@ -192,7 +192,7 @@ export interface PriceAnalysis {
   parkingExcluded: boolean
   parkingApproximate: boolean
   insufficient: boolean
-  trend: Array<{ year: number; median: number }>
+  trend: Array<{ year: number; median: number; sampleCount?: number }>
 }
 
 export interface LifeFacilitySummary {

@@ -59,6 +59,25 @@ describe('價格計算', () => {
     expect(result.sampleCount).toBe(4)
     expect(result.differencePercent).toBeNull()
   })
+
+  it('年度趨勢保留各年樣本數', () => {
+    const transactions: Transaction[] = Array.from({ length: 6 }, (_, index) => ({
+      id: String(index),
+      date: index < 2 ? '2024-06-01' : '2025-06-01',
+      latitude: 25.033 + index * 0.0001,
+      longitude: 121.543,
+      totalPrice: 18000000 + index * 100000,
+      areaPing: 40,
+      age: 20,
+      floor: 5,
+      buildingType: 'highrise',
+      specialTransaction: false,
+    }))
+    expect(analyzePrice(input, transactions).trend.map(({ year, sampleCount }) => ({ year, sampleCount }))).toEqual([
+      { year: 2024, sampleCount: 2 },
+      { year: 2025, sampleCount: 4 },
+    ])
+  })
 })
 
 describe('空間分析', () => {

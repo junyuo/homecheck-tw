@@ -27,9 +27,17 @@ import {
 import { AnalysisMap, MapPicker } from './components/MapPanel'
 import { dataSources } from './config/dataSources'
 import { districtOptions } from './config/districts'
-import { DEFAULT_FLOOD_SCENARIO, floodScenarios } from './config/risks'
+import { floodScenarios } from './config/risks'
 import { buildAnalysis } from './lib/analysis'
+import { buildDecisionOverview, formatTaiwanDate } from './lib/decisionOverview'
 import { DataLoadError, loadDistrictData, loadFloodScenario, loadManifest } from './lib/dataLoader'
+import {
+  createEmptyDraft,
+  createExampleDraft,
+  draftToInput,
+  inputToDraft,
+  type PropertyFormDraft,
+} from './lib/propertyDraft'
 import { sourceStatusText } from './lib/sourceStatus'
 import { clearProperties, deleteProperty, loadSavedProperties, saveProperty } from './lib/storage'
 import type {
@@ -47,25 +55,6 @@ import type {
 } from './types'
 
 type Page = 'home' | 'check' | 'results' | 'compare' | 'methods'
-
-const initialInput: PropertyInput = {
-  city: 'taipei',
-  district: 'daan',
-  address: '和平東路二段',
-  latitude: 25.0269,
-  longitude: 121.5434,
-  totalPrice: 26800000,
-  areaPing: 36.8,
-  age: 18,
-  floor: 7,
-  totalFloors: 12,
-  buildingType: 'highrise',
-  hasParking: true,
-  parkingPrice: 2500000,
-  parkingAreaPing: 10,
-  radius: 500,
-  floodScenario: DEFAULT_FLOOD_SCENARIO,
-}
 
 const routeFromHash = (): Page => {
   const value = window.location.hash.replace('#/', '') as Page
@@ -222,8 +211,8 @@ function HomePage() {
           {[
             { icon: Landmark, no: '01', title: '價格合理性', text: '比較附近相似物件的中位數、四分位數、樣本數與近五年趨勢。' },
             { icon: ShieldCheck, no: '02', title: '天然災害', text: '用區域公開圖資檢視淹水、液化等潛勢，不推論個別建物安全。' },
-            { icon: Route, no: '03', title: '交通環境', text: '確認車站、公車、主要道路與事故點位，並切換生活圈範圍。' },
-            { icon: Building2, no: '04', title: '生活機能', text: '整理學校、醫療、公園、市場、停車場與圖書館等公共設施。' },
+            { icon: Route, no: '03', title: '交通環境', text: '依來源狀態確認車站、公車與事故點位，並切換生活圈範圍。' },
+            { icon: Building2, no: '04', title: '生活機能', text: '整理已通過驗證的學校、醫療、停車場與圖書館；未接入類別會明確標示。' },
           ].map((feature) => (
             <article className="feature-card" key={feature.no}>
               <span className="feature-number">{feature.no}</span>
@@ -259,28 +248,31 @@ function HomePage() {
 }
 
 interface CheckPageProps {
-  input: PropertyInput
-  setInput: React.Dispatch<React.SetStateAction<PropertyInput>>
+  draft: PropertyFormDraft
+  setDraft: React.Dispatch<React.SetStateAction<PropertyFormDraft>>
   onAnalyze: () => void
   loading: boolean
   error: string | null
   manifest: DataManifest | null
 }
 
-function CheckPage({ input, setInput, onAnalyze, loading, error, manifest }: CheckPageProps) {
-  const districts = districtOptions[input.city]
-  const update = <K extends keyof PropertyInput>(key: K, value: PropertyInput[K]) =>
-    setInput((current) => ({ ...current, [key]: value }))
+function CheckPage({ draft, setDraft, onAnalyze, loading, error, manifest }: CheckPageProps) {
+  const districts = districtOptions[draft.city]
+  const update = <K extends keyof PropertyFormDraft>(key: K, value: PropertyFormDraft[K]) =>
+    setDraft((current) => ({ ...current, [key]: value, exampleMode: false }))
   const handleCity = (city: PropertyInput['city']) => {
     const first = districtOptions[city][0]
-    setInput((current) => ({
+    setDraft((current) => ({
       ...current,
       city,
       district: first.value,
       latitude: first.center[0],
       longitude: first.center[1],
+      locationConfirmed: false,
+      exampleMode: false,
     }))
   }
+  const valid = draftToInput(draft) !== null
 
   return (
     <main>
@@ -289,85 +281,90 @@ function CheckPage({ input, setInput, onAnalyze, loading, error, manifest }: Che
         <span className="eyebrow">建立你的物件檢查</span>
         <h1>先把基本條件放上桌。</h1>
         <p>支援臺北市 12 區與新北市 29 區的中古公寓、華廈與住宅大樓；各面向依來源狀態獨立顯示。</p>
+        <button type="button" className="button secondary example-button" onClick={() => setDraft(createExampleDraft())}>載入大安區範例</button>
       </section>
+      {draft.exampleMode && <div className="example-banner" role="status"><Info size={17} />目前使用示範資料；請調整欄位與地圖位置後再作為自己的查詢。</div>}
       <form className="check-layout" onSubmit={(event) => { event.preventDefault(); onAnalyze() }}>
         <div className="form-stack">
           <section className="form-card">
             <div className="form-card-heading"><span>01</span><div><h2>位置</h2><p>地址只作顯示，分析以地圖座標為準。</p></div></div>
             <div className="field-grid">
               <label>縣市
-                <select value={input.city} onChange={(event) => handleCity(event.target.value as PropertyInput['city'])}>
+                <select value={draft.city} onChange={(event) => handleCity(event.target.value as PropertyInput['city'])}>
                   <option value="taipei">臺北市</option>
                   <option value="new-taipei">新北市</option>
                 </select>
               </label>
               <label>行政區
                 <select
-                  value={input.district}
+                  value={draft.district}
                   onChange={(event) => {
                     const item = districts.find((district) => district.value === event.target.value)!
-                    setInput((current) => ({ ...current, district: item.value, latitude: item.center[0], longitude: item.center[1] }))
+                    setDraft((current) => ({ ...current, district: item.value, latitude: item.center[0], longitude: item.center[1], locationConfirmed: false, exampleMode: false }))
                   }}
                 >
                   {districts.map((district) => <option key={district.value} value={district.value}>{district.label}</option>)}
                 </select>
               </label>
               <label className="full">地址或路段
-                <input required value={input.address} onChange={(event) => update('address', event.target.value)} placeholder="例：和平東路二段" />
+                <input required value={draft.address} onChange={(event) => update('address', event.target.value)} placeholder="例：和平東路二段" />
               </label>
             </div>
             <MapPicker
-              key={`${input.city}-${input.district}`}
-              latitude={input.latitude}
-              longitude={input.longitude}
-              onChange={(latitude, longitude) => setInput((current) => ({ ...current, latitude, longitude }))}
+              key={`${draft.city}-${draft.district}`}
+              latitude={draft.latitude}
+              longitude={draft.longitude}
+              onChange={(latitude, longitude) => setDraft((current) => ({ ...current, latitude, longitude, locationConfirmed: true, exampleMode: false }))}
             />
-            <div className="coordinate-row"><span>已確認座標</span><code>{input.latitude.toFixed(5)}, {input.longitude.toFixed(5)}</code></div>
+            <div className={`coordinate-row ${draft.locationConfirmed ? 'confirmed' : 'pending'}`}>
+              <span>{draft.locationConfirmed ? '已確認分析座標' : '尚未確認位置：請在地圖點一下'}</span>
+              <code>{draft.latitude.toFixed(5)}, {draft.longitude.toFixed(5)}</code>
+            </div>
           </section>
 
           <section className="form-card">
             <div className="form-card-heading"><span>02</span><div><h2>價格與坪數</h2><p>輸入數字時請以總價與權狀總坪數為準。</p></div></div>
             <div className="field-grid">
               <label>開價或成交價（元）
-                <input type="number" min="1" required value={input.totalPrice} onChange={(event) => update('totalPrice', Number(event.target.value))} />
+                <input type="number" min="1" required value={draft.totalPrice} onChange={(event) => update('totalPrice', event.target.value)} />
               </label>
               <label>建物總坪數
-                <input type="number" min="0.1" step="0.1" required value={input.areaPing} onChange={(event) => update('areaPing', Number(event.target.value))} />
+                <input type="number" min="0.1" step="0.1" required value={draft.areaPing} onChange={(event) => update('areaPing', event.target.value)} />
               </label>
               <label className="checkbox-label">
-                <input type="checkbox" checked={input.hasParking} onChange={(event) => update('hasParking', event.target.checked)} />
+                <input type="checkbox" checked={draft.hasParking} onChange={(event) => update('hasParking', event.target.checked)} />
                 此價格包含車位
               </label>
               <label>車位價格（元，選填）
-                <input type="number" min="0" disabled={!input.hasParking} value={input.parkingPrice} onChange={(event) => update('parkingPrice', Number(event.target.value))} />
+                <input type="number" min="0" disabled={!draft.hasParking} value={draft.parkingPrice} onChange={(event) => update('parkingPrice', event.target.value)} />
               </label>
               <label>車位坪數（坪，選填）
-                <input type="number" min="0" step="0.1" disabled={!input.hasParking} value={input.parkingAreaPing} onChange={(event) => update('parkingAreaPing', Number(event.target.value))} />
+                <input type="number" min="0" step="0.1" disabled={!draft.hasParking} value={draft.parkingAreaPing} onChange={(event) => update('parkingAreaPing', event.target.value)} />
               </label>
             </div>
           </section>
 
           <section className="form-card">
-            <div className="form-card-heading"><span>03</span><div><h2>建物條件</h2><p>用於篩選屋齡差距不超過 10 年的相似交易。</p></div></div>
+            <div className="form-card-heading"><span>03</span><div><h2>建物條件</h2><p>建物型態與屋齡會用於行情篩選；樓層目前只作看屋紀錄。</p></div></div>
             <div className="field-grid three">
               <label>屋齡（年）
-                <input type="number" min="0" max="100" required value={input.age} onChange={(event) => update('age', Number(event.target.value))} />
+                <input type="number" min="0" max="100" required value={draft.age} onChange={(event) => update('age', event.target.value)} />
               </label>
               <label>所在樓層
-                <input type="number" min="1" required value={input.floor} onChange={(event) => update('floor', Number(event.target.value))} />
+                <input type="number" min="1" required value={draft.floor} onChange={(event) => update('floor', event.target.value)} />
               </label>
               <label>總樓層
-                <input type="number" min="1" required value={input.totalFloors} onChange={(event) => update('totalFloors', Number(event.target.value))} />
+                <input type="number" min="1" required value={draft.totalFloors} onChange={(event) => update('totalFloors', event.target.value)} />
               </label>
               <label>建物型態
-                <select value={input.buildingType} onChange={(event) => update('buildingType', event.target.value as BuildingType)}>
+                <select value={draft.buildingType} onChange={(event) => update('buildingType', event.target.value as BuildingType)}>
                   <option value="apartment">中古公寓</option>
                   <option value="mansion">華廈</option>
                   <option value="highrise">住宅大樓</option>
                 </select>
               </label>
               <label>生活圈範圍
-                <select value={input.radius} onChange={(event) => update('radius', Number(event.target.value) as PropertyInput['radius'])}>
+                <select value={draft.radius} onChange={(event) => update('radius', Number(event.target.value) as PropertyInput['radius'])}>
                   <option value={300}>300 公尺</option>
                   <option value={500}>500 公尺</option>
                   <option value={1000}>1 公里</option>
@@ -382,9 +379,10 @@ function CheckPage({ input, setInput, onAnalyze, loading, error, manifest }: Che
               <button type="button" className="button secondary" onClick={onAnalyze}><RefreshCw size={16} /> Retry</button>
             </div>
           )}
-          <button className="button primary submit-button" disabled={loading}>
+          <button className="button primary submit-button" disabled={loading || !valid}>
             {loading ? <><span className="spinner" /> 正在載入這個行政區的資料…</> : <>產生風險整理 <ArrowRight size={18} /></>}
           </button>
+          {!valid && <p className="form-requirement">請填完必填欄位，並在地圖上確認分析位置。</p>}
         </div>
         <aside className="form-aside">
           <strong>資料不會離開你的裝置</strong>
@@ -412,6 +410,55 @@ function priceLevel(result: AnalysisResult): RiskLevel {
   if (difference > 20) return 'priority'
   if (difference > 8 || difference < -20) return 'attention'
   return 'low'
+}
+
+function availabilityLabel(value: 'official' | 'partial' | 'unavailable') {
+  if (value === 'official') return '正式資料'
+  if (value === 'partial') return '部分資料'
+  return '資料不足'
+}
+
+function availabilityClass(value: 'official' | 'partial' | 'unavailable') {
+  return value === 'official' ? 'official' : value === 'partial' ? 'stale' : 'unavailable'
+}
+
+function PriceTrend({ trend }: { trend: AnalysisResult['price']['trend'] }) {
+  if (!trend.length) return <p className="trend-empty">沒有足夠的年度樣本可呈現趨勢。</p>
+  const max = Math.max(...trend.map((item) => item.median), 1)
+  const width = 520
+  const height = 180
+  const gap = width / trend.length
+  const points = trend.map((item, index) => {
+    const x = gap * index + gap / 2
+    const y = height - (item.median / max) * 125 - 25
+    return { ...item, x, y }
+  })
+  return (
+    <section className="price-trend" aria-labelledby="price-trend-title">
+      <div className="trend-heading">
+        <h3 id="price-trend-title">附近相似物件近年中位數怎麼變？</h3>
+        <p>只使用本次比較條件內的成交樣本。</p>
+      </div>
+      <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label="各年度相似成交單價中位數折線圖">
+        <line x1="25" y1={height - 25} x2={width - 15} y2={height - 25} className="trend-axis" />
+        <polyline points={points.map((item) => `${item.x},${item.y}`).join(' ')} className="trend-line" />
+        {points.map((item) => <g key={item.year}>
+          <circle cx={item.x} cy={item.y} r="5" className="trend-dot" />
+          <text x={item.x} y={height - 7} textAnchor="middle">{item.year}</text>
+        </g>)}
+      </svg>
+      <div className="trend-table-wrap">
+        <table className="trend-table">
+          <thead><tr><th scope="col">年度</th><th scope="col">中位數／坪</th><th scope="col">樣本數</th></tr></thead>
+          <tbody>{trend.map((item) => <tr key={item.year}>
+            <th scope="row">{item.year}</th>
+            <td>{currency.format(item.median)}</td>
+            <td>{item.sampleCount === undefined ? '舊快照未保存' : `${item.sampleCount.toLocaleString('zh-TW')} 筆`}</td>
+          </tr>)}</tbody>
+        </table>
+      </div>
+    </section>
+  )
 }
 
 interface ResultCardProps {
@@ -472,24 +519,21 @@ function ResultsPage({
   const busSource: DataSourceId = result.input.city === 'taipei' ? 'bus-taipei' : 'bus-new-taipei'
   const hasBusData = available(result.sources[busSource]?.status)
   const hasAccidentData = available(result.sources.accidents?.status)
-  const lifeSourceIds = ['school', 'medical', 'park', 'market', 'parking', 'library'] as const
-  const hasLifeData = lifeSourceIds.some((id) => available(result.sources[id]?.status))
   const medicalAvailable = available(result.sources.medical?.status)
   const parkingAvailable = available(result.sources.parking?.status)
   const schoolAvailable = available(result.sources.school?.status)
   const parkAvailable = available(result.sources.park?.status)
   const libraryAvailable = available(result.sources.library?.status)
-  const availableLifeCount = [medicalAvailable, parkingAvailable, schoolAvailable, parkAvailable, libraryAvailable]
-    .filter(Boolean).length
-  const lifeStatus = availableLifeCount === 5
-    ? 'official'
-    : availableLifeCount > 0
-      ? 'stale'
-      : 'unavailable'
   const priceBlocked = result.sources['actual-price']?.status === 'unavailable'
   const floodBlocked = result.sources.flood?.status === 'unavailable'
   const liquefactionBlocked = result.sources.liquefaction?.status === 'unavailable'
   const priceStatus = priceLevel(result)
+  const overview = buildDecisionOverview(result)
+  const transportOverview = overview.dimensions.find((item) => item.id === 'transport')!
+  const lifeOverview = overview.dimensions.find((item) => item.id === 'life')!
+  const uncheckedCount = result.checklist.filter((item) => !item.checked).length
+  const accidentYearCount = result.accidentSummary.years.length
+  const accidentAnnualAverage = accidentYearCount ? Math.round(result.accidentSummary.total / accidentYearCount) : null
   const toggleChecklist = (id: string) => setResult((current) => current ? ({
     ...current,
     checklist: current.checklist.map((item) => item.id === id ? { ...item, checked: !item.checked } : item),
@@ -537,7 +581,20 @@ function ResultsPage({
         <div><small>物件總價</small><strong>{compactCurrency.format(result.input.totalPrice)}</strong></div>
         <div><small>換算單價</small><strong>{currency.format(result.price.unitPrice)}<em>/坪</em></strong></div>
         <div><small>比較樣本</small><strong>{result.price.sampleCount}<em>筆</em></strong></div>
-        <div><small>資料完整度</small><strong>{result.completeness}<em>%</em></strong></div>
+        <div><small>尚待確認</small><strong>{uncheckedCount}<em>項</em></strong></div>
+      </section>
+      <section className="decision-section" aria-labelledby="decision-title">
+        <div className="decision-heading"><span className="eyebrow">先看哪些能判定</span><h2 id="decision-title">四個面向的資料準備度</h2></div>
+        <div className="decision-grid">
+          {overview.dimensions.map((item) => <article key={item.id}>
+            <div><span>{item.label}</span><strong>{item.value}</strong></div>
+            <span className={`source-status ${availabilityClass(item.availability)}`}>{availabilityLabel(item.availability)}</span>
+          </article>)}
+        </div>
+        <div className="decision-details">
+          <div><h3>優先確認</h3>{overview.priorityActions.length ? <ol>{overview.priorityActions.map((item) => <li key={item}>{item}</li>)}</ol> : <p>目前清單已全部確認。</p>}</div>
+          <div><h3>目前資料缺口</h3>{overview.dataGaps.length ? <ul>{overview.dataGaps.map((item) => <li key={item}>{item}</li>)}</ul> : <p>本次分析來源皆可用。</p>}</div>
+        </div>
       </section>
 
       <section className="result-grid">
@@ -552,6 +609,7 @@ function ResultsPage({
             <div><dt>第 75 百分位</dt><dd>{result.price.q3 === null ? '資料不足' : `${currency.format(result.price.q3)}/坪`}</dd></div>
             <div><dt>比較範圍</dt><dd>半徑 {result.price.radiusUsed >= 1000 ? '1 公里' : `${result.price.radiusUsed} 公尺`}</dd></div>
           </dl>
+          <PriceTrend trend={result.price.trend} />
           <div className="evidence">
             <p><strong>觀察到的事實</strong>{priceBlocked ? '實價來源尚未通過發布閘門，因此不載入候選交易，也不產生價差結論。' : result.price.insufficient ? `只有 ${result.price.sampleCount} 筆符合條件，未產生精確的價差結論。` : `排除特殊交易後有 ${result.price.sampleCount} 筆可比較樣本。`}</p>
             <p><strong>判斷依據</strong>同行政區、相近建物型態、屋齡差不超過 10 年；優先 500 公尺，不足則擴至 1 公里。{result.price.parkingExcluded ? result.price.parkingApproximate ? '已排除車位價格，但缺少車位坪數，單價為近似值。' : '已從總價與總坪數排除車位價格及坪數。' : '未排除本物件車位價格。'}</p>
@@ -584,17 +642,18 @@ function ResultsPage({
           <div className="evidence">
             <p><strong>觀察到的事實</strong>{floodBlocked && liquefactionBlocked ? '淹水與液化候選圖資尚未通過人工發布閘門，因此維持灰色且不載入分析。' : <>淹水採 {result.floodDetail.durationHours} 小時 {result.floodDetail.rainfallMm} mm 情境；{result.floodDetail.officialCategory ? `位置落在「${result.floodDetail.officialCategory}」範圍。` : '位置未落入已發布潛勢多邊形，但官方未提供完整模式覆蓋界，因此維持灰色。'}</>}</p>
             <p><strong>空間範圍</strong>以使用者確認的單一座標與區域性圖層相交判斷。</p>
-            <p><strong>資料信心</strong>區域圖資不代表個別建物或基地安全。淹水圖資日期：{result.floodDetail.updatedAt ?? '覆蓋不明'}；液化圖資日期：{result.liquefactionDetail.updatedAt ?? '覆蓋不明'}。</p>
+            <p><strong>資料信心</strong>區域圖資不代表個別建物或基地安全。淹水圖資日期：{result.floodDetail.updatedAt ? formatTaiwanDate(result.floodDetail.updatedAt) : '覆蓋不明'}；液化圖資日期：{result.liquefactionDetail.updatedAt ? formatTaiwanDate(result.liquefactionDetail.updatedAt) : '覆蓋不明'}。</p>
             <p><strong>建議確認</strong>查閱主管機關正式圖台，並確認基地地質調查、地質改良與建物結構資料。</p>
           </div>
         </ResultCard>
 
-        <ResultCard icon={TrainFront} index="03" title="交通環境" level="unknown">
+        <ResultCard icon={TrainFront} index="03" title="交通環境" level="unknown" status={<span className={`source-status ${availabilityClass(transportOverview.availability)}`}>{transportOverview.value}</span>}>
           <dl className="metrics">
             <div><dt>最近捷運站</dt><dd>{formatDistance(result.nearestMetro)}</dd></div>
             <div><dt>最近火車站</dt><dd>{formatDistance(result.nearestRail)}</dd></div>
             <div><dt>生活圈內公車站</dt><dd>{hasBusData ? `${result.busCount.toLocaleString('zh-TW')} 個站位` : '資料不足'}</dd></div>
             <div><dt>傷亡交通事故</dt><dd>{hasAccidentData ? `${result.accidentSummary.total.toLocaleString('zh-TW')} 件` : '資料不足'}</dd></div>
+            <div><dt>事故年平均</dt><dd>{hasAccidentData && accidentAnnualAverage !== null ? `${accidentAnnualAverage.toLocaleString('zh-TW')} 件／年` : '資料不足'}</dd></div>
             <div><dt>A1／A2 分布</dt><dd>{hasAccidentData ? `A1 ${result.accidentSummary.a1.toLocaleString('zh-TW')}、A2 ${result.accidentSummary.a2.toLocaleString('zh-TW')}` : '資料不足'}</dd></div>
             <div><dt>事故資料年度</dt><dd>{hasAccidentData && result.accidentSummary.years.length ? `${result.accidentSummary.years[0]}–${result.accidentSummary.years.at(-1)}` : '資料不足'}</dd></div>
           </dl>
@@ -611,7 +670,7 @@ function ResultsPage({
           index="04"
           title="生活機能"
           level="unknown"
-          status={<span className={`source-status ${lifeStatus}`}>{availableLifeCount === 5 ? '5 類正式資料' : hasLifeData ? `${availableLifeCount} 類正式資料` : '資料不足'}</span>}
+          status={<span className={`source-status ${availabilityClass(lifeOverview.availability)}`}>{lifeOverview.value}</span>}
         >
           <dl className="metrics">
             <div><dt>{result.input.radius >= 1000 ? '1 公里' : `${result.input.radius} 公尺`}內醫院</dt><dd>{medicalAvailable ? `${result.lifeFacilities.medical.count.toLocaleString('zh-TW')} 間` : '資料不足'}</dd></div>
@@ -627,8 +686,8 @@ function ResultsPage({
             <div><dt>最近公共圖書館</dt><dd>{libraryAvailable ? <>{result.lifeFacilities.library.nearestName ?? '資料不足'}<br />{formatDistance(result.lifeFacilities.library.nearestDistance)}</> : '資料不足'}</dd></div>
           </dl>
           <div className="evidence">
-            <p><strong>涵蓋類型</strong>醫療只納入醫院；停車場只呈現靜態汽車格位；學校限國小、國中、一般高中與特殊教育學校；公園資料保留公園、綠地與廣場官方分類；圖書館只納入官方公立公共圖書館。</p>
-            <p><strong>資料信心</strong>五類來源各自獨立驗證；學校距離不代表學區、入學資格或招生結果。公園數量不代表面積或品質；圖書館距離不代表藏書、開放時間或服務品質。</p>
+            <p><strong>涵蓋類型</strong>醫療只納入醫院；停車場只呈現靜態汽車格位；學校限國小、國中、一般高中與特殊教育學校；公園、市場與圖書館依各自發布狀態顯示。</p>
+            <p><strong>資料信心</strong>六類來源各自獨立驗證；學校距離不代表學區、入學資格或招生結果。公園數量不代表面積或品質；圖書館距離不代表藏書、開放時間或服務品質。</p>
             <p><strong>建議確認</strong>實際走訪日常採買、垃圾處理、醫療與停車動線，並留意營業時間。</p>
           </div>
         </ResultCard>
@@ -667,7 +726,7 @@ function ResultsPage({
           <div><input id="custom-check" value={custom} onChange={(event) => setCustom(event.target.value)} placeholder="例：確認垃圾集中處理時間" /><button className="button secondary" onClick={addCustom}>加入</button></div>
         </div>
       </section>
-      <p className="data-footnote">資料更新時間：西元 {result.updatedAt} · 查詢範圍與來源狀態依各面向標示 · 本站不構成鑑價、工程或投資建議。</p>
+      <p className="data-footnote">資料更新時間：{formatTaiwanDate(result.updatedAt)}（臺灣時間） · 查詢範圍與來源狀態依各面向標示 · 本站不構成鑑價、工程或投資建議。</p>
     </main>
   )
 }
@@ -694,6 +753,10 @@ function ComparePage({ saved, setSaved }: { saved: SavedProperty[]; setSaved: (i
   }
   const remove = (id: string) => setSaved(deleteProperty(id))
   const clear = () => { clearProperties(); setSaved([]) }
+  const sourceAvailable = (item: SavedProperty, id: DataSourceId) => {
+    const status = item.result.sources[id]?.status
+    return status === 'official' || status === 'stale'
+  }
   return (
     <main>
       <section className="page-intro compare-intro">
@@ -713,18 +776,22 @@ function ComparePage({ saved, setSaved }: { saved: SavedProperty[]; setSaved: (i
               ['換算單價', (x: SavedProperty) => `${currency.format(x.result.price.unitPrice)}/坪`],
               ['與附近行情差異', (x: SavedProperty) => x.result.price.differencePercent === null ? '資料不足' : `${x.result.price.differencePercent.toFixed(1)}%`],
               ['價格樣本數', (x: SavedProperty) => `${x.result.price.sampleCount} 筆`],
+              ['價格判定', (x: SavedProperty) => buildDecisionOverview(x.result).dimensions.find((item) => item.id === 'price')?.value ?? '資料不足'],
               ['淹水潛勢', (x: SavedProperty) => x.riskSnapshotLegacy ? '舊快照，請重新查詢' : `${levelMeta[x.result.flood].label}（${x.result.floodDetail.durationHours}h/${x.result.floodDetail.rainfallMm}mm）`],
               ['土壤液化潛勢', (x: SavedProperty) => x.riskSnapshotLegacy ? '舊快照，請重新查詢' : levelMeta[x.result.liquefaction].label],
+              ['災害資料', (x: SavedProperty) => buildDecisionOverview(x.result).dimensions.find((item) => item.id === 'hazards')?.value ?? '資料不足'],
               ['捷運距離', (x: SavedProperty) => formatDistance(x.result.nearestMetro)],
-              ['醫院', (x: SavedProperty) => x.lifeSnapshotLegacy ? '舊快照，請重新查詢' : `${x.result.lifeFacilities.medical.count.toLocaleString('zh-TW')} 間；最近 ${x.result.lifeFacilities.medical.nearestName ?? '資料不足'}（${formatDistance(x.result.lifeFacilities.medical.nearestDistance)}）`],
-              ['路外停車場', (x: SavedProperty) => x.lifeSnapshotLegacy ? '舊快照，請重新查詢' : `${x.result.lifeFacilities.parking.count.toLocaleString('zh-TW')} 處；最近 ${x.result.lifeFacilities.parking.nearestName ?? '資料不足'}（${formatDistance(x.result.lifeFacilities.parking.nearestDistance)}）`],
-              ['學校', (x: SavedProperty) => x.communitySnapshotLegacy ? '舊快照，請重新查詢' : `${x.result.lifeFacilities.school.count.toLocaleString('zh-TW')} 處校園；最近 ${x.result.lifeFacilities.school.nearestName ?? '資料不足'}（${formatDistance(x.result.lifeFacilities.school.nearestDistance)}）`],
-              ['公園綠地', (x: SavedProperty) => x.communitySnapshotLegacy ? '舊快照，請重新查詢' : `${x.result.lifeFacilities.park.count.toLocaleString('zh-TW')} 處；最近 ${x.result.lifeFacilities.park.nearestName ?? '資料不足'}（${formatDistance(x.result.lifeFacilities.park.nearestDistance)}）`],
-              ['公共圖書館', (x: SavedProperty) => x.librarySnapshotLegacy ? '舊快照，請重新查詢' : `${x.result.lifeFacilities.library.count.toLocaleString('zh-TW')} 間；最近 ${x.result.lifeFacilities.library.nearestName ?? '資料不足'}（${formatDistance(x.result.lifeFacilities.library.nearestDistance)}）`],
-              ['交通事故狀況', (x: SavedProperty) => x.accidentSnapshotLegacy ? '舊快照，請重新查詢' : x.result.sources.accidents?.status === 'official' ? `${x.result.accidentSummary.total.toLocaleString('zh-TW')} 件（A1 ${x.result.accidentSummary.a1}／A2 ${x.result.accidentSummary.a2}）` : '資料不足'],
+              ['交通資料', (x: SavedProperty) => buildDecisionOverview(x.result).dimensions.find((item) => item.id === 'transport')?.value ?? '資料不足'],
+              ['醫院', (x: SavedProperty) => x.lifeSnapshotLegacy ? '舊快照，請重新查詢' : !sourceAvailable(x, 'medical') ? '資料不足' : `${x.result.lifeFacilities.medical.count.toLocaleString('zh-TW')} 間；最近 ${x.result.lifeFacilities.medical.nearestName ?? '資料不足'}（${formatDistance(x.result.lifeFacilities.medical.nearestDistance)}）`],
+              ['路外停車場', (x: SavedProperty) => x.lifeSnapshotLegacy ? '舊快照，請重新查詢' : !sourceAvailable(x, 'parking') ? '資料不足' : `${x.result.lifeFacilities.parking.count.toLocaleString('zh-TW')} 處；最近 ${x.result.lifeFacilities.parking.nearestName ?? '資料不足'}（${formatDistance(x.result.lifeFacilities.parking.nearestDistance)}）`],
+              ['學校', (x: SavedProperty) => x.communitySnapshotLegacy ? '舊快照，請重新查詢' : !sourceAvailable(x, 'school') ? '資料不足' : `${x.result.lifeFacilities.school.count.toLocaleString('zh-TW')} 處校園；最近 ${x.result.lifeFacilities.school.nearestName ?? '資料不足'}（${formatDistance(x.result.lifeFacilities.school.nearestDistance)}）`],
+              ['公園綠地', (x: SavedProperty) => x.communitySnapshotLegacy ? '舊快照，請重新查詢' : !sourceAvailable(x, 'park') ? '資料不足' : `${x.result.lifeFacilities.park.count.toLocaleString('zh-TW')} 處；最近 ${x.result.lifeFacilities.park.nearestName ?? '資料不足'}（${formatDistance(x.result.lifeFacilities.park.nearestDistance)}）`],
+              ['公共圖書館', (x: SavedProperty) => x.librarySnapshotLegacy ? '舊快照，請重新查詢' : !sourceAvailable(x, 'library') ? '資料不足' : `${x.result.lifeFacilities.library.count.toLocaleString('zh-TW')} 間；最近 ${x.result.lifeFacilities.library.nearestName ?? '資料不足'}（${formatDistance(x.result.lifeFacilities.library.nearestDistance)}）`],
+              ['生活機能資料', (x: SavedProperty) => buildDecisionOverview(x.result).dimensions.find((item) => item.id === 'life')?.value ?? '資料不足'],
+              ['交通事故狀況', (x: SavedProperty) => x.accidentSnapshotLegacy ? '舊快照，請重新查詢' : sourceAvailable(x, 'accidents') ? `${x.result.accidentSummary.total.toLocaleString('zh-TW')} 件（A1 ${x.result.accidentSummary.a1}／A2 ${x.result.accidentSummary.a2}）` : '資料不足'],
               ['資料品質', (x: SavedProperty) => x.historicDemo ? '歷史 Demo（不與正式結果混用）' : x.result.dataQuality === 'official' ? '全部正式' : x.result.dataQuality === 'mixed' ? '混合來源' : '資料不足'],
               ['待確認事項', (x: SavedProperty) => `${x.result.checklist.filter((item) => !item.checked).length} 項`],
-              ['資料完整度', (x: SavedProperty) => `${x.result.completeness}%`],
+              ['資料缺口', (x: SavedProperty) => buildDecisionOverview(x.result).dataGaps.join('、') || '無'],
             ].map(([label, render]) => (
               <tr key={label as string}><th scope="row">{label as string}</th>{saved.map((item) => <td key={item.id}>{(render as (x: SavedProperty) => string)(item)}</td>)}</tr>
             ))}
@@ -762,8 +829,8 @@ function MethodsPage({ manifest }: { manifest: DataManifest | null }) {
             <dl>
               <div><dt>原始網址</dt><dd>{source.sourceUrl ? <a href={source.sourceUrl} target="_blank" rel="noreferrer">{source.sourceUrl}</a> : '待確認'}</dd></div>
               <div><dt>授權</dt><dd>{source.license}</dd></div>
-              <div><dt>更新時間</dt><dd>{state?.updatedAt ?? '尚無正式快照'}</dd></div>
-              {state?.validUntil && <div><dt>有效期限</dt><dd>{state.validUntil}</dd></div>}
+              <div><dt>更新時間</dt><dd>{state?.updatedAt ? formatTaiwanDate(state.updatedAt) : '尚無正式快照'}</dd></div>
+              {state?.validUntil && <div><dt>有效期限</dt><dd>{formatTaiwanDate(state.validUntil)}</dd></div>}
               <div><dt>更新頻率</dt><dd>{source.refreshFrequency}</dd></div>
               <div><dt>資料筆數</dt><dd>{(state?.recordCount ?? 0).toLocaleString('zh-TW')}</dd></div>
               <div><dt>覆蓋範圍</dt><dd>{state?.coverage.districts.length ? `${state.coverage.districts.length} 個行政區` : '尚未接入'}</dd></div>
@@ -797,7 +864,7 @@ function MethodsPage({ manifest }: { manifest: DataManifest | null }) {
 
 export default function App() {
   const [page, setPage] = useState<Page>(routeFromHash)
-  const [input, setInput] = useState<PropertyInput>(initialInput)
+  const [draft, setDraft] = useState<PropertyFormDraft>(createEmptyDraft)
   const [result, setResult] = useState<AnalysisResult | null>(null)
   const [dataset, setDataset] = useState<DistrictDataset | null>(null)
   const [manifest, setManifest] = useState<DataManifest | null>(null)
@@ -820,6 +887,11 @@ export default function App() {
   }, [])
 
   const analyze = async () => {
+    const input = draftToInput(draft)
+    if (!input) {
+      setError('請填完必填欄位，並在地圖上確認分析位置。')
+      return
+    }
     setLoading(true)
     setError(null)
     try {
@@ -859,7 +931,7 @@ export default function App() {
         checked: previousChecklist.get(item.id)?.checked ?? false,
       }))
       rebuilt.checklist.push(...result.checklist.filter((item) => item.custom))
-      setInput(nextInput)
+      setDraft(inputToDraft(nextInput))
       setDataset(nextDataset)
       setResult(rebuilt)
     } catch {
@@ -884,7 +956,7 @@ export default function App() {
 
   let content = <MethodsPage manifest={manifest} />
   if (page === 'home') content = <HomePage />
-  if (page === 'check') content = <CheckPage input={input} setInput={setInput} onAnalyze={analyze} loading={loading} error={error} manifest={manifest} />
+  if (page === 'check') content = <CheckPage draft={draft} setDraft={setDraft} onAnalyze={analyze} loading={loading} error={error} manifest={manifest} />
   if (page === 'results') content = (
     <ResultsPage
       result={result}
