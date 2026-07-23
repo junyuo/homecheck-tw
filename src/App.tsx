@@ -212,7 +212,7 @@ function HomePage() {
             { icon: Landmark, no: '01', title: '價格合理性', text: '比較附近相似物件的中位數、四分位數、樣本數與近五年趨勢。' },
             { icon: ShieldCheck, no: '02', title: '天然災害', text: '用區域公開圖資檢視淹水、液化等潛勢，不推論個別建物安全。' },
             { icon: Route, no: '03', title: '交通環境', text: '依來源狀態確認車站、公車與事故點位，並切換生活圈範圍。' },
-            { icon: Building2, no: '04', title: '生活機能', text: '整理已通過驗證的學校、醫療、停車場與圖書館；未接入類別會明確標示。' },
+            { icon: Building2, no: '04', title: '生活機能', text: '整理已通過驗證的學校、醫療、停車場與圖書館；市場只計官方傳統零售市場，未接入類別會明確標示。' },
           ].map((feature) => (
             <article className="feature-card" key={feature.no}>
               <span className="feature-number">{feature.no}</span>
@@ -529,6 +529,7 @@ function ResultsPage({
   const parkingAvailable = available(result.sources.parking?.status)
   const schoolAvailable = available(result.sources.school?.status)
   const parkAvailable = available(result.sources.park?.status)
+  const marketAvailable = available(result.sources.market?.status)
   const libraryAvailable = available(result.sources.library?.status)
   const priceBlocked = result.sources['actual-price']?.status === 'unavailable'
   const floodBlocked = result.sources.flood?.status === 'unavailable'
@@ -688,6 +689,8 @@ function ResultsPage({
             <div><dt>學校級別</dt><dd>{schoolAvailable ? `國小 ${result.lifeFacilities.school.byLevel.elementary}、國中 ${result.lifeFacilities.school.byLevel.junior}、高中 ${result.lifeFacilities.school.byLevel.senior}、特教 ${result.lifeFacilities.school.byLevel.special}` : '資料不足'}</dd></div>
             <div><dt>{result.input.radius >= 1000 ? '1 公里' : `${result.input.radius} 公尺`}內公園綠地</dt><dd>{parkAvailable ? `${result.lifeFacilities.park.count.toLocaleString('zh-TW')} 處` : '資料不足'}</dd></div>
             <div><dt>最近公園綠地</dt><dd>{parkAvailable ? <>{result.lifeFacilities.park.nearestName ?? '資料不足'}<br />{formatDistance(result.lifeFacilities.park.nearestDistance)}</> : '資料不足'}</dd></div>
+            <div><dt>{result.input.radius >= 1000 ? '1 公里' : `${result.input.radius} 公尺`}內傳統零售市場</dt><dd>{marketAvailable ? `${result.lifeFacilities.market.count.toLocaleString('zh-TW')} 處` : '資料不足'}</dd></div>
+            <div><dt>最近傳統零售市場</dt><dd>{marketAvailable ? <>{result.lifeFacilities.market.nearestName ?? '資料不足'}<br />{formatDistance(result.lifeFacilities.market.nearestDistance)}</> : '資料不足'}</dd></div>
             <div><dt>{result.input.radius >= 1000 ? '1 公里' : `${result.input.radius} 公尺`}內公共圖書館</dt><dd>{libraryAvailable ? `${result.lifeFacilities.library.count.toLocaleString('zh-TW')} 間` : '資料不足'}</dd></div>
             <div><dt>最近公共圖書館</dt><dd>{libraryAvailable ? <>{result.lifeFacilities.library.nearestName ?? '資料不足'}<br />{formatDistance(result.lifeFacilities.library.nearestDistance)}</> : '資料不足'}</dd></div>
           </dl>
@@ -792,6 +795,7 @@ function ComparePage({ saved, setSaved }: { saved: SavedProperty[]; setSaved: (i
               ['路外停車場', (x: SavedProperty) => x.lifeSnapshotLegacy ? '舊快照，請重新查詢' : !sourceAvailable(x, 'parking') ? '資料不足' : `${x.result.lifeFacilities.parking.count.toLocaleString('zh-TW')} 處；最近 ${x.result.lifeFacilities.parking.nearestName ?? '資料不足'}（${formatDistance(x.result.lifeFacilities.parking.nearestDistance)}）`],
               ['學校', (x: SavedProperty) => x.communitySnapshotLegacy ? '舊快照，請重新查詢' : !sourceAvailable(x, 'school') ? '資料不足' : `${x.result.lifeFacilities.school.count.toLocaleString('zh-TW')} 處校園；最近 ${x.result.lifeFacilities.school.nearestName ?? '資料不足'}（${formatDistance(x.result.lifeFacilities.school.nearestDistance)}）`],
               ['公園綠地', (x: SavedProperty) => x.communitySnapshotLegacy ? '舊快照，請重新查詢' : !sourceAvailable(x, 'park') ? '資料不足' : `${x.result.lifeFacilities.park.count.toLocaleString('zh-TW')} 處；最近 ${x.result.lifeFacilities.park.nearestName ?? '資料不足'}（${formatDistance(x.result.lifeFacilities.park.nearestDistance)}）`],
+              ['傳統零售市場', (x: SavedProperty) => x.marketSnapshotLegacy ? '舊快照，請重新查詢' : !sourceAvailable(x, 'market') ? '資料不足' : `${x.result.lifeFacilities.market.count.toLocaleString('zh-TW')} 處；最近 ${x.result.lifeFacilities.market.nearestName ?? '資料不足'}（${formatDistance(x.result.lifeFacilities.market.nearestDistance)}）`],
               ['公共圖書館', (x: SavedProperty) => x.librarySnapshotLegacy ? '舊快照，請重新查詢' : !sourceAvailable(x, 'library') ? '資料不足' : `${x.result.lifeFacilities.library.count.toLocaleString('zh-TW')} 間；最近 ${x.result.lifeFacilities.library.nearestName ?? '資料不足'}（${formatDistance(x.result.lifeFacilities.library.nearestDistance)}）`],
               ['生活機能資料', (x: SavedProperty) => buildDecisionOverview(x.result).dimensions.find((item) => item.id === 'life')?.value ?? '資料不足'],
               ['交通事故狀況', (x: SavedProperty) => x.accidentSnapshotLegacy ? '舊快照，請重新查詢' : sourceAvailable(x, 'accidents') ? `${x.result.accidentSummary.total.toLocaleString('zh-TW')} 件（A1 ${x.result.accidentSummary.a1}／A2 ${x.result.accidentSummary.a2}）` : '資料不足'],

@@ -120,7 +120,7 @@ export const dataSources: DataSource[] = [
     notes: '只呈現有汽車格位的官方登記位置與靜態格位數，不提供即時剩餘車位。',
   },
   ...([
-    ['market', '市場', '雙北市政府'],
+    ['market', '公有／民有傳統零售市場', '雙北市政府'],
   ] as const).map(([id, name, agency]) => ({
     id,
     name,
@@ -128,7 +128,7 @@ export const dataSources: DataSource[] = [
     sourceUrl: 'https://data.ntpc.gov.tw/datasets/785BE91A-CAAF-4E1C-91D6-F7D616D31A45',
     license: '政府資料開放授權條款第 1 版／臺北市公開資料',
     refreshFrequency: '尚未接入',
-    notes: '已確認雙北候選官方清冊，但分類口徑、穩定 ID、定位與人工稽核尚未完成；正式發布前維持資料不足。',
+    notes: 'market-v1 只納入官方公有／民有傳統零售市場，排除超市、批發市場、夜市與一般商店；臺北公有市場尚缺可證明現況的機器可讀清冊，因此維持資料不足。',
   })),
   {
     id: 'library',

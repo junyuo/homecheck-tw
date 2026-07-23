@@ -30,7 +30,7 @@ const gapLabels: Partial<Record<DataSourceId, string>> = {
   parking: '停車場資料未接入',
   school: '學校資料未接入',
   park: '公園綠地未達發布門檻',
-  market: '市場資料尚未接入',
+  market: '傳統零售市場資料尚未接入',
   library: '圖書館資料未接入',
 }
 

@@ -64,7 +64,7 @@ interface AnalysisMapProps {
 }
 
 export function AnalysisMap({ latitude, longitude, dataset, flood, liquefaction, radius }: AnalysisMapProps) {
-  const [visible, setVisible] = useState(() => new Set<FacilityProperties['category']>(['metro', 'bus', 'medical', 'park']))
+  const [visible, setVisible] = useState(() => new Set<FacilityProperties['category']>(['metro', 'bus', 'medical', 'park', 'market']))
   const [showFlood, setShowFlood] = useState(true)
   const [showLiquefaction, setShowLiquefaction] = useState(true)
   const [showAccidents, setShowAccidents] = useState(false)
@@ -180,7 +180,7 @@ const categoryLabel: Record<FacilityProperties['category'], string> = {
   school: '學校',
   medical: '醫院',
   park: '公園綠地',
-  market: '市場',
+  market: '傳統零售市場',
   parking: '停車場',
   library: '圖書館',
 }

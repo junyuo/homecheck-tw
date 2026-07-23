@@ -29,6 +29,7 @@ const result = (city: 'taipei' | 'new-taipei'): AnalysisResult => ({
     parking: { count: 1, nearestDistance: 100, nearestName: '停車場' },
     school: { count: 1, nearestDistance: 100, nearestName: '學校', byLevel: { elementary: 1, junior: 0, senior: 0, special: 0 } },
     park: { count: 0, nearestDistance: null, nearestName: null, nearestType: null },
+    market: { count: 0, nearestDistance: null, nearestName: null },
     library: { count: 1, nearestDistance: 100, nearestName: '圖書館' },
   },
   accidentCount: 2,
@@ -49,7 +50,7 @@ describe('決策摘要', () => {
     const overview = buildDecisionOverview(result('taipei'))
     expect(overview.dimensions.find((item) => item.id === 'transport')?.value).toBe('可用 3/4 來源')
     expect(overview.dimensions.find((item) => item.id === 'life')?.value).toBe('可用 4/6 類')
-    expect(overview.dataGaps).toEqual(expect.arrayContaining(['臺北市公車站位未接入', '公園綠地未達發布門檻', '市場資料尚未接入']))
+    expect(overview.dataGaps).toEqual(expect.arrayContaining(['臺北市公車站位未接入', '公園綠地未達發布門檻', '傳統零售市場資料尚未接入']))
     expect(overview.priorityActions).toEqual(['第一項'])
   })
 
@@ -57,6 +58,14 @@ describe('決策摘要', () => {
     const overview = buildDecisionOverview(result('new-taipei'))
     expect(overview.dimensions.find((item) => item.id === 'transport')?.availability).toBe('official')
     expect(overview.dataGaps).not.toContain('臺北市公車站位未接入')
+  })
+
+  it('市場正式發布後生活機能變為 5/6 且移除市場缺口', () => {
+    const analysis = result('taipei')
+    analysis.sources.market = source()
+    const overview = buildDecisionOverview(analysis)
+    expect(overview.dimensions.find((item) => item.id === 'life')?.value).toBe('可用 5/6 類')
+    expect(overview.dataGaps).not.toContain('傳統零售市場資料尚未接入')
   })
 
   it('日期以臺灣時區顯示', () => {

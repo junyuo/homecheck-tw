@@ -82,6 +82,10 @@ export const SOURCE_URLS = {
   taipeiPark: 'https://parks.taipei/parks/api/',
   newTaipeiPark:
     'https://data.ntpc.gov.tw/api/datasets/5fe3a136-29cc-4695-a17e-6636a32c3342/csv',
+  taipeiPublicMarket: null,
+  taipeiPrivateMarket: null,
+  newTaipeiMarket:
+    'https://data.ntpc.gov.tw/api/datasets/785BE91A-CAAF-4E1C-91D6-F7D616D31A45/csv?page=0&size=100000',
   accidents: {
     2023: 'https://opdadm.moi.gov.tw/api/v1/no-auth/resource/api/dataset/E68DFD97-92B3-4A78-A447-87F1390B54B0/resource/C0876EEB-9468-4B23-8E67-AB57E3563A1B/download',
     2024: 'https://opdadm.moi.gov.tw/api/v1/no-auth/resource/api/dataset/CCAD7AA8-5139-4066-8BE3-D6CC3154C137/resource/36C1D864-51F8-4A78-9D68-8298E00B0732/download',

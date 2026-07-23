@@ -15,7 +15,7 @@ const root = resolve(import.meta.dirname, '..')
 const publicData = join(root, 'public', 'data')
 const staging = join(root, '.data-release-staging')
 const backup = join(root, '.data-release-last-good')
-const validSources = new Set(['all', 'price', 'risks', 'facilities', 'accidents'])
+const validSources = new Set(['all', 'price', 'risks', 'facilities', 'market', 'accidents'])
 
 function option(name, fallback) {
   const inline = process.argv.find((argument) => argument.startsWith(`--${name}=`))
@@ -168,6 +168,26 @@ async function main() {
     }
     failures.forEach((message) => console.error(`[release] 未提升 ${message}`))
     if (promoted === 0) throw new Error('五類設施皆未通過發布閘門')
+  }
+
+  if (selectedSource === 'all' || selectedSource === 'market') {
+    const [audit, candidates] = await Promise.all([
+      readFile(join(root, 'scripts', 'data', 'audits', 'market-v1.json'), 'utf8').then(JSON.parse),
+      readFile(join(root, '.data-cache', 'market-audit-candidates.json'), 'utf8').then(JSON.parse),
+    ])
+    const source = manifest.sources.market
+    await verifyCandidate(source)
+    if (candidates.fingerprints.sourceSha256 !== source.sha256 ||
+        candidates.fingerprints.datasetSha256 !== source.qualityGates.automated.datasetSha256) {
+      throw new Error('market 候選 fingerprints 與 manifest 不一致')
+    }
+    const evaluation = evaluateFacilityAudit(audit, 'market', {
+      adapterVersion: source.qualityGates.automated.adapterVersion,
+      sourceSha256: source.sha256,
+      addressIndexSha256: candidates.addressIndexSha256,
+      requireEvidenceSourceSha: true,
+    })
+    promoteSource(source, evaluation, audit, now)
   }
 
   if (selectedSource === 'all' || selectedSource === 'accidents') {

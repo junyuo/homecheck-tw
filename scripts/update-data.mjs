@@ -18,13 +18,14 @@ import { updateOfficialLibraries } from './data/library.mjs'
 import { updateOfficialRisks } from './data/risks.mjs'
 import { updateOfficialTransport } from './data/transport.mjs'
 import { updateOfficialAccidents } from './data/accidents.mjs'
+import { updateOfficialMarkets } from './data/market.mjs'
 
 const root = resolve(import.meta.dirname, '..')
 const publicData = join(root, 'public', 'data')
 const staging = join(root, '.data-staging')
 const backup = join(root, '.data-last-good')
 const cache = join(root, '.data-cache')
-const validSources = new Set(['all', 'price', 'risks', 'transport', 'facilities', 'accidents'])
+const validSources = new Set(['all', 'price', 'risks', 'transport', 'facilities', 'market', 'accidents'])
 
 function option(name, fallback) {
   const inline = process.argv.find((argument) => argument.startsWith(`--${name}=`))
@@ -606,6 +607,84 @@ async function main() {
       const message = error instanceof Error ? error.message : String(error)
       manifest.sources.library = sourceFailure(manifest.sources.library, 'library', now, message)
       log('facilities', `library 失敗：${message}`)
+    }
+  }
+  if (shouldRun('market')) {
+    log('market', '更新雙北公有／民有傳統零售市場（排除超市、批發市場與夜市）')
+    try {
+      const result = await updateOfficialMarkets({
+        output: staging,
+        cache,
+        now: new Date(),
+        dryRun,
+        reuseCache: process.env.REUSE_DATA_CACHE === 'true',
+        previous: manifest.sources.market,
+      })
+      if (result.status === 'failed') {
+        failed = true
+        log('market', `發布閘門阻擋：${result.error}`)
+        if (!dryRun) {
+          const nextSource = sourceFailure(manifest.sources.market, 'market', now, result.error)
+          nextSource.status = 'unavailable'
+          nextSource.lastAttempt.message = `自動發布閘門阻擋：${result.error}`
+          manifest.sources.market = nextSource
+        }
+      } else if (result.status === 'dry-run') {
+        log('market', `dry run：${result.recordCount.toLocaleString('zh-TW')} 筆，未發布`)
+      } else {
+        const [audit, candidates] = await Promise.all([
+          readFile(join(root, 'scripts', 'data', 'audits', 'market-v1.json'), 'utf8').then(JSON.parse),
+          readFile(join(cache, 'market-audit-candidates.json'), 'utf8').then(JSON.parse),
+        ])
+        const datasetSha256 = await sourceFilesSha256(staging, result.files)
+        const evaluation = evaluateFacilityAudit(audit, 'market', {
+          adapterVersion: result.adapterVersion,
+        })
+        if (candidates.fingerprints.sourceSha256 !== result.sha256 ||
+            candidates.fingerprints.datasetSha256 !== datasetSha256) {
+          throw new Error('market 候選 fingerprints 與輸出不一致')
+        }
+        const nextSource = officialSource(
+          manifest.sources.market,
+          {
+            ...result,
+            qualityGates: {
+              automated: {
+                status: 'passed',
+                adapterVersion: result.adapterVersion,
+                checkedAt: now,
+                datasetSha256,
+              },
+              manualAudit: manualGate(evaluation, result.adapterVersion, audit.checkedAt),
+            },
+          },
+          now,
+          'https://data.ntpc.gov.tw/datasets/785BE91A-CAAF-4E1C-91D6-F7D616D31A45',
+          {
+            cities: ['taipei', 'new-taipei'],
+            districts: ALL_DISTRICTS.map(({ city, slug }) => `${city}/${slug}`),
+          },
+        )
+        if (!evaluation.passed) {
+          nextSource.status = 'unavailable'
+          nextSource.lastAttempt = {
+            status: 'success',
+            message: '自動 QA 通過；等待臺北／新北各 5 筆官方原始檔離線驗收',
+          }
+        }
+        manifest.sources.market = nextSource
+        log('market', `${result.recordCount.toLocaleString('zh-TW')} 筆${evaluation.passed ? '，正式' : '，候選'}`)
+      }
+    } catch (error) {
+      failed = true
+      const message = error instanceof Error ? error.message : String(error)
+      log('market', `失敗：${message}`)
+      if (!dryRun) {
+        const nextSource = sourceFailure(manifest.sources.market, 'market', now, message)
+        nextSource.status = 'unavailable'
+        nextSource.lastAttempt.message = `自動發布閘門阻擋：${message}`
+        manifest.sources.market = nextSource
+      }
     }
   }
   if (shouldRun('accidents')) {

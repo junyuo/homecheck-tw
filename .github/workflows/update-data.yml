@@ -14,6 +14,7 @@ on:
           - risks
           - transport
           - facilities
+          - market
           - accidents
       dryRun:
         description: Validate without publishing data files
@@ -31,6 +32,8 @@ on:
     - cron: '17 1 5 * *'
     # 09:17 Asia/Taipei on the 6th for A1/A2 accident metadata and hashes.
     - cron: '17 1 6 * *'
+    # 09:17 Asia/Taipei on the 7th for traditional retail markets.
+    - cron: '17 1 7 * *'
 
 permissions:
   contents: write
@@ -58,6 +61,8 @@ jobs:
             echo "source=facilities" >> "$GITHUB_OUTPUT"
           elif [ "${{ github.event.schedule }}" = "17 1 6 * *" ]; then
             echo "source=accidents" >> "$GITHUB_OUTPUT"
+          elif [ "${{ github.event.schedule }}" = "17 1 7 * *" ]; then
+            echo "source=market" >> "$GITHUB_OUTPUT"
           else
             echo "source=price" >> "$GITHUB_OUTPUT"
           fi

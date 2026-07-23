@@ -41,6 +41,7 @@ const makeResult = (id: string): AnalysisResult => ({
       byLevel: { elementary: 0, junior: 0, senior: 0, special: 0 },
     },
     park: { count: 0, nearestDistance: null, nearestName: null, nearestType: null },
+    market: { count: 0, nearestDistance: null, nearestName: null },
     library: { count: 0, nearestDistance: null, nearestName: null },
   },
   accidentCount: 0,
@@ -169,5 +170,19 @@ describe('比較清單 Local Storage', () => {
     expect(migrated.accidentSnapshotLegacy).toBe(false)
     expect(migrated.librarySnapshotLegacy).toBe(true)
     expect(migrated.result.lifeFacilities.library.count).toBe(0)
+  })
+
+  it('v7 保留既有資料並只標示市場快照需重新查詢', () => {
+    const result = makeResult('v7')
+    const legacy = structuredClone(result)
+    delete (legacy.lifeFacilities as Partial<typeof legacy.lifeFacilities>).market
+    storage.setItem('homecheck-tw:properties', JSON.stringify({
+      schemaVersion: 7,
+      properties: [{ id: 'v7', savedAt: '2026-07-23', label: '舊快照', result: legacy }],
+    }))
+    const [migrated] = loadSavedProperties(storage)
+    expect(migrated.librarySnapshotLegacy).toBe(false)
+    expect(migrated.marketSnapshotLegacy).toBe(true)
+    expect(migrated.result.lifeFacilities.market.count).toBe(0)
   })
 })

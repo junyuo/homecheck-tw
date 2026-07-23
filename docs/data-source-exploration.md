@@ -11,10 +11,11 @@
 ## 市場
 
 - 新北市官方[公有市場及超市清冊](https://data.ntpc.gov.tw/datasets/785BE91A-CAAF-4E1C-91D6-F7D616D31A45)有名稱、行政區、地址與 `types`，每年更新，可作候選來源。
-- 臺北市官方資料分為公有零售市場、[民有市場](https://data.taipei/dataset/detail?id=8c707a10-bd42-47ff-bff3-521f04b1655e)與[批發市場](https://data.taipei/dataset/detail?id=4a50dd4a-b09c-47c8-9374-fc04a9e59cc9)；批發市場有 WGS84 座標，其他清冊多以地址定位，分類口徑不同。
-- 本輪先定義候選共同分類：`traditional-retail`、`wholesale`、`supermarket`。網站預設只呈現 `traditional-retail`，其餘分類必須明示，不混算為同一類。
+- 臺北市[民有市場](https://data.taipei/dataset/detail?id=8c707a10-bd42-47ff-bff3-521f04b1655e)可作候選，但尚未找到可重現、可證明現況的公有市場官方機器可讀清冊；統計表、PDF、HTML 爬取與過時名冊不採用。
+- `market-v1` 已定義共同口徑：只納入公有／民有 `traditional-market`，排除批發市場、超市、夜市與一般商店。
 - 穩定 ID 必須由城市、官方紀錄 ID（若有）、正規化名稱與分類產生；地址只用於官方門牌索引定位，不寫入公開 GeoJSON。
-- 發布前仍需完成：逐來源 adapter、至少 95% 定位率、行政區一致性、重複點位低於 1%、雙北各 5 筆官方原始檔離線稽核、last-good 與每來源獨立失敗隔離。
+- 已完成獨立 adapter、穩定 ID、隱私欄位白名單、95% 定位率、行政區、重複點位、41 區、5 MB、last-good、筆數下降與雙北各 5 筆稽核閘門。
+- 2026-07-23 dry run：因臺北公有市場來源不足被阻擋，`.data-cache/market-audit-candidates.json` 留下可重現原因；`public/data` 未修改，正式來源維持 12/15。
 
 ## 公園綠地
 

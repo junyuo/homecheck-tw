@@ -165,13 +165,14 @@ export function evaluateFacilityAudit(audit, source, {
       ['name', 'id', 'district', 'coordinate',
         ...(source === 'parking' ? ['carCapacity'] : []),
         ...(source === 'school' ? ['schoolLevels'] : []),
-        ...(source === 'park' ? ['parkType'] : [])]
+        ...(source === 'park' ? ['parkType'] : []),
+        ...(source === 'market' ? ['marketOwnership'] : [])]
         .every((field) => sample.fields?.[field] === true))].length,
   ]))
   const evidenceValid = !requireEvidenceSourceSha || sourceSamples.every((sample) =>
     sample.evidence?.sourceSha256 === sourceSha256 &&
     /^[a-f0-9]{64}$/.test(sample.evidence?.queryOutputSha256 ?? '') &&
-    (!['medical', 'school', 'park'].includes(source) ||
+    (!['medical', 'school', 'park', 'market'].includes(source) ||
       (source === 'medical' && sample.city === 'taipei') ||
       (source === 'park' && sample.city === 'taipei') ||
       (source === 'park' && sample.evidence?.locationMethod === 'ntpc-landmark-exact' &&

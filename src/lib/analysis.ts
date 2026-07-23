@@ -226,7 +226,7 @@ export function buildAnalysis(
       longitude: feature.geometry.coordinates[0],
     })))
     : null
-  const summarizeLifeFacility = (category: 'medical' | 'parking' | 'school' | 'park' | 'library') => {
+  const summarizeLifeFacility = (category: 'medical' | 'parking' | 'school' | 'park' | 'market' | 'library') => {
     const all = dataset.facilities.features.filter((feature) => feature.properties.category === category)
     const nearby = nearbyFacilities.filter((feature) => feature.properties.category === category)
     const closest = all
@@ -319,6 +319,7 @@ export function buildAnalysis(
       parking: summarizeLifeFacility('parking'),
       school: schoolSummary,
       park: parkSummary,
+      market: summarizeLifeFacility('market'),
       library: summarizeLifeFacility('library'),
     },
     accidentCount: nearbyAccidents.length,

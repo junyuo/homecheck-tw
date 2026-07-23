@@ -3,7 +3,7 @@ import { DEFAULT_FLOOD_SCENARIO } from '../config/risks'
 
 export const STORAGE_KEY = 'homecheck-tw:properties'
 export const MAX_PROPERTIES = 3
-export const STORAGE_SCHEMA_VERSION = 7
+export const STORAGE_SCHEMA_VERSION = 8
 
 interface StorageEnvelope {
   schemaVersion: typeof STORAGE_SCHEMA_VERSION
@@ -31,6 +31,7 @@ function migrateLegacy(
   communitySnapshotLegacy = true,
   accidentSnapshotLegacy = true,
   librarySnapshotLegacy = true,
+  marketSnapshotLegacy = true,
 ): SavedProperty[] {
   return items.map((item) => {
     const legacy = item.result as AnalysisResult & { demo?: boolean }
@@ -42,6 +43,7 @@ function migrateLegacy(
       communitySnapshotLegacy: item.communitySnapshotLegacy ?? communitySnapshotLegacy,
       accidentSnapshotLegacy: item.accidentSnapshotLegacy ?? accidentSnapshotLegacy,
       librarySnapshotLegacy: item.librarySnapshotLegacy ?? librarySnapshotLegacy,
+      marketSnapshotLegacy: item.marketSnapshotLegacy ?? marketSnapshotLegacy,
       result: {
         ...legacy,
         input: {
@@ -72,6 +74,8 @@ function migrateLegacy(
             nearestName: null,
             nearestType: null,
           },
+          market: legacy.lifeFacilities?.market ??
+            { count: 0, nearestDistance: null, nearestName: null },
           library: legacy.lifeFacilities?.library ??
             { count: 0, nearestDistance: null, nearestName: null },
         },
@@ -101,8 +105,12 @@ export function loadSavedProperties(storage: Pick<Storage, 'getItem'> = localSto
     if (parsed?.schemaVersion === STORAGE_SCHEMA_VERSION && Array.isArray(parsed.properties)) {
       return parsed.properties.slice(0, MAX_PROPERTIES)
     }
+    if (parsed?.schemaVersion === 7 && Array.isArray(parsed.properties)) {
+      return migrateLegacy(parsed.properties, false, false, false, false, false, true)
+        .slice(0, MAX_PROPERTIES)
+    }
     if (parsed?.schemaVersion === 6 && Array.isArray(parsed.properties)) {
-      return migrateLegacy(parsed.properties, false, false, false, false, true).slice(0, MAX_PROPERTIES)
+      return migrateLegacy(parsed.properties, false, false, false, false, true, true).slice(0, MAX_PROPERTIES)
     }
     if (parsed?.schemaVersion === 5 && Array.isArray(parsed.properties)) {
       return migrateLegacy(parsed.properties, false, false, false, true, true).slice(0, MAX_PROPERTIES)

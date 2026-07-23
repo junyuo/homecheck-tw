@@ -71,12 +71,13 @@ export interface FacilityProperties {
   id?: string
   name: string
   category: 'metro' | 'rail' | 'bus' | 'school' | 'medical' | 'park' | 'market' | 'parking' | 'library'
-  facilityType?: 'offstreet-parking' | 'hospital' | 'school-campus' | 'park-area' | 'public-library'
+  facilityType?: 'offstreet-parking' | 'hospital' | 'school-campus' | 'park-area' | 'traditional-market' | 'public-library'
   sourceUpdatedAt?: string
   carCapacity?: number
   schoolLevels?: Array<'elementary' | 'junior' | 'senior' | 'special'>
   officialCodes?: string[]
   parkType?: 'park' | 'green-space' | 'plaza'
+  marketOwnership?: 'public' | 'private'
   demo?: boolean
 }
 
@@ -225,6 +226,7 @@ export interface AnalysisResult {
     parking: LifeFacilitySummary
     school: SchoolFacilitySummary
     park: ParkFacilitySummary
+    market: LifeFacilitySummary
     library: LifeFacilitySummary
   }
   accidentCount: number
@@ -259,5 +261,6 @@ export interface SavedProperty {
   communitySnapshotLegacy?: boolean
   accidentSnapshotLegacy?: boolean
   librarySnapshotLegacy?: boolean
+  marketSnapshotLegacy?: boolean
   result: AnalysisResult
 }
