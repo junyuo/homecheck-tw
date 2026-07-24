@@ -19,6 +19,12 @@ import { updateOfficialRisks } from './data/risks.mjs'
 import { updateOfficialTransport } from './data/transport.mjs'
 import { updateOfficialAccidents } from './data/accidents.mjs'
 import { updateOfficialMarkets } from './data/market.mjs'
+import {
+  buildReadinessManifest,
+  readReadinessManifest,
+  readinessSource,
+  writeReadinessManifest,
+} from './data/readiness.mjs'
 
 const root = resolve(import.meta.dirname, '..')
 const publicData = join(root, 'public', 'data')
@@ -35,8 +41,15 @@ function option(name, fallback) {
 
 const selectedSource = option('source', process.env.DATA_SOURCE ?? 'all')
 const dryRun = option('dry-run', process.env.DRY_RUN ?? 'false') === 'true'
+const readinessOnly = option(
+  'readiness-only',
+  process.env.READINESS_ONLY ?? 'false',
+) === 'true'
 const validateOnly = process.argv.includes('--validate-only')
 if (!validSources.has(selectedSource)) throw new Error(`不支援的 source：${selectedSource}`)
+if (readinessOnly && !['all', 'facilities', 'market'].includes(selectedSource)) {
+  throw new Error('readiness-only 只支援 all、facilities 或 market')
+}
 
 const log = (stage, message) => console.log(`[${stage}] ${message}`)
 const shouldRun = (...sources) => selectedSource === 'all' || sources.includes(selectedSource)
@@ -83,6 +96,76 @@ function officialSource(previous, result, now, downloadUrl, coverage) {
   }
 }
 
+async function publishReadiness(target, reports, generatedAt) {
+  const file = join(target, 'readiness.json')
+  const previous = await readReadinessManifest(file)
+  const manifest = buildReadinessManifest(previous, reports, generatedAt)
+  await writeReadinessManifest(file, manifest)
+  await writeReadinessManifest(join(cache, 'readiness-report.json'), manifest)
+  return manifest
+}
+
+async function updateReadinessOnly() {
+  const manifest = JSON.parse(await readFile(
+    join(publicData, 'manifest.json'),
+    'utf8',
+  ))
+  const reports = []
+  if (shouldRun('market')) {
+    const attemptedAt = new Date()
+    let failure = null
+    try {
+      await updateOfficialMarkets({
+        output: publicData,
+        cache,
+        now: attemptedAt,
+        reuseCache: process.env.REUSE_DATA_CACHE === 'true',
+        previous: manifest.sources.market,
+      })
+    } catch (error) {
+      failure = error
+    }
+    const candidate = JSON.parse(await readFile(
+      join(cache, 'market-audit-candidates.json'),
+      'utf8',
+    ))
+    if (candidate.generatedAt !== attemptedAt.toISOString()) {
+      throw failure ?? new Error('market readiness 候選不是本次執行結果')
+    }
+    const report = readinessSource('market', candidate)
+    if (failure && report.status !== 'blocked') throw failure
+    reports.push(report)
+    log('readiness', `market：${report.status}，${report.blockedReason ?? '自動 QA 通過'}`)
+  }
+  if (shouldRun('facilities')) {
+    const attemptedAt = new Date()
+    await updateOfficialCommunity({
+      output: publicData,
+      cache,
+      now: attemptedAt,
+      dryRun: true,
+      reuseCache: process.env.REUSE_DATA_CACHE === 'true',
+      previous: {
+        school: manifest.sources.school,
+        park: manifest.sources.park,
+      },
+    })
+    const candidate = JSON.parse(await readFile(
+      join(cache, 'community-audit-candidates.json'),
+      'utf8',
+    ))
+    if (candidate.generatedAt !== attemptedAt.toISOString()) {
+      throw new Error('park readiness 候選不是本次執行結果')
+    }
+    const report = readinessSource('park', candidate)
+    reports.push(report)
+    log('readiness', `park：${report.status}，${report.blockedReason ?? '自動 QA 通過'}`)
+  }
+  const generatedAt = new Date().toISOString()
+  await publishReadiness(publicData, reports, generatedAt)
+  log('readiness', '只更新聚合候選摘要；manifest、health 與 GeoJSON 未修改')
+}
+
 async function main() {
   if (validateOnly) {
     const report = await validateData(publicData)
@@ -90,6 +173,10 @@ async function main() {
     return
   }
   await mkdir(cache, { recursive: true })
+  if (readinessOnly) {
+    await updateReadinessOnly()
+    return
+  }
   await rm(staging, { recursive: true, force: true })
   await cp(publicData, staging, { recursive: true })
   const manifestPath = join(staging, 'manifest.json')
@@ -465,6 +552,19 @@ async function main() {
         park: manifest.sources.park,
       },
     })
+    try {
+      const candidate = JSON.parse(await readFile(
+        join(cache, 'community-audit-candidates.json'),
+        'utf8',
+      ))
+      const report = readinessSource('park', candidate)
+      await publishReadiness(staging, [report], now)
+    } catch (error) {
+      log(
+        'readiness',
+        `park 摘要未更新：${error instanceof Error ? error.message : String(error)}`,
+      )
+    }
     if (!dryRun) {
       const audit = JSON.parse(await readFile(
         join(root, 'scripts', 'data', 'audits', 'community-v2.json'),

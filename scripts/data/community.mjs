@@ -466,12 +466,24 @@ function addressMatchingRates(parsed) {
   return rates
 }
 
-function assertMatchingRates(source, rates) {
+function countBy(items, value) {
+  return Object.fromEntries([...new Set(items.map(value))]
+    .sort()
+    .map((key) => [key, items.filter((item) => value(item) === key).length]))
+}
+
+function matchingRateFailure(source, rates) {
   for (const [scope, rate] of Object.entries(rates)) {
     if (rate < 0.95) {
-      throw new Error(`${source} ${scope} 門牌匹配率 ${(rate * 100).toFixed(2)}% 未達 95%`)
+      return `${source} ${scope} 門牌匹配率 ${(rate * 100).toFixed(2)}% 未達 95%`
     }
   }
+  return null
+}
+
+function assertMatchingRates(source, rates) {
+  const failure = matchingRateFailure(source, rates)
+  if (failure) throw new Error(failure)
 }
 
 function selectSamples(source, items) {
@@ -565,6 +577,7 @@ export async function updateOfficialCommunity({
     landmarkSha256: null,
     fingerprints: {},
     matchingRates: {},
+    readiness: {},
     samples: {
       school: { taipei: [], 'new-taipei': [] },
       park: { taipei: [], 'new-taipei': [] },
@@ -647,6 +660,11 @@ export async function updateOfficialCommunity({
       now.toISOString(),
       parseNewTaipeiParkLandmarks(jsonBuffer(landmarks)),
     )
+    const parsedTaipei = parseTaipeiParks(
+      jsonBuffer(taipei),
+      now.toISOString(),
+      boundaries,
+    )
     candidates.landmarkSha256 = sha256(landmarks)
     const rates = addressMatchingRates(parsedNewTaipei)
     candidates.matchingRates.park = {
@@ -654,14 +672,29 @@ export async function updateOfficialCommunity({
       'new-taipei': rates['new-taipei'],
       overall: rates.overall,
     }
-    assertMatchingRates('park', {
+    const checkedRates = {
       'new-taipei': rates['new-taipei'],
       overall: rates.overall,
-    })
-    const quality = qualityFilter([
-      ...parseTaipeiParks(jsonBuffer(taipei), now.toISOString(), boundaries),
-      ...parsedNewTaipei,
-    ], boundaries)
+    }
+    const blockedReason = matchingRateFailure('park', checkedRates)
+    const readinessItems = [...parsedTaipei, ...parsedNewTaipei]
+    candidates.readiness.park = {
+      status: blockedReason ? 'blocked' : 'ready',
+      blockedReason,
+      matchingRates: candidates.matchingRates.park,
+      qualityReport: {
+        excluded: countBy(
+          readinessItems.filter((item) => item.excluded),
+          (item) => item.excluded,
+        ),
+        locationMethods: countBy(
+          readinessItems.filter((item) => !item.excluded),
+          (item) => item.evidence.locationMethod ?? 'official-coordinate',
+        ),
+      },
+    }
+    assertMatchingRates('park', checkedRates)
+    const quality = qualityFilter(readinessItems, boundaries)
     const result = await writeSource(
       generated,
       'park',
@@ -676,7 +709,15 @@ export async function updateOfficialCommunity({
     results.push(result)
     candidates.samples.park = selectSamples('park', quality.accepted)
   } catch (error) {
-    results.push({ id: 'park', status: 'failed', error: error instanceof Error ? error.message : String(error) })
+    const message = error instanceof Error ? error.message : String(error)
+    if (!candidates.readiness.park ||
+        candidates.readiness.park.status === 'ready') {
+      candidates.readiness.park = {
+        status: 'error',
+        blockedReason: message,
+      }
+    }
+    results.push({ id: 'park', status: 'failed', error: message })
   } finally {
     indexes?.taipei.index.clear()
     indexes?.['new-taipei'].index.clear()

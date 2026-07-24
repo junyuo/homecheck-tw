@@ -1,7 +1,25 @@
 import { describe, expect, it, vi } from 'vitest'
-import { DataLoadError, loadDistrictData } from './dataLoader'
+import { DataLoadError, loadDistrictData, loadReadiness } from './dataLoader'
 
 describe('資料載入錯誤', () => {
+  it('readiness 載入失敗時靜默回傳 null', async () => {
+    const fetcher = vi.fn().mockResolvedValue({ ok: false, status: 503 })
+    await expect(loadReadiness(fetcher)).resolves.toBeNull()
+  })
+
+  it('readiness 不接受未知來源', async () => {
+    const fetcher = vi.fn().mockResolvedValue({
+      ok: true,
+      headers: { get: () => 'application/json' },
+      json: async () => ({
+        schemaVersion: '1.0.0',
+        generatedAt: '2026-07-24T00:00:00.000Z',
+        sources: { unknown: {} },
+      }),
+    })
+    await expect(loadReadiness(fetcher)).resolves.toBeNull()
+  })
+
   it('HTTP 失敗時回傳可辨識的 DataLoadError', async () => {
     const fetcher = vi.fn().mockResolvedValue({ ok: false, status: 503 })
     await expect(loadDistrictData('taipei', 'daan', fetcher)).rejects.toBeInstanceOf(DataLoadError)

@@ -21,6 +21,11 @@ on:
         required: true
         default: false
         type: boolean
+      readinessOnly:
+        description: Update only the public aggregate readiness summary
+        required: true
+        default: false
+        type: boolean
   schedule:
     # 08:17 Asia/Taipei on the 2nd, 12th and 22nd.
     - cron: '17 0 2,12,22 * *'
@@ -32,7 +37,7 @@ on:
     - cron: '17 1 5 * *'
     # 09:17 Asia/Taipei on the 6th for A1/A2 accident metadata and hashes.
     - cron: '17 1 6 * *'
-    # 09:17 Asia/Taipei on the 7th for traditional retail markets.
+    # 09:17 Asia/Taipei on the 7th for aggregate market and park readiness.
     - cron: '17 1 7 * *'
 
 permissions:
@@ -53,18 +58,25 @@ jobs:
         run: |
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             echo "source=${{ inputs.source }}" >> "$GITHUB_OUTPUT"
+            echo "readiness_only=${{ inputs.readinessOnly }}" >> "$GITHUB_OUTPUT"
           elif [ "${{ github.event.schedule }}" = "17 1 3 * *" ]; then
             echo "source=risks" >> "$GITHUB_OUTPUT"
+            echo "readiness_only=false" >> "$GITHUB_OUTPUT"
           elif [ "${{ github.event.schedule }}" = "17 1 4 * *" ]; then
             echo "source=transport" >> "$GITHUB_OUTPUT"
+            echo "readiness_only=false" >> "$GITHUB_OUTPUT"
           elif [ "${{ github.event.schedule }}" = "17 1 5 * *" ]; then
             echo "source=facilities" >> "$GITHUB_OUTPUT"
+            echo "readiness_only=false" >> "$GITHUB_OUTPUT"
           elif [ "${{ github.event.schedule }}" = "17 1 6 * *" ]; then
             echo "source=accidents" >> "$GITHUB_OUTPUT"
+            echo "readiness_only=false" >> "$GITHUB_OUTPUT"
           elif [ "${{ github.event.schedule }}" = "17 1 7 * *" ]; then
-            echo "source=market" >> "$GITHUB_OUTPUT"
+            echo "source=all" >> "$GITHUB_OUTPUT"
+            echo "readiness_only=true" >> "$GITHUB_OUTPUT"
           else
             echo "source=price" >> "$GITHUB_OUTPUT"
+            echo "readiness_only=false" >> "$GITHUB_OUTPUT"
           fi
       - name: Install GDAL for spatial datasets
         if: steps.scope.outputs.source == 'risks' || steps.scope.outputs.source == 'all'
@@ -78,7 +90,17 @@ jobs:
         env:
           DATA_SOURCE: ${{ steps.scope.outputs.source }}
           DRY_RUN: ${{ inputs.dryRun || 'false' }}
+          READINESS_ONLY: ${{ steps.scope.outputs.readiness_only }}
+      - name: Upload privacy-safe readiness report
+        if: always() && (steps.scope.outputs.source == 'all' || steps.scope.outputs.source == 'market' || steps.scope.outputs.source == 'facilities')
+        uses: actions/upload-artifact@v4.6.2
+        with:
+          name: readiness-${{ steps.scope.outputs.source }}-${{ github.run_id }}
+          path: .data-cache/readiness-report.json
+          if-no-files-found: warn
+          retention-days: 30
       - name: Validate website with last-good data
+        if: always()
         run: npm run build
       - name: Commit only validated changes
         run: |

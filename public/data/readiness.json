@@ -1,0 +1,47 @@
+{
+  "schemaVersion": "1.0.0",
+  "generatedAt": "2026-07-24T06:01:58.074Z",
+  "sources": {
+    "market": {
+      "id": "market",
+      "status": "blocked",
+      "checkedAt": "2026-07-24T05:29:24.039Z",
+      "adapterVersion": "market-v2",
+      "matchingRates": {
+        "taipei": 1,
+        "new-taipei": 0.7878787878787878,
+        "overall": 0.9146341463414634
+      },
+      "excluded": {
+        "noFreshFoodStalls": 8,
+        "notTraditionalMarket": 15,
+        "unmatchedAddress": 7
+      },
+      "locationMethods": {
+        "address-index-exact": 67,
+        "official-coordinate-fallback": 8
+      },
+      "blockedReason": "market new-taipei 定位率 78.79% 未達 95%"
+    },
+    "park": {
+      "id": "park",
+      "status": "blocked",
+      "checkedAt": "2026-07-24T05:56:29.402Z",
+      "adapterVersion": "community-v2",
+      "matchingRates": {
+        "taipei": 1,
+        "new-taipei": 0.8607594936708861,
+        "overall": 0.8607594936708861
+      },
+      "excluded": {
+        "invalidCoreFields": 584,
+        "unmatchedAddress": 11
+      },
+      "locationMethods": {
+        "address-index-exact": 68,
+        "official-coordinate": 829
+      },
+      "blockedReason": "park new-taipei 門牌匹配率 86.08% 未達 95%"
+    }
+  }
+}

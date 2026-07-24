@@ -30,7 +30,13 @@ import { districtOptions } from './config/districts'
 import { floodScenarios } from './config/risks'
 import { buildAnalysis } from './lib/analysis'
 import { buildDecisionOverview, formatTaiwanDate } from './lib/decisionOverview'
-import { DataLoadError, loadDistrictData, loadFloodScenario, loadManifest } from './lib/dataLoader'
+import {
+  DataLoadError,
+  loadDistrictData,
+  loadFloodScenario,
+  loadManifest,
+  loadReadiness,
+} from './lib/dataLoader'
 import {
   createEmptyDraft,
   createExampleDraft,
@@ -44,6 +50,8 @@ import type {
   AnalysisResult,
   BuildingType,
   DataManifest,
+  DataReadinessManifest,
+  DataReadinessSource,
   DataSourceId,
   DistrictDataset,
   FloodScenarioId,
@@ -813,7 +821,33 @@ function ComparePage({ saved, setSaved }: { saved: SavedProperty[]; setSaved: (i
   )
 }
 
-function MethodsPage({ manifest }: { manifest: DataManifest | null }) {
+function ReadinessDetails({ readiness }: { readiness: DataReadinessSource }) {
+  const rates = readiness.matchingRates
+  const excluded = Object.entries(readiness.excluded)
+    .map(([reason, count]) => `${reason} ${count.toLocaleString('zh-TW')} 筆`)
+    .join('、')
+  const methods = Object.entries(readiness.locationMethods)
+    .map(([method, count]) => `${method} ${count.toLocaleString('zh-TW')} 筆`)
+    .join('、')
+  return (
+    <div className="readiness-details" role="note" aria-label={`${readiness.id} 最新候選檢查`}>
+      <strong>最新候選檢查</strong>
+      <span>{formatTaiwanDate(readiness.checkedAt)}；臺北 {(rates.taipei * 100).toFixed(2)}%、新北 {(rates['new-taipei'] * 100).toFixed(2)}%、整體 {(rates.overall * 100).toFixed(2)}%</span>
+      {readiness.blockedReason && <span>阻擋原因：{readiness.blockedReason}</span>}
+      {excluded && <span>排除統計：{excluded}</span>}
+      {methods && <span>定位方式：{methods}</span>}
+      <span>候選狀態不參與正式分析或正式來源計數。</span>
+    </div>
+  )
+}
+
+export function MethodsPage({
+  manifest,
+  readiness,
+}: {
+  manifest: DataManifest | null
+  readiness: DataReadinessManifest | null
+}) {
   const officialCount = Object.values(manifest?.sources ?? {})
     .filter((source) => source?.status === 'official').length
   return (
@@ -833,6 +867,10 @@ function MethodsPage({ manifest }: { manifest: DataManifest | null }) {
             {(() => {
               const state = manifest?.sources[source.id]
               const status = state?.status ?? 'unavailable'
+              const candidate = status === 'unavailable' &&
+                (source.id === 'market' || source.id === 'park')
+                ? readiness?.sources[source.id]
+                : undefined
               return (
                 <>
             <div className="source-head"><div><span>{source.agency}</span><h2>{source.name}</h2></div><span className={`source-status ${status}`}>{sourceStatusText(state)}</span></div>
@@ -849,6 +887,7 @@ function MethodsPage({ manifest }: { manifest: DataManifest | null }) {
               <div><dt>最近嘗試</dt><dd>{state?.lastAttempt.message ?? '尚未執行'}</dd></div>
               <div><dt>已知限制</dt><dd>{source.notes}</dd></div>
             </dl>
+            {candidate && <ReadinessDetails readiness={candidate} />}
                 </>
               )
             })()}
@@ -878,6 +917,7 @@ export default function App() {
   const [result, setResult] = useState<AnalysisResult | null>(null)
   const [dataset, setDataset] = useState<DistrictDataset | null>(null)
   const [manifest, setManifest] = useState<DataManifest | null>(null)
+  const [readiness, setReadiness] = useState<DataReadinessManifest | null>(null)
   const [saved, setSaved] = useState<SavedProperty[]>(() => loadSavedProperties())
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -887,6 +927,7 @@ export default function App() {
 
   useEffect(() => {
     loadManifest().then(setManifest).catch(() => setManifest(null))
+    loadReadiness().then(setReadiness)
     const onHash = () => {
       setPage(routeFromHash())
       window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -964,7 +1005,7 @@ export default function App() {
     window.setTimeout(() => setSaveMessage(null), 3000)
   }
 
-  let content = <MethodsPage manifest={manifest} />
+  let content = <MethodsPage manifest={manifest} readiness={readiness} />
   if (page === 'home') content = <HomePage />
   if (page === 'check') content = <CheckPage draft={draft} setDraft={setDraft} onAnalyze={analyze} loading={loading} error={error} manifest={manifest} />
   if (page === 'results') content = (

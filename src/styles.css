@@ -271,6 +271,8 @@ input:disabled { background: #efefeb; color: #8a8f91; }
 .source-card dt { color: var(--muted); }
 .source-card dd { margin: 0; overflow-wrap: anywhere; line-height: 1.55; }
 .source-card a { color: #276183; }
+.readiness-details { margin-top: 16px; padding: 13px 14px; display: flex; flex-direction: column; gap: 4px; border: 1px solid #e0c38c; border-radius: 8px; background: #fff8e9; color: #60491e; font-size: .75rem; line-height: 1.5; }
+.readiness-details strong { color: #42320f; }
 .method-rules { padding: 80px 0 30px; }
 .rules-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
 .rules-grid article { padding: 24px; border: 1px solid var(--line); background: var(--paper); border-radius: 10px; }

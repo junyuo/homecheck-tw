@@ -1,6 +1,7 @@
 import type {
   AccidentProperties,
   DataManifest,
+  DataReadinessManifest,
   DataSourceId,
   DistrictDataset,
   FacilityProperties,
@@ -41,6 +42,22 @@ export async function loadManifest(fetcher: typeof fetch = fetch): Promise<DataM
     return manifest
   } catch (error) {
     throw new DataLoadError('無法載入資料清單', error)
+  }
+}
+
+export async function loadReadiness(
+  fetcher: typeof fetch = fetch,
+): Promise<DataReadinessManifest | null> {
+  try {
+    const readiness = await fetchJson<DataReadinessManifest>('readiness.json', fetcher)
+    if (readiness.schemaVersion !== '1.0.0' ||
+        !readiness.sources ||
+        Object.keys(readiness.sources).some((id) => !['market', 'park'].includes(id))) {
+      return null
+    }
+    return readiness
+  } catch {
+    return null
   }
 }
 

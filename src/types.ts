@@ -162,6 +162,23 @@ export interface DataManifest {
   sources: Partial<Record<DataSourceId, SourceState>>
 }
 
+export interface DataReadinessSource {
+  id: 'market' | 'park'
+  status: 'blocked' | 'ready'
+  checkedAt: string
+  adapterVersion: string
+  matchingRates: Record<'taipei' | 'new-taipei' | 'overall', number>
+  excluded: Record<string, number>
+  locationMethods: Record<string, number>
+  blockedReason: string | null
+}
+
+export interface DataReadinessManifest {
+  schemaVersion: '1.0.0'
+  generatedAt: string
+  sources: Partial<Record<'market' | 'park', DataReadinessSource>>
+}
+
 export interface RuntimeSourceState {
   status: SourceStatus
   updatedAt: string | null

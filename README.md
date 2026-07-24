@@ -25,7 +25,7 @@
 | 傳統零售市場 | unavailable | `market-v2` 已接入臺北公有攤位分類、公有位置、民有名冊與新北清冊；live QA 為臺北 100%、新北 78.79%、整體 91.46%，新北未達 95% 定位門檻，維持未發布 |
 | A1／A2 事故 | official | 2023–2025 雙北 218,122 件去識別事故；同案當事人列已合併，臺北／新北各 5 件官方 raw 離線驗收通過 |
 
-最新機器可讀狀態以 [`public/data/manifest.json`](public/data/manifest.json) 和 [`public/data/health.json`](public/data/health.json) 為準。實價筆數與匹配率會隨官方更新而變動；上表是 2026-07-21 本機正式發布的快照。
+最新正式資料狀態以 [`public/data/manifest.json`](public/data/manifest.json) 和 [`public/data/health.json`](public/data/health.json) 為準；[`public/data/readiness.json`](public/data/readiness.json) 只公開市場與公園候選資料的聚合 QA，不參與分析、正式來源計數或 last-good。實價筆數與匹配率會隨官方更新而變動；上表是 2026-07-21 本機正式發布的快照。
 
 ## 分析規則
 
@@ -138,6 +138,15 @@ npm run update-data -- --source=facilities --dry-run
 npm run update-data -- --source=accidents --dry-run
 ```
 
+只更新候選透明度報告：
+
+```bash
+npm run update-data -- --source=market --readiness-only
+npm run update-data -- --source=facilities --readiness-only
+```
+
+`--readiness-only` 在成功下載、解析及通過隱私白名單後，即使候選未達發布門檻也會成功產生 blocked 摘要；網路、schema、解析或隱私驗證失敗才以失敗結束。此模式不得修改 manifest、health 或任何 GeoJSON。
+
 正式更新：
 
 ```bash
@@ -187,7 +196,7 @@ npm run release-data -- --source=all
 
 發布前會重新確認 adapter 版本、來源雜湊格式、manifest 內的當前候選檔雜湊、人工樣本數、零 mismatch、檔案清單及完整資料 QA。人工驗收只綁定 adapter 版本；只有解析、映射或座標邏輯變更才需要升版並重設稽核，日常來源更新仍由自動 QA 驗證，不要求重做全部人工抽查。
 
-`.github/workflows/update-data.yml` 可選 source 及 `dryRun`。價格於每月 2、12、22 日 08:17、災害 metadata／雜湊於 3 日 09:17、交通於 4 日 09:17、設施於 5 日 09:17、事故於 6 日 09:17（臺灣時間）執行。Workflow 只提交 `public/data`。
+`.github/workflows/update-data.yml` 可選 source、`dryRun` 及 `readinessOnly`。價格於每月 2、12、22 日 08:17、災害 metadata／雜湊於 3 日 09:17、交通於 4 日 09:17、設施於 5 日 09:17、事故於 6 日 09:17（臺灣時間）執行；市場與公園候選於每月 7 日以 `source=all`、`readinessOnly=true` 產生 readiness。Workflow 先更新候選摘要、驗證 last-good build，只在 `public/data` 有差異時提交，並上傳通過隱私檢查的聚合 readiness artifact。
 
 ## GitHub Pages
 

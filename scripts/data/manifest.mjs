@@ -2,6 +2,7 @@ import { createHash } from 'node:crypto'
 import { readFile, readdir, stat, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { ALL_DISTRICTS } from './constants.mjs'
+import { validateReadinessManifest } from './readiness.mjs'
 
 async function walk(directory) {
   const result = []
@@ -33,6 +34,7 @@ export async function validateData(directory) {
   const jsonFiles = files.filter((file) => file.endsWith('.json') || file.endsWith('.geojson'))
   for (const file of jsonFiles) {
     const data = JSON.parse(await readFile(file, 'utf8'))
+    if (file.endsWith('/readiness.json')) validateReadinessManifest(data)
     if (file.endsWith('.geojson') || file.includes('/accidents/')) {
       if (data.type !== 'FeatureCollection' || !Array.isArray(data.features)) {
         throw new Error(`${file} 不是 FeatureCollection`)
