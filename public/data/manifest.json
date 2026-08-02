@@ -1,7 +1,7 @@
 {
   "schemaVersion": "2.0.0",
-  "dataVersion": "production-2026-07-22",
-  "generatedAt": "2026-07-22T03:49:16.501Z",
+  "dataVersion": "production-2026-08-02",
+  "generatedAt": "2026-08-02T03:54:59.797Z",
   "mode": "production",
   "coverage": {
     "cities": [
@@ -64,10 +64,10 @@
     "actual-price": {
       "id": "actual-price",
       "status": "official",
-      "version": "price-2026-07-22",
-      "updatedAt": "2026-07-22T03:49:16.503Z",
-      "attemptedAt": "2026-07-22T03:49:16.501Z",
-      "recordCount": 229772,
+      "version": "price-2026-08-02",
+      "updatedAt": "2026-08-02T03:54:59.799Z",
+      "attemptedAt": "2026-08-02T03:54:59.797Z",
+      "recordCount": 227919,
       "coverage": {
         "cities": [
           "taipei",
@@ -126,15 +126,15 @@
         ]
       },
       "downloadUrl": "https://data.gov.tw/dataset/25119",
-      "sha256": "dcb12495b3e043d6170c3b9bb2fc8537522e1ca47001e8129cd7f039a0eb6866",
-      "matchingRate": 0.9940127013791552,
+      "sha256": "3fa8b206066b1d29c1e842c8bd5c2bb0d42a4ac348e3d007b335591ce04c1f43",
+      "matchingRate": 0.9939946619217082,
       "excluded": {
-        "nonResidentialTarget": 60740,
-        "unsupportedBuilding": 55682,
-        "outsideWindow": 54320,
-        "invalidCoreFields": 6222,
-        "ambiguousAddress": 99,
-        "unmatchedAddress": 1285,
+        "nonResidentialTarget": 60769,
+        "unsupportedBuilding": 55697,
+        "outsideWindow": 56311,
+        "invalidCoreFields": 6174,
+        "ambiguousAddress": 100,
+        "unmatchedAddress": 1277,
         "outOfBounds": 0
       },
       "lastAttempt": {
@@ -327,7 +327,7 @@
         "new-taipei/shiding/transactions/2024.json",
         "new-taipei/shiding/transactions/2025.json",
         "new-taipei/shiding/transactions/2026.json",
-        "new-taipei/pinglin/transactions/2021.json",
+        "new-taipei/pinglin/transactions/2026.json",
         "new-taipei/sanzhi/transactions/2021.json",
         "new-taipei/sanzhi/transactions/2022.json",
         "new-taipei/sanzhi/transactions/2023.json",
@@ -374,14 +374,14 @@
         "new-taipei/wulai/transactions/2024.json",
         "new-taipei/wulai/transactions/2025.json"
       ],
-      "metadataCheckedAt": "2026-07-22T03:49:16.501Z",
+      "metadataCheckedAt": "2026-08-02T03:54:59.797Z",
       "validUntil": null,
       "qualityGates": {
         "automated": {
           "status": "passed",
           "adapterVersion": "price-v1",
-          "checkedAt": "2026-07-22T03:49:16.501Z",
-          "datasetSha256": "b03a95a3313509d97d29def0559c98146cd49a19ccbf2d6166dc2da78150cc01"
+          "checkedAt": "2026-08-02T03:54:59.797Z",
+          "datasetSha256": "ad55643d0756713bd72152b682b73008cb6b79c7b93095a17f47cf7d61066b17"
         },
         "manualAudit": {
           "status": "passed",
