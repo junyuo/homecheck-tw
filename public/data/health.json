@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "generatedAt": "2026-08-02T04:06:42.276Z",
+  "generatedAt": "2026-08-03T04:47:12.128Z",
   "sources": {
     "actual-price": {
       "status": "official",
@@ -14,23 +14,23 @@
       "matchingRate": 0.9939946619217082
     },
     "flood": {
-      "status": "official",
+      "status": "failed",
       "updatedAt": "2022-08-12T00:00:00.000Z",
-      "attemptedAt": "2026-07-20T01:54:44.449Z",
+      "attemptedAt": "2026-08-03T04:47:08.894Z",
       "lastAttempt": {
-        "status": "success",
-        "message": "人工驗收 10/10 通過，候選資料正式發布"
+        "status": "failed",
+        "message": "HTTP 403 https://www.tgos.tw/tgos/VirtualDir/Product/3fe61d4a-ca23-4f45-8aca-4a536f40f290/%E9%84%89%28%E9%8E%AE%E3%80%81%E5%B8%82%E3%80%81%E5%8D%80%29%E7%95%8C%E7%B7%9A1140318.zip"
       },
       "recordCount": 1550,
       "matchingRate": null
     },
     "liquefaction": {
-      "status": "official",
+      "status": "failed",
       "updatedAt": "2024-08-08T02:24:00.000Z",
-      "attemptedAt": "2026-07-20T01:54:44.449Z",
+      "attemptedAt": "2026-08-03T04:47:08.894Z",
       "lastAttempt": {
-        "status": "success",
-        "message": "人工驗收 10/10 通過，候選資料正式發布"
+        "status": "failed",
+        "message": "HTTP 403 https://www.tgos.tw/tgos/VirtualDir/Product/3fe61d4a-ca23-4f45-8aca-4a536f40f290/%E9%84%89%28%E9%8E%AE%E3%80%81%E5%B8%82%E3%80%81%E5%8D%80%29%E7%95%8C%E7%B7%9A1140318.zip"
       },
       "recordCount": 139,
       "matchingRate": null
@@ -162,12 +162,12 @@
       "matchingRate": null
     },
     "district-boundary": {
-      "status": "official",
+      "status": "failed",
       "updatedAt": "2025-03-18T00:00:00.000Z",
-      "attemptedAt": "2026-07-19T07:35:15.501Z",
+      "attemptedAt": "2026-08-03T04:47:08.894Z",
       "lastAttempt": {
-        "status": "success",
-        "message": "下載、schema 與品質檢查通過"
+        "status": "failed",
+        "message": "HTTP 403 https://www.tgos.tw/tgos/VirtualDir/Product/3fe61d4a-ca23-4f45-8aca-4a536f40f290/%E9%84%89%28%E9%8E%AE%E3%80%81%E5%B8%82%E3%80%81%E5%8D%80%29%E7%95%8C%E7%B7%9A1140318.zip"
       },
       "recordCount": 41,
       "matchingRate": null

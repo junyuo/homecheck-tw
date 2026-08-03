@@ -1,7 +1,7 @@
 {
   "schemaVersion": "2.0.0",
-  "dataVersion": "production-2026-08-02",
-  "generatedAt": "2026-08-02T03:54:59.797Z",
+  "dataVersion": "production-2026-08-03",
+  "generatedAt": "2026-08-03T04:47:08.894Z",
   "mode": "production",
   "coverage": {
     "cities": [
@@ -393,11 +393,8 @@
       }
     },
     "flood": {
-      "id": "flood",
-      "status": "official",
       "version": "flood-2022-08-12-465d5df4",
       "updatedAt": "2022-08-12T00:00:00.000Z",
-      "attemptedAt": "2026-07-20T01:54:44.449Z",
       "recordCount": 1550,
       "coverage": {
         "cities": [
@@ -453,10 +450,6 @@
       "matchingRate": null,
       "excluded": {
         "invalidDepthCategory": 0
-      },
-      "lastAttempt": {
-        "status": "success",
-        "message": "人工驗收 10/10 通過，候選資料正式發布"
       },
       "files": [
         "taipei/zhongzheng/risks/flood/6h-150.geojson",
@@ -870,6 +863,13 @@
         "new-taipei/wanli/risks/flood/24h-650.geojson",
         "new-taipei/wulai/risks/flood/24h-650.geojson"
       ],
+      "id": "flood",
+      "status": "failed",
+      "attemptedAt": "2026-08-03T04:47:08.894Z",
+      "lastAttempt": {
+        "status": "failed",
+        "message": "HTTP 403 https://www.tgos.tw/tgos/VirtualDir/Product/3fe61d4a-ca23-4f45-8aca-4a536f40f290/%E9%84%89%28%E9%8E%AE%E3%80%81%E5%B8%82%E3%80%81%E5%8D%80%29%E7%95%8C%E7%B7%9A1140318.zip"
+      },
       "metadataCheckedAt": "2026-07-19T07:35:15.502Z",
       "validUntil": "2027-08-12T00:00:00.000Z",
       "qualityGates": {
@@ -893,11 +893,8 @@
       }
     },
     "liquefaction": {
-      "id": "liquefaction",
-      "status": "official",
       "version": "liquefaction-2024-08-08-101ddc31",
       "updatedAt": "2024-08-08T02:24:00.000Z",
-      "attemptedAt": "2026-07-20T01:54:44.449Z",
       "recordCount": 139,
       "coverage": {
         "cities": [
@@ -954,10 +951,6 @@
       "excluded": {
         "invalidClass": 0
       },
-      "lastAttempt": {
-        "status": "success",
-        "message": "人工驗收 10/10 通過，候選資料正式發布"
-      },
       "files": [
         "taipei/zhongzheng/risks/liquefaction.geojson",
         "taipei/datong/risks/liquefaction.geojson",
@@ -1001,6 +994,13 @@
         "new-taipei/wanli/risks/liquefaction.geojson",
         "new-taipei/wulai/risks/liquefaction.geojson"
       ],
+      "id": "liquefaction",
+      "status": "failed",
+      "attemptedAt": "2026-08-03T04:47:08.894Z",
+      "lastAttempt": {
+        "status": "failed",
+        "message": "HTTP 403 https://www.tgos.tw/tgos/VirtualDir/Product/3fe61d4a-ca23-4f45-8aca-4a536f40f290/%E9%84%89%28%E9%8E%AE%E3%80%81%E5%B8%82%E3%80%81%E5%8D%80%29%E7%95%8C%E7%B7%9A1140318.zip"
+      },
       "metadataCheckedAt": "2026-07-19T07:35:15.502Z",
       "validUntil": null,
       "qualityGates": {
@@ -2168,11 +2168,8 @@
       }
     },
     "district-boundary": {
-      "id": "district-boundary",
-      "status": "official",
       "version": "district-boundary-2025-03-18-c5dc6c0f",
       "updatedAt": "2025-03-18T00:00:00.000Z",
-      "attemptedAt": "2026-07-19T07:35:15.501Z",
       "recordCount": 41,
       "coverage": {
         "cities": [
@@ -2226,22 +2223,7 @@
       "downloadUrl": "https://data.gov.tw/dataset/7441",
       "sha256": "c5dc6c0f9a8cc1aad6758a0a6fb81b203718b37f42c5aa8e684262ca24a7d9dd",
       "matchingRate": null,
-      "metadataCheckedAt": "2026-07-19T07:35:15.502Z",
-      "validUntil": null,
-      "qualityGates": {
-        "automated": {
-          "status": "passed",
-          "adapterVersion": "risks-v1",
-          "checkedAt": "2026-07-19T07:35:15.501Z",
-          "gdalVersion": "GDAL 3.13.1 \"Iowa City\", released 2026/06/01",
-          "datasetSha256": "85dc9ba59c06c46bc0198aeaaed3756ee3cec687f1b0001444070a04cd8554cb"
-        }
-      },
       "excluded": {},
-      "lastAttempt": {
-        "status": "success",
-        "message": "下載、schema 與品質檢查通過"
-      },
       "files": [
         "boundaries/taipei/zhongzheng.geojson",
         "boundaries/taipei/datong.geojson",
@@ -2284,7 +2266,25 @@
         "boundaries/new-taipei/jinshan.geojson",
         "boundaries/new-taipei/wanli.geojson",
         "boundaries/new-taipei/wulai.geojson"
-      ]
+      ],
+      "id": "district-boundary",
+      "status": "failed",
+      "attemptedAt": "2026-08-03T04:47:08.894Z",
+      "metadataCheckedAt": "2026-07-19T07:35:15.502Z",
+      "validUntil": null,
+      "qualityGates": {
+        "automated": {
+          "status": "passed",
+          "adapterVersion": "risks-v1",
+          "checkedAt": "2026-07-19T07:35:15.501Z",
+          "gdalVersion": "GDAL 3.13.1 \"Iowa City\", released 2026/06/01",
+          "datasetSha256": "85dc9ba59c06c46bc0198aeaaed3756ee3cec687f1b0001444070a04cd8554cb"
+        }
+      },
+      "lastAttempt": {
+        "status": "failed",
+        "message": "HTTP 403 https://www.tgos.tw/tgos/VirtualDir/Product/3fe61d4a-ca23-4f45-8aca-4a536f40f290/%E9%84%89%28%E9%8E%AE%E3%80%81%E5%B8%82%E3%80%81%E5%8D%80%29%E7%95%8C%E7%B7%9A1140318.zip"
+      }
     }
   }
 }
