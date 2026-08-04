@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "generatedAt": "2026-08-03T04:47:12.128Z",
+  "generatedAt": "2026-08-04T04:33:12.006Z",
   "sources": {
     "actual-price": {
       "status": "official",
@@ -37,8 +37,8 @@
     },
     "metro": {
       "status": "official",
-      "updatedAt": "2026-07-19T08:15:35.490Z",
-      "attemptedAt": "2026-07-19T08:15:35.488Z",
+      "updatedAt": "2026-08-04T04:32:45.726Z",
+      "attemptedAt": "2026-08-04T04:32:45.723Z",
       "lastAttempt": {
         "status": "success",
         "message": "下載、schema 與品質檢查通過"
@@ -47,12 +47,12 @@
       "matchingRate": null
     },
     "rail": {
-      "status": "official",
-      "updatedAt": "2026-07-19T08:15:35.490Z",
-      "attemptedAt": "2026-07-20T01:54:44.449Z",
+      "status": "unavailable",
+      "updatedAt": "2026-08-04T04:32:45.726Z",
+      "attemptedAt": "2026-08-04T04:32:45.723Z",
       "lastAttempt": {
         "status": "success",
-        "message": "人工驗收 9/9 通過，候選資料正式發布"
+        "message": "臺鐵自動 QA 通過；等待價格與災害來源先完成正式發布"
       },
       "recordCount": 29,
       "matchingRate": null
@@ -70,8 +70,8 @@
     },
     "bus-new-taipei": {
       "status": "official",
-      "updatedAt": "2026-07-19T08:15:35.490Z",
-      "attemptedAt": "2026-07-19T08:15:35.488Z",
+      "updatedAt": "2026-08-04T04:32:45.726Z",
+      "attemptedAt": "2026-08-04T04:32:45.723Z",
       "lastAttempt": {
         "status": "success",
         "message": "下載、schema 與品質檢查通過"
