@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "generatedAt": "2026-08-04T04:33:12.006Z",
+  "generatedAt": "2026-08-05T04:47:53.011Z",
   "sources": {
     "actual-price": {
       "status": "official",
@@ -80,12 +80,12 @@
       "matchingRate": null
     },
     "school": {
-      "status": "official",
+      "status": "failed",
       "updatedAt": "2026-07-21T02:58:41.233Z",
-      "attemptedAt": "2026-07-21T02:58:29.532Z",
+      "attemptedAt": "2026-08-05T04:28:43.567Z",
       "lastAttempt": {
-        "status": "success",
-        "message": "下載、schema 與品質檢查通過"
+        "status": "failed",
+        "message": "junior 最新學年度 115，預期 114"
       },
       "recordCount": 602,
       "matchingRate": 0.9838709677419355,
@@ -97,8 +97,8 @@
     },
     "medical": {
       "status": "official",
-      "updatedAt": "2026-07-21T02:58:29.534Z",
-      "attemptedAt": "2026-07-21T02:58:29.532Z",
+      "updatedAt": "2026-08-05T04:28:43.568Z",
+      "attemptedAt": "2026-08-05T04:28:43.567Z",
       "lastAttempt": {
         "status": "success",
         "message": "下載、schema 與品質檢查通過"
@@ -107,12 +107,12 @@
       "matchingRate": 0.967741935483871
     },
     "park": {
-      "status": "unavailable",
+      "status": "failed",
       "updatedAt": null,
-      "attemptedAt": "2026-07-21T02:58:29.532Z",
+      "attemptedAt": "2026-08-05T04:28:43.567Z",
       "lastAttempt": {
         "status": "failed",
-        "message": "自動 QA 未達發布門檻：park new-taipei 門牌匹配率 86.08% 未達 95%"
+        "message": "fetch failed"
       },
       "recordCount": 0,
       "matchingRate": null
@@ -130,19 +130,19 @@
     },
     "parking": {
       "status": "official",
-      "updatedAt": "2026-07-21T02:58:29.534Z",
-      "attemptedAt": "2026-07-21T02:58:29.532Z",
+      "updatedAt": "2026-08-05T04:28:43.568Z",
+      "attemptedAt": "2026-08-05T04:28:43.567Z",
       "lastAttempt": {
         "status": "success",
         "message": "下載、schema 與品質檢查通過"
       },
-      "recordCount": 2607,
+      "recordCount": 2598,
       "matchingRate": null
     },
     "library": {
       "status": "official",
-      "updatedAt": "2026-07-21T02:59:00.336Z",
-      "attemptedAt": "2026-07-21T02:58:29.532Z",
+      "updatedAt": "2026-08-05T04:47:44.173Z",
+      "attemptedAt": "2026-08-05T04:28:43.567Z",
       "lastAttempt": {
         "status": "success",
         "message": "下載、schema 與品質檢查通過"
