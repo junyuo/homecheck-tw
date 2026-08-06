@@ -1,7 +1,7 @@
 {
   "schemaVersion": "2.0.0",
-  "dataVersion": "production-2026-08-05",
-  "generatedAt": "2026-08-05T04:28:43.567Z",
+  "dataVersion": "production-2026-08-06",
+  "generatedAt": "2026-08-06T04:32:41.038Z",
   "mode": "production",
   "coverage": {
     "cities": [
@@ -1950,7 +1950,7 @@
       "status": "official",
       "version": "accidents-2023-2025-0fdb0996",
       "updatedAt": "2026-07-21T00:56:24.561Z",
-      "attemptedAt": "2026-07-21T01:00:05.348Z",
+      "attemptedAt": "2026-08-06T04:32:41.038Z",
       "recordCount": 218122,
       "coverage": {
         "cities": [
@@ -2019,7 +2019,7 @@
       },
       "lastAttempt": {
         "status": "success",
-        "message": "人工驗收 10/10 通過，候選資料正式發布"
+        "message": "下載、schema 與品質檢查通過"
       },
       "files": [
         "taipei/zhongzheng/accidents/2023.json",
@@ -2146,13 +2146,13 @@
         "new-taipei/wulai/accidents/2024.json",
         "new-taipei/wulai/accidents/2025.json"
       ],
-      "metadataCheckedAt": "2026-07-21T00:56:24.561Z",
+      "metadataCheckedAt": "2026-08-06T04:32:41.039Z",
       "validUntil": null,
       "qualityGates": {
         "automated": {
           "status": "passed",
           "adapterVersion": "accidents-v1",
-          "checkedAt": "2026-07-21T00:56:24.559Z",
+          "checkedAt": "2026-08-06T04:32:41.038Z",
           "datasetSha256": "00a9e6b7f79cad60510d1f45696a7560fff359b0fb356ead7ae7939b7cd30939"
         },
         "manualAudit": {
