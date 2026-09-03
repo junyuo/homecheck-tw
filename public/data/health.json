@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "generatedAt": "2026-09-02T04:48:28.730Z",
+  "generatedAt": "2026-09-03T05:48:07.955Z",
   "sources": {
     "actual-price": {
       "status": "official",
@@ -16,7 +16,7 @@
     "flood": {
       "status": "failed",
       "updatedAt": "2022-08-12T00:00:00.000Z",
-      "attemptedAt": "2026-08-03T04:47:08.894Z",
+      "attemptedAt": "2026-09-03T05:48:04.202Z",
       "lastAttempt": {
         "status": "failed",
         "message": "HTTP 403 https://www.tgos.tw/tgos/VirtualDir/Product/3fe61d4a-ca23-4f45-8aca-4a536f40f290/%E9%84%89%28%E9%8E%AE%E3%80%81%E5%B8%82%E3%80%81%E5%8D%80%29%E7%95%8C%E7%B7%9A1140318.zip"
@@ -27,7 +27,7 @@
     "liquefaction": {
       "status": "failed",
       "updatedAt": "2024-08-08T02:24:00.000Z",
-      "attemptedAt": "2026-08-03T04:47:08.894Z",
+      "attemptedAt": "2026-09-03T05:48:04.202Z",
       "lastAttempt": {
         "status": "failed",
         "message": "HTTP 403 https://www.tgos.tw/tgos/VirtualDir/Product/3fe61d4a-ca23-4f45-8aca-4a536f40f290/%E9%84%89%28%E9%8E%AE%E3%80%81%E5%B8%82%E3%80%81%E5%8D%80%29%E7%95%8C%E7%B7%9A1140318.zip"
@@ -164,7 +164,7 @@
     "district-boundary": {
       "status": "failed",
       "updatedAt": "2025-03-18T00:00:00.000Z",
-      "attemptedAt": "2026-08-03T04:47:08.894Z",
+      "attemptedAt": "2026-09-03T05:48:04.202Z",
       "lastAttempt": {
         "status": "failed",
         "message": "HTTP 403 https://www.tgos.tw/tgos/VirtualDir/Product/3fe61d4a-ca23-4f45-8aca-4a536f40f290/%E9%84%89%28%E9%8E%AE%E3%80%81%E5%B8%82%E3%80%81%E5%8D%80%29%E7%95%8C%E7%B7%9A1140318.zip"

@@ -1,7 +1,7 @@
 {
   "schemaVersion": "2.0.0",
-  "dataVersion": "production-2026-09-02",
-  "generatedAt": "2026-09-02T04:38:03.010Z",
+  "dataVersion": "production-2026-09-03",
+  "generatedAt": "2026-09-03T05:48:04.202Z",
   "mode": "production",
   "coverage": {
     "cities": [
@@ -865,7 +865,7 @@
       ],
       "id": "flood",
       "status": "failed",
-      "attemptedAt": "2026-08-03T04:47:08.894Z",
+      "attemptedAt": "2026-09-03T05:48:04.202Z",
       "lastAttempt": {
         "status": "failed",
         "message": "HTTP 403 https://www.tgos.tw/tgos/VirtualDir/Product/3fe61d4a-ca23-4f45-8aca-4a536f40f290/%E9%84%89%28%E9%8E%AE%E3%80%81%E5%B8%82%E3%80%81%E5%8D%80%29%E7%95%8C%E7%B7%9A1140318.zip"
@@ -996,7 +996,7 @@
       ],
       "id": "liquefaction",
       "status": "failed",
-      "attemptedAt": "2026-08-03T04:47:08.894Z",
+      "attemptedAt": "2026-09-03T05:48:04.202Z",
       "lastAttempt": {
         "status": "failed",
         "message": "HTTP 403 https://www.tgos.tw/tgos/VirtualDir/Product/3fe61d4a-ca23-4f45-8aca-4a536f40f290/%E9%84%89%28%E9%8E%AE%E3%80%81%E5%B8%82%E3%80%81%E5%8D%80%29%E7%95%8C%E7%B7%9A1140318.zip"
@@ -2269,7 +2269,7 @@
       ],
       "id": "district-boundary",
       "status": "failed",
-      "attemptedAt": "2026-08-03T04:47:08.894Z",
+      "attemptedAt": "2026-09-03T05:48:04.202Z",
       "metadataCheckedAt": "2026-07-19T07:35:15.502Z",
       "validUntil": null,
       "qualityGates": {
