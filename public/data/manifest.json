@@ -1,7 +1,7 @@
 {
   "schemaVersion": "2.0.0",
-  "dataVersion": "production-2026-09-12",
-  "generatedAt": "2026-09-12T04:38:41.510Z",
+  "dataVersion": "production-2026-09-22",
+  "generatedAt": "2026-09-22T05:00:10.091Z",
   "mode": "production",
   "coverage": {
     "cities": [
@@ -64,10 +64,10 @@
     "actual-price": {
       "id": "actual-price",
       "status": "official",
-      "version": "price-2026-09-12",
-      "updatedAt": "2026-09-12T04:38:41.511Z",
-      "attemptedAt": "2026-09-12T04:38:41.510Z",
-      "recordCount": 219593,
+      "version": "price-2026-09-22",
+      "updatedAt": "2026-09-22T05:00:10.093Z",
+      "attemptedAt": "2026-09-22T05:00:10.091Z",
+      "recordCount": 217977,
       "coverage": {
         "cities": [
           "taipei",
@@ -126,15 +126,15 @@
         ]
       },
       "downloadUrl": "https://data.gov.tw/dataset/25119",
-      "sha256": "3ebc33c3e716c3c2edf1c58b0bb723a99212f466b580f8f7e56b10af6698fc68",
-      "matchingRate": 0.9939933007423501,
+      "sha256": "885b4a65b81f761f187dd54d52b90624280db318fc3eabf1be93c140a7e08f98",
+      "matchingRate": 0.9940351597236473,
       "excluded": {
-        "nonResidentialTarget": 60815,
-        "unsupportedBuilding": 55669,
-        "outsideWindow": 64948,
-        "invalidCoreFields": 5941,
+        "nonResidentialTarget": 60748,
+        "unsupportedBuilding": 55667,
+        "outsideWindow": 66801,
+        "invalidCoreFields": 5893,
         "ambiguousAddress": 96,
-        "unmatchedAddress": 1231,
+        "unmatchedAddress": 1212,
         "outOfBounds": 0
       },
       "lastAttempt": {
@@ -374,14 +374,14 @@
         "new-taipei/wulai/transactions/2024.json",
         "new-taipei/wulai/transactions/2025.json"
       ],
-      "metadataCheckedAt": "2026-09-12T04:38:41.510Z",
+      "metadataCheckedAt": "2026-09-22T05:00:10.091Z",
       "validUntil": null,
       "qualityGates": {
         "automated": {
           "status": "passed",
           "adapterVersion": "price-v1",
-          "checkedAt": "2026-09-12T04:38:41.510Z",
-          "datasetSha256": "ea466ba1d5f75d74b24dbedfa90f7c38621df39e6807f29bb97fc21b11d42da4"
+          "checkedAt": "2026-09-22T05:00:10.091Z",
+          "datasetSha256": "ac851908a9bfcc7ce265508b9088ab4d976d7b3c90ae08a0d4768efc1de34518"
         },
         "manualAudit": {
           "status": "passed",
