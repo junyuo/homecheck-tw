@@ -1,7 +1,7 @@
 {
   "schemaVersion": "2.0.0",
-  "dataVersion": "production-2026-10-03",
-  "generatedAt": "2026-10-03T06:32:37.411Z",
+  "dataVersion": "production-2026-10-04",
+  "generatedAt": "2026-10-04T06:58:41.423Z",
   "mode": "production",
   "coverage": {
     "cities": [
@@ -1024,8 +1024,8 @@
       }
     },
     "metro": {
-      "version": "metro-2026-09-04",
-      "updatedAt": "2026-09-04T06:00:33.900Z",
+      "version": "metro-2026-10-04",
+      "updatedAt": "2026-10-04T06:58:41.425Z",
       "recordCount": 110,
       "coverage": {
         "cities": [
@@ -1077,7 +1077,7 @@
         ]
       },
       "downloadUrl": "https://data.taipei/dataset/detail?id=1eefa68d-7c8d-491b-8e75-66a161947426",
-      "sha256": "e55338f15676f7e2ca822751c7e7bc9b122c7e77b6221680952dfb7226851477",
+      "sha256": "dc2a2e5070eba123621190621d135f6cde55459c1042d7f942b9ef4a66146ab0",
       "matchingRate": null,
       "excluded": {
         "invalidOrUnassigned": 0
@@ -1127,20 +1127,20 @@
       ],
       "id": "metro",
       "status": "official",
-      "attemptedAt": "2026-09-04T06:00:33.898Z",
+      "attemptedAt": "2026-10-04T06:58:41.423Z",
       "lastAttempt": {
         "status": "success",
         "message": "下載、schema 與品質檢查通過"
       },
-      "metadataCheckedAt": "2026-09-04T06:00:33.898Z",
+      "metadataCheckedAt": "2026-10-04T06:58:41.423Z",
       "validUntil": null
     },
     "rail": {
       "id": "rail",
       "status": "unavailable",
-      "version": "rail-2026-09-04",
-      "updatedAt": "2026-09-04T06:00:33.900Z",
-      "attemptedAt": "2026-09-04T06:00:33.898Z",
+      "version": "rail-2026-10-04",
+      "updatedAt": "2026-10-04T06:58:41.425Z",
+      "attemptedAt": "2026-10-04T06:58:41.423Z",
       "recordCount": 29,
       "coverage": {
         "cities": [
@@ -1246,13 +1246,13 @@
         "new-taipei/wanli/facilities/rail.geojson",
         "new-taipei/wulai/facilities/rail.geojson"
       ],
-      "metadataCheckedAt": "2026-09-04T06:00:33.898Z",
+      "metadataCheckedAt": "2026-10-04T06:58:41.423Z",
       "validUntil": null,
       "qualityGates": {
         "automated": {
           "status": "passed",
           "adapterVersion": "rail-v1",
-          "checkedAt": "2026-09-04T06:00:33.898Z",
+          "checkedAt": "2026-10-04T06:58:41.423Z",
           "datasetSha256": "eb8d2f728f62d52b33b6b22c1664461b73f58ec30a22a55b6de87ac3274f677f"
         },
         "manualAudit": {
@@ -1288,10 +1288,10 @@
     "bus-new-taipei": {
       "id": "bus-new-taipei",
       "status": "official",
-      "version": "bus-new-taipei-2026-09-04",
-      "updatedAt": "2026-09-04T06:00:33.900Z",
-      "attemptedAt": "2026-09-04T06:00:33.898Z",
-      "recordCount": 2339,
+      "version": "bus-new-taipei-2026-10-04",
+      "updatedAt": "2026-10-04T06:58:41.425Z",
+      "attemptedAt": "2026-10-04T06:58:41.423Z",
+      "recordCount": 2323,
       "coverage": {
         "cities": [
           "new-taipei"
@@ -1329,11 +1329,11 @@
         ]
       },
       "downloadUrl": "https://data.ntpc.gov.tw/datasets/34b402a8-53d9-483d-9406-24a682c2d6dc",
-      "sha256": "9e644d65e4458be9e9366aae2723d857de6da9b27ef7e26cfed4a6a592103410",
+      "sha256": "c66dc516e9c51bedf76584f5eac6ad9296399d71eb5225c72cb37d9741941c3e",
       "matchingRate": null,
       "excluded": {
-        "invalidOrUnassigned": 25974,
-        "duplicateRouteStops": 4796
+        "invalidOrUnassigned": 26269,
+        "duplicateRouteStops": 4687
       },
       "lastAttempt": {
         "status": "success",
@@ -1370,7 +1370,7 @@
         "new-taipei/wanli/facilities/bus-new-taipei.geojson",
         "new-taipei/wulai/facilities/bus-new-taipei.geojson"
       ],
-      "metadataCheckedAt": "2026-09-04T06:00:33.898Z",
+      "metadataCheckedAt": "2026-10-04T06:58:41.423Z",
       "validUntil": null
     },
     "school": {
