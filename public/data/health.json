@@ -1,17 +1,17 @@
 {
   "schemaVersion": "1.0.0",
-  "generatedAt": "2026-10-06T07:38:22.380Z",
+  "generatedAt": "2026-10-12T06:17:34.733Z",
   "sources": {
     "actual-price": {
       "status": "official",
-      "updatedAt": "2026-10-02T05:41:44.609Z",
-      "attemptedAt": "2026-10-02T05:41:44.607Z",
+      "updatedAt": "2026-10-12T06:02:13.109Z",
+      "attemptedAt": "2026-10-12T06:02:13.108Z",
       "lastAttempt": {
         "status": "success",
         "message": "下載、schema 與品質檢查通過"
       },
-      "recordCount": 228056,
-      "matchingRate": 0.9941845764854614
+      "recordCount": 225038,
+      "matchingRate": 0.9941817057277286
     },
     "flood": {
       "status": "failed",
