@@ -1,7 +1,7 @@
 {
   "schemaVersion": "2.0.0",
-  "dataVersion": "production-2026-10-12",
-  "generatedAt": "2026-10-12T06:02:13.108Z",
+  "dataVersion": "production-2026-10-22",
+  "generatedAt": "2026-10-22T04:52:25.492Z",
   "mode": "production",
   "coverage": {
     "cities": [
@@ -62,11 +62,8 @@
   },
   "sources": {
     "actual-price": {
-      "id": "actual-price",
-      "status": "official",
       "version": "price-2026-10-12",
       "updatedAt": "2026-10-12T06:02:13.109Z",
-      "attemptedAt": "2026-10-12T06:02:13.108Z",
       "recordCount": 225038,
       "coverage": {
         "cities": [
@@ -136,10 +133,6 @@
         "ambiguousAddress": 97,
         "unmatchedAddress": 1220,
         "outOfBounds": 0
-      },
-      "lastAttempt": {
-        "status": "success",
-        "message": "下載、schema 與品質檢查通過"
       },
       "files": [
         "taipei/zhongzheng/transactions/2021.json",
@@ -374,6 +367,13 @@
         "new-taipei/wulai/transactions/2024.json",
         "new-taipei/wulai/transactions/2025.json"
       ],
+      "id": "actual-price",
+      "status": "failed",
+      "attemptedAt": "2026-10-22T04:52:25.492Z",
+      "lastAttempt": {
+        "status": "failed",
+        "message": "unzip a_lvr_land_a.csv: caution: filename not matched:  a_lvr_land_a.csv\n"
+      },
       "metadataCheckedAt": "2026-10-12T06:02:13.108Z",
       "validUntil": null,
       "qualityGates": {

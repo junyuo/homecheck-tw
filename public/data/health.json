@@ -1,14 +1,14 @@
 {
   "schemaVersion": "1.0.0",
-  "generatedAt": "2026-10-12T06:17:34.733Z",
+  "generatedAt": "2026-10-22T04:58:07.805Z",
   "sources": {
     "actual-price": {
-      "status": "official",
+      "status": "failed",
       "updatedAt": "2026-10-12T06:02:13.109Z",
-      "attemptedAt": "2026-10-12T06:02:13.108Z",
+      "attemptedAt": "2026-10-22T04:52:25.492Z",
       "lastAttempt": {
-        "status": "success",
-        "message": "下載、schema 與品質檢查通過"
+        "status": "failed",
+        "message": "unzip a_lvr_land_a.csv: caution: filename not matched:  a_lvr_land_a.csv\n"
       },
       "recordCount": 225038,
       "matchingRate": 0.9941817057277286
