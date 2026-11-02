@@ -1,7 +1,7 @@
 {
   "schemaVersion": "2.0.0",
-  "dataVersion": "production-2026-10-22",
-  "generatedAt": "2026-10-22T04:52:25.492Z",
+  "dataVersion": "production-2026-11-02",
+  "generatedAt": "2026-11-02T06:11:22.522Z",
   "mode": "production",
   "coverage": {
     "cities": [
@@ -62,9 +62,9 @@
   },
   "sources": {
     "actual-price": {
-      "version": "price-2026-10-12",
-      "updatedAt": "2026-10-12T06:02:13.109Z",
-      "recordCount": 225038,
+      "version": "price-2026-11-02",
+      "updatedAt": "2026-11-02T06:11:22.524Z",
+      "recordCount": 220711,
       "coverage": {
         "cities": [
           "taipei",
@@ -123,15 +123,15 @@
         ]
       },
       "downloadUrl": "https://data.gov.tw/dataset/25119",
-      "sha256": "978833400c9ecaa1377a3f4b1720d7b3873dabda6f1d6acb931c8b46da14e06d",
-      "matchingRate": 0.9941817057277286,
+      "sha256": "cf5852e06cfde62dc90f286add79636d1836f000463de5ae55ae7c337f4a835f",
+      "matchingRate": 0.9941533901778756,
       "excluded": {
-        "nonResidentialTarget": 60231,
-        "unsupportedBuilding": 55105,
-        "outsideWindow": 58671,
-        "invalidCoreFields": 5980,
+        "nonResidentialTarget": 60267,
+        "unsupportedBuilding": 55095,
+        "outsideWindow": 63628,
+        "invalidCoreFields": 5823,
         "ambiguousAddress": 97,
-        "unmatchedAddress": 1220,
+        "unmatchedAddress": 1201,
         "outOfBounds": 0
       },
       "files": [
@@ -368,20 +368,20 @@
         "new-taipei/wulai/transactions/2025.json"
       ],
       "id": "actual-price",
-      "status": "failed",
-      "attemptedAt": "2026-10-22T04:52:25.492Z",
+      "status": "official",
+      "attemptedAt": "2026-11-02T06:11:22.522Z",
       "lastAttempt": {
-        "status": "failed",
-        "message": "unzip a_lvr_land_a.csv: caution: filename not matched:  a_lvr_land_a.csv\n"
+        "status": "success",
+        "message": "下載、schema 與品質檢查通過"
       },
-      "metadataCheckedAt": "2026-10-12T06:02:13.108Z",
+      "metadataCheckedAt": "2026-11-02T06:11:22.522Z",
       "validUntil": null,
       "qualityGates": {
         "automated": {
           "status": "passed",
           "adapterVersion": "price-v1",
-          "checkedAt": "2026-10-12T06:02:13.108Z",
-          "datasetSha256": "ff2f972cc192033293b777bc6c8dd037165ac7684eb32d1d4db07271a8f42faf"
+          "checkedAt": "2026-11-02T06:11:22.522Z",
+          "datasetSha256": "3102d179bb41429703e460743bf7ba36b87fdfa558e600a95413905b7c227208"
         },
         "manualAudit": {
           "status": "passed",
