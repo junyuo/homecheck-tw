@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "generatedAt": "2026-11-04T07:31:06.820Z",
+  "generatedAt": "2026-11-05T08:13:42.451Z",
   "sources": {
     "actual-price": {
       "status": "official",
@@ -82,7 +82,7 @@
     "school": {
       "status": "failed",
       "updatedAt": "2026-07-21T02:58:41.233Z",
-      "attemptedAt": "2026-10-05T07:01:19.291Z",
+      "attemptedAt": "2026-11-05T07:54:34.397Z",
       "lastAttempt": {
         "status": "failed",
         "message": "junior 最新學年度 115，預期 114"
@@ -97,8 +97,8 @@
     },
     "medical": {
       "status": "official",
-      "updatedAt": "2026-10-05T07:01:19.293Z",
-      "attemptedAt": "2026-10-05T07:01:19.291Z",
+      "updatedAt": "2026-11-05T07:54:34.398Z",
+      "attemptedAt": "2026-11-05T07:54:34.397Z",
       "lastAttempt": {
         "status": "success",
         "message": "下載、schema 與品質檢查通過"
@@ -109,7 +109,7 @@
     "park": {
       "status": "failed",
       "updatedAt": null,
-      "attemptedAt": "2026-10-05T07:01:19.291Z",
+      "attemptedAt": "2026-11-05T07:54:34.397Z",
       "lastAttempt": {
         "status": "failed",
         "message": "fetch failed"
@@ -130,19 +130,19 @@
     },
     "parking": {
       "status": "official",
-      "updatedAt": "2026-10-05T07:01:19.293Z",
-      "attemptedAt": "2026-10-05T07:01:19.291Z",
+      "updatedAt": "2026-11-05T07:54:34.398Z",
+      "attemptedAt": "2026-11-05T07:54:34.397Z",
       "lastAttempt": {
         "status": "success",
         "message": "下載、schema 與品質檢查通過"
       },
-      "recordCount": 2613,
+      "recordCount": 2622,
       "matchingRate": null
     },
     "library": {
       "status": "official",
-      "updatedAt": "2026-10-05T07:24:33.019Z",
-      "attemptedAt": "2026-10-05T07:01:19.291Z",
+      "updatedAt": "2026-11-05T08:13:36.665Z",
+      "attemptedAt": "2026-11-05T07:54:34.397Z",
       "lastAttempt": {
         "status": "success",
         "message": "下載、schema 與品質檢查通過"

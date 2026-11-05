@@ -1,7 +1,7 @@
 {
   "schemaVersion": "2.0.0",
-  "dataVersion": "production-2026-11-04",
-  "generatedAt": "2026-11-04T07:30:49.118Z",
+  "dataVersion": "production-2026-11-05",
+  "generatedAt": "2026-11-05T07:54:34.397Z",
   "mode": "production",
   "coverage": {
     "cities": [
@@ -1478,7 +1478,7 @@
       ],
       "id": "school",
       "status": "failed",
-      "attemptedAt": "2026-10-05T07:01:19.291Z",
+      "attemptedAt": "2026-11-05T07:54:34.397Z",
       "lastAttempt": {
         "status": "failed",
         "message": "junior 最新學年度 115，預期 114"
@@ -1512,9 +1512,9 @@
     "medical": {
       "id": "medical",
       "status": "official",
-      "version": "medical-2026-10-05",
-      "updatedAt": "2026-10-05T07:01:19.293Z",
-      "attemptedAt": "2026-10-05T07:01:19.291Z",
+      "version": "medical-2026-11-05",
+      "updatedAt": "2026-11-05T07:54:34.398Z",
+      "attemptedAt": "2026-11-05T07:54:34.397Z",
       "recordCount": 64,
       "coverage": {
         "cities": [
@@ -1621,14 +1621,14 @@
         "new-taipei/wanli/facilities/medical.geojson",
         "new-taipei/wulai/facilities/medical.geojson"
       ],
-      "metadataCheckedAt": "2026-10-05T07:01:19.291Z",
+      "metadataCheckedAt": "2026-11-05T07:54:34.397Z",
       "validUntil": null,
       "qualityGates": {
         "automated": {
           "status": "passed",
           "adapterVersion": "facilities-v1",
-          "checkedAt": "2026-10-05T07:01:19.291Z",
-          "datasetSha256": "f4d6e03f338a731abea987ab922d962e5d014a71040babcd863adf70610db917"
+          "checkedAt": "2026-11-05T07:54:34.397Z",
+          "datasetSha256": "cfb0120becb4b0321fbf6a1a2b117a93da857847ba60dae125c2754040aedd10"
         },
         "manualAudit": {
           "status": "passed",
@@ -1657,7 +1657,7 @@
       "files": [],
       "id": "park",
       "status": "failed",
-      "attemptedAt": "2026-10-05T07:01:19.291Z",
+      "attemptedAt": "2026-11-05T07:54:34.397Z",
       "lastAttempt": {
         "status": "failed",
         "message": "fetch failed"
@@ -1687,10 +1687,10 @@
     "parking": {
       "id": "parking",
       "status": "official",
-      "version": "parking-2026-10-05",
-      "updatedAt": "2026-10-05T07:01:19.293Z",
-      "attemptedAt": "2026-10-05T07:01:19.291Z",
-      "recordCount": 2613,
+      "version": "parking-2026-11-05",
+      "updatedAt": "2026-11-05T07:54:34.398Z",
+      "attemptedAt": "2026-11-05T07:54:34.397Z",
+      "recordCount": 2622,
       "coverage": {
         "cities": [
           "taipei",
@@ -1741,11 +1741,11 @@
         ]
       },
       "downloadUrl": "https://data.taipei/dataset/detail?id=d5c0656b-5250-4179-a491-c94daa56ef2c",
-      "sha256": "003f67a1c1a4cf001185af28f53be6f5da722e1745f212929a3ae75a1b9112a8",
+      "sha256": "e3872fb702dda852c2bbcbc97d6f1da844a49b09f94b606e0af0b9f2ba2497b3",
       "matchingRate": null,
       "excluded": {
-        "districtMismatch": 27,
-        "invalidCoreFields": 108,
+        "districtMismatch": 26,
+        "invalidCoreFields": 110,
         "duplicateCoordinate": 2,
         "duplicateId": 7
       },
@@ -1796,14 +1796,14 @@
         "new-taipei/wanli/facilities/parking.geojson",
         "new-taipei/wulai/facilities/parking.geojson"
       ],
-      "metadataCheckedAt": "2026-10-05T07:01:19.291Z",
+      "metadataCheckedAt": "2026-11-05T07:54:34.397Z",
       "validUntil": null,
       "qualityGates": {
         "automated": {
           "status": "passed",
           "adapterVersion": "facilities-v1",
-          "checkedAt": "2026-10-05T07:01:19.291Z",
-          "datasetSha256": "1718bcd60c17912ef2f9d9580dc5b9a4e9b671eac535165385d2af2509f67e3d"
+          "checkedAt": "2026-11-05T07:54:34.397Z",
+          "datasetSha256": "88475566a65c9e3a88104ff5a9a179201173063cb9ad5df09cbb04acaa840643"
         },
         "manualAudit": {
           "status": "passed",
@@ -1820,9 +1820,9 @@
     "library": {
       "id": "library",
       "status": "official",
-      "version": "library-2026-10-05",
-      "updatedAt": "2026-10-05T07:24:33.019Z",
-      "attemptedAt": "2026-10-05T07:01:19.291Z",
+      "version": "library-2026-11-05",
+      "updatedAt": "2026-11-05T08:13:36.665Z",
+      "attemptedAt": "2026-11-05T07:54:34.397Z",
       "recordCount": 161,
       "coverage": {
         "cities": [
@@ -1874,7 +1874,7 @@
         ]
       },
       "downloadUrl": "https://data.gov.tw/dataset/99567",
-      "sha256": "19e6d9b0b73ecafaf0acaf78ce4af1e7ce49b732cad432696949505ffb8b0665",
+      "sha256": "b435a1f8611636dfc5a32cb3ab8c483c2cf48c918d231524bbfe60b95f1a618b",
       "matchingRate": null,
       "excluded": {},
       "lastAttempt": {
@@ -1924,14 +1924,14 @@
         "new-taipei/wanli/facilities/library.geojson",
         "new-taipei/wulai/facilities/library.geojson"
       ],
-      "metadataCheckedAt": "2026-10-05T07:01:19.291Z",
+      "metadataCheckedAt": "2026-11-05T07:54:34.397Z",
       "validUntil": null,
       "qualityGates": {
         "automated": {
           "status": "passed",
           "adapterVersion": "library-v1",
-          "checkedAt": "2026-10-05T07:01:19.291Z",
-          "datasetSha256": "e0166ff80a2b73f64687eddc9ba1dbc1cce87553a0f15cea97c68a635db10638"
+          "checkedAt": "2026-11-05T07:54:34.397Z",
+          "datasetSha256": "90edb3f32eb798b5221db050ad06662969ecd740b2f6338e3edbf82617274725"
         },
         "manualAudit": {
           "status": "passed",
