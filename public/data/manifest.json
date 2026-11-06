@@ -1,7 +1,7 @@
 {
   "schemaVersion": "2.0.0",
-  "dataVersion": "production-2026-11-05",
-  "generatedAt": "2026-11-05T07:54:34.397Z",
+  "dataVersion": "production-2026-11-06",
+  "generatedAt": "2026-11-06T07:57:51.609Z",
   "mode": "production",
   "coverage": {
     "cities": [
@@ -1950,7 +1950,7 @@
       "status": "official",
       "version": "accidents-2023-2025-0fdb0996",
       "updatedAt": "2026-07-21T00:56:24.561Z",
-      "attemptedAt": "2026-10-06T07:36:40.517Z",
+      "attemptedAt": "2026-11-06T07:57:51.609Z",
       "recordCount": 218122,
       "coverage": {
         "cities": [
@@ -2146,13 +2146,13 @@
         "new-taipei/wulai/accidents/2024.json",
         "new-taipei/wulai/accidents/2025.json"
       ],
-      "metadataCheckedAt": "2026-10-06T07:36:40.518Z",
+      "metadataCheckedAt": "2026-11-06T07:57:51.610Z",
       "validUntil": null,
       "qualityGates": {
         "automated": {
           "status": "passed",
           "adapterVersion": "accidents-v1",
-          "checkedAt": "2026-10-06T07:36:40.517Z",
+          "checkedAt": "2026-11-06T07:57:51.609Z",
           "datasetSha256": "00a9e6b7f79cad60510d1f45696a7560fff359b0fb356ead7ae7939b7cd30939"
         },
         "manualAudit": {
